@@ -54,6 +54,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 	statusBar()->addPermanentWidget(m_statusBarLabel);
 
+	m_portSelect->addItem("Loopback");
 	for (qint32 baud : QSerialPortInfo::standardBaudRates())
 		m_baudRateSelect->addItem(QString::number(baud));
 	m_dataBitsSelect->addItems({"5", "6", "7", "8"});
