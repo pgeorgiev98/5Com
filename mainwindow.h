@@ -55,6 +55,7 @@ public slots:
 private:
 	qint64 m_totalBytesWritten;
 	QByteArray m_receivedData;
+	int m_continuousPacketsSent;
 
 	QLabel *m_statusBarLabel;
 

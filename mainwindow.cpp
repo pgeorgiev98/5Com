@@ -33,6 +33,7 @@
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, m_totalBytesWritten(0)
+	, m_continuousPacketsSent(0)
 	, m_statusBarLabel(new QLabel)
 	, m_portSelect(new QComboBox)
 	, m_baudRateSelect(new QComboBox)
@@ -540,7 +541,6 @@ void MainWindow::refreshPorts()
 	}
 }
 
-static int packetsSent = 0;
 void MainWindow::continuousSend()
 {
 	if (m_continuousSendDialog) {
@@ -611,18 +611,18 @@ void MainWindow::continuousSend()
 		layout->setCurrentIndex(0);
 	};
 
-	auto sendPacket = [&packetsSent, this, input, sendIndefinitely, packetCount, text, cancel]() {
+	auto sendPacket = [this, input, sendIndefinitely, packetCount, text, cancel]() {
 		sendData(input->text());
-		++packetsSent;
-		text->setText(QString::number(packetsSent) + " messages sent");
-		if (!sendIndefinitely->isChecked() && packetsSent >= packetCount->value())
+		++m_continuousPacketsSent;
+		text->setText(QString::number(m_continuousPacketsSent) + " messages sent");
+		if (!sendIndefinitely->isChecked() && m_continuousPacketsSent >= packetCount->value())
 			cancel();
 	};
 
-	connect(sendButton, &QPushButton::clicked, [sendTimer, &packetsSent, input, layout, interval, text, sendPacket]() {
+	connect(sendButton, &QPushButton::clicked, [this, sendTimer, input, layout, interval, text, sendPacket]() {
 		if (input->text().isEmpty())
 			return;
-		packetsSent = 0;
+		m_continuousPacketsSent = 0;
 		text->setText("0 messages sent");
 		layout->setCurrentIndex(1);
 		sendPacket();
