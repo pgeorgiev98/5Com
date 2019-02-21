@@ -777,7 +777,8 @@ void MainWindow::showByteReceiveTimes()
 void MainWindow::showLicense()
 {
 	QFile file(":/LICENSE.txt");
-	Q_ASSERT(file.open(QIODevice::ReadOnly));
+	bool fileOpened = file.open(QIODevice::ReadOnly);
+	Q_ASSERT(fileOpened);
 	QString text = file.readAll();
 	QMessageBox::about(this, "MIT License", text);
 }
