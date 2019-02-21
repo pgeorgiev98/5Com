@@ -37,7 +37,8 @@ HEADERS += \
     asciitable.h \
     bytereceivetimesdialog.h \
     sendfiledialog.h \
-    plaintextview.h
+    plaintextview.h \
+    common.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

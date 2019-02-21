@@ -4,6 +4,7 @@
 #include "asciitable.h"
 #include "bytereceivetimesdialog.h"
 #include "sendfiledialog.h"
+#include "common.h"
 #include <QComboBox>
 #include <QLineEdit>
 #include <QPlainTextEdit>
@@ -26,9 +27,6 @@
 #include <QStatusBar>
 #include <QTimer>
 #include <QTime>
-
-#define APPLICATION_NAME "5Com"
-#define VERSION "0.1.0"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
