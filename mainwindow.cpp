@@ -152,6 +152,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 	QAction *writeFile = new QAction("Write &file");
 	QAction *exportAction = new QAction("&Export");
+	QAction *exitAction = new QAction("&Exit");
 	QAction *continuousSendAction = new QAction("&Continuous send");
 	QAction *pinoutSignalsAction = new QAction("&Pinout signals");
 	QAction *byteReceiveTimesAction = new QAction("&Byte receive times");
@@ -165,6 +166,7 @@ MainWindow::MainWindow(QWidget *parent)
 	auto fileMenu = menuBar()->addMenu("&File");
 	fileMenu->addAction(writeFile);
 	fileMenu->addAction(exportAction);
+	fileMenu->addAction(exitAction);
 
 	auto toolsMenu = menuBar()->addMenu("&Tools");
 	toolsMenu->addAction(continuousSendAction);
@@ -181,6 +183,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 	connect(writeFile, &QAction::triggered, this, &MainWindow::sendFromFile);
 	connect(exportAction, &QAction::triggered, this, &MainWindow::exportData);
+	connect(exitAction, &QAction::triggered, this, &QMainWindow::close);
 	connect(continuousSendAction, &QAction::triggered, this, &MainWindow::continuousSend);
 	connect(pinoutSignalsAction, &QAction::triggered, this, &MainWindow::showPinoutSignals);
 	connect(byteReceiveTimesAction, &QAction::triggered, this, &MainWindow::showByteReceiveTimes);
