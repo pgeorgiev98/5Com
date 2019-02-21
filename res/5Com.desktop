@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=5Com
+Encoding=UTF-8
+Categories=Utility;System;Qt;
+Keywords=serial;port;com;
+Exec=5Com 
+Comment=Serial port access application
+Icon=5Com.png
+Terminal=false
