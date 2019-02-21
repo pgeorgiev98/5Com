@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets serialport
+QT += core gui widgets serialport
 
 TARGET = 5Com
 TEMPLATE = app
@@ -23,8 +23,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11 static
 
 SOURCES += \
-        main.cpp \
-        mainwindow.cpp \
+    main.cpp \
+    mainwindow.cpp \
     hexview.cpp \
     asciitable.cpp \
     bytereceivetimesdialog.cpp \
@@ -32,7 +32,7 @@ SOURCES += \
     plaintextview.cpp
 
 HEADERS += \
-        mainwindow.h \
+    mainwindow.h \
     hexview.h \
     asciitable.h \
     bytereceivetimesdialog.h \
@@ -40,16 +40,9 @@ HEADERS += \
     plaintextview.h \
     common.h
 
-# Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
+RESOURCES += resources.qrc
 
 win32: QMAKE_LFLAGS_RELEASE += -static-libstdc++ -static-libgcc -static -lpthread
-
-RESOURCES += \
-    resources.qrc
-
 win32:RC_ICONS = res/5Com.ico
 
 unix:!macx: include(unixconf.pri)
