@@ -785,10 +785,12 @@ void MainWindow::showLicense()
 void MainWindow::showAboutPage()
 {
 	QMessageBox::about(this, APPLICATION_NAME,
-	tr("<p><b>" APPLICATION_NAME "</b> is a free serial port access "
+	tr("<p><b>" APPLICATION_NAME "</b> is a free, open-source serial port access "
 	   "application for Linux and Windows written in C++ with Qt5.</p>"
-	   "<p>You are currently using <b>version " VERSION "</b></p>"
-	   "<p>It is licensed under the <a href=\"https://opensource.org/licenses/MIT\">MIT License</a></p>"));
+	   "<p>You are currently using <b>version " VERSION "</b>.</p>"
+	   "<p>It is licensed under the <a href=\"https://opensource.org/licenses/MIT\">MIT License</a>.</p>"
+	   "<p>The source code can be found <a href=\"https://github.com/pgeorgiev98/5Com\">here</a>.<br/>"
+	   "and other releases can be found <a href=\"https://github.com/pgeorgiev98/5Com/releases\">here</a>.</p>"));
 
 }
 
