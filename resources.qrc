@@ -2,6 +2,6 @@
 <RCC version="1.0">
 <qresource>
 <file alias="icon.ico">res/5Com.ico</file>
-<file alias="LICENSE.txt">LICENSE.txt</file>
+<file alias="LICENSE.txt">res/LICENSE.txt</file>
 </qresource>
 </RCC>
