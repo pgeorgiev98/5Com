@@ -164,6 +164,11 @@ MainWindow::MainWindow(QWidget *parent)
 	QAction *aboutQtAction = new QAction("About &Qt");
 	QAction *aboutAction = new QAction("&About");
 
+	writeFile->setShortcut(QKeySequence::Open);
+	exportAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
+	exitAction->setShortcut(QKeySequence::Quit);
+	clearScreenAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_L));
+
 	auto fileMenu = menuBar()->addMenu("&File");
 	fileMenu->addAction(writeFile);
 	fileMenu->addAction(exportAction);
