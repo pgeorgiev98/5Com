@@ -153,7 +153,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 	QAction *writeFile = new QAction("Write &file");
 	QAction *exportAction = new QAction("&Export");
-	QAction *exitAction = new QAction("&Exit");
+	QAction *exitAction = new QAction("E&xit");
 	QAction *continuousSendAction = new QAction("&Continuous send");
 	QAction *pinoutSignalsAction = new QAction("&Pinout signals");
 	QAction *byteReceiveTimesAction = new QAction("&Byte receive times");
