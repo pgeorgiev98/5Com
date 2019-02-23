@@ -346,6 +346,12 @@ void MainWindow::closePort()
 	m_portSelect->setEnabled(true);
 
 	m_connectButton->setText(" Connect  ");
+
+	// Close the pinout signals dialog if it's opened
+	if (m_pinoutSignalsDialog) {
+		m_pinoutSignalsDialog->deleteLater();
+		m_pinoutSignalsDialog = nullptr;
+	}
 }
 
 void MainWindow::displayData(const QByteArray &data)
