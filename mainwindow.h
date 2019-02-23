@@ -76,6 +76,8 @@ private:
 	QDialog *m_continuousSendDialog;
 	QDialog *m_pinoutSignalsDialog;
 	ByteReceiveTimesDialog *m_byteReceiveTimesDialog;
+	QDialog *m_asciiTableDialog;
+	QDialog *m_escapeCodesDialog;
 };
 
 #endif // MAINWINDOW_H

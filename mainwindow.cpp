@@ -2,6 +2,7 @@
 #include "hexview.h"
 #include "plaintextview.h"
 #include "asciitable.h"
+#include "escapecodesdialog.h"
 #include "bytereceivetimesdialog.h"
 #include "sendfiledialog.h"
 #include "common.h"
@@ -48,6 +49,8 @@ MainWindow::MainWindow(QWidget *parent)
 	, m_continuousSendDialog(nullptr)
 	, m_pinoutSignalsDialog(nullptr)
 	, m_byteReceiveTimesDialog(nullptr)
+	, m_asciiTableDialog(new AsciiTable(this))
+	, m_escapeCodesDialog(new EscapeCodesDialog(this))
 {
 	setMinimumSize(640, 480);
 	setWindowIcon(QIcon(":/icon.ico"));
@@ -378,30 +381,16 @@ void MainWindow::toggleConnect()
 
 void MainWindow::showAsciiTable()
 {
-	AsciiTable asciiTable;
-	asciiTable.exec();
+	m_asciiTableDialog->show();
+	m_asciiTableDialog->activateWindow();
+	m_asciiTableDialog->raise();
 }
 
 void MainWindow::showEscapeCodes()
 {
-	QString text = "\
-Escape codes:\n\n\
-\\\\   - Backslash (\\)\n\
-\\n   - Linefeed (LF)\n\
-\\r   - Carriage return (CR)\n\
-\\t   - Horizontal Tab\n\
-\\xHH - Byte with a hex value of HH\
-";
-	QDialog dialog(this);
-	QHBoxLayout *layout = new QHBoxLayout;
-	QLabel *label = new QLabel;
-	label->setText(text);
-	label->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
-	label->setWordWrap(true);
-	label->setTextFormat(Qt::TextFormat::PlainText);
-	layout->addWidget(label);
-	dialog.setLayout(layout);
-	dialog.exec();
+	m_escapeCodesDialog->show();
+	m_escapeCodesDialog->activateWindow();
+	m_escapeCodesDialog->raise();
 }
 
 void MainWindow::sendFromFile()

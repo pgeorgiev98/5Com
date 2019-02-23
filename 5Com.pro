@@ -29,7 +29,8 @@ SOURCES += \
     asciitable.cpp \
     bytereceivetimesdialog.cpp \
     sendfiledialog.cpp \
-    plaintextview.cpp
+    plaintextview.cpp \
+    escapecodesdialog.cpp
 
 HEADERS += \
     mainwindow.h \
@@ -38,7 +39,8 @@ HEADERS += \
     bytereceivetimesdialog.h \
     sendfiledialog.h \
     plaintextview.h \
-    common.h
+    common.h \
+    escapecodesdialog.h
 
 RESOURCES += resources.qrc
 
