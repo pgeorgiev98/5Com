@@ -19,46 +19,103 @@ HexView::HexView(QWidget *parent)
 
 void HexView::insertData(const QByteArray &data)
 {
+	static auto toHex = [](int n) -> char {
+		if (n < 10)
+			return char(n + '0');
+		else
+			return char(n - 10 + 'A');
+	};
+
 	int scrollValue = m_plainTextEdit->verticalScrollBar()->value();
 	bool atBottom = scrollValue == m_plainTextEdit->verticalScrollBar()->maximum();
-	const int lineLenght = 48 + 18 + 1;
-	int lines = m_text.size() / lineLenght;
-	m_plainTextEdit->insertPlainText(data);
-	for (int i = 0; i < data.size(); ++i) {
-		if (m_bytes % 16 == 0) {
-			++lines;
-			for (int i = 0; i < lineLenght - 1; ++i)
-				m_text.append(' ');
-			m_text.append('\n');
+
+	const int lineLength = 48 + 18 + 1;
+	int i = 0;
+	int bytesToWrite = 16 - m_bytes % 16;
+	if (bytesToWrite != 16) {
+		m_plainTextEdit->moveCursor(QTextCursor::End);
+		QTextCursor cursor = m_plainTextEdit->textCursor();
+
+		int byteInLine = m_bytes % 16;
+
+		int lineCursorPosition = byteInLine * 3;
+		if (byteInLine >= 8)
+			++lineCursorPosition;
+		int lines = m_bytes / 16;
+		cursor.setPosition(lines * lineLength + lineCursorPosition);
+
+		for (i = 0; i < data.size() && i < bytesToWrite; ++i) {
+			unsigned char byte = static_cast<unsigned char>(data[i]);
+
+			QString byteString(2, ' ');
+			byteString[1] = toHex((byte & 0x0F));
+			byteString[0] = toHex(((byte >> 4) & 0x0F));
+			cursor.deleteChar();
+			cursor.deleteChar();
+			cursor.insertText(byteString);
+			cursor.setPosition(cursor.position() + (byteInLine == 7 ? 2 : 1));
+
+			++byteInLine;
 		}
 
-		int hexOffset = (lines - 1) * lineLenght;
-		hexOffset += (m_bytes % 16) * 3;
-		if (m_bytes % 16 >= 8)
-			++hexOffset;
-
-		auto toHex = [](int n) -> char {
-			if (n < 10)
-				return char(n + '0');
+		byteInLine = m_bytes % 16;
+		cursor.setPosition(lines * lineLength + 48 + 2 + byteInLine);
+		QString text;
+		for (i = 0; i < data.size() && i < bytesToWrite; ++i) {
+			unsigned char byte = static_cast<unsigned char>(data[i]);
+			char normalizedByte;
+			if (byte >= 32 && byte <= 126)
+				normalizedByte = char(byte);
 			else
-				return char(n - 10 + 'A');
-		};
+				normalizedByte = '.';
+			text.append(normalizedByte);
+			cursor.deleteChar();
+		}
+		cursor.insertText(text);
 
-		unsigned char b = (unsigned char)data[i];
-		m_text[hexOffset++] = toHex((b >> 4) & 0xF);
-		m_text[hexOffset++] = toHex(b & 0xF);
-
-		int charOffset = (lines - 1) * lineLenght;
-		charOffset += 48 + 2;
-		charOffset += (m_bytes % 16);
-		if (b >= 32 && b <= 126)
-			m_text[charOffset] = b;
-		else
-			m_text[charOffset] = '.';
-
-		++m_bytes;
+		m_bytes += qMin(data.size(), bytesToWrite);
 	}
-	m_plainTextEdit->setPlainText(m_text);
+
+	int bytesToPrint = (data.size() - i);
+
+	if (bytesToPrint == 0)
+		return;
+
+	int linesToPrint = bytesToPrint / 16;
+	if (bytesToPrint % 16 != 0)
+		++linesToPrint;
+
+	QString text(lineLength * linesToPrint, ' ');
+	for (int l = 0; l < linesToPrint; ++l)
+		text[lineLength * l + lineLength - 1] = '\n';
+
+	int line = 0;
+	while (i < data.size()) {
+		for (int byteInLine = 0; byteInLine < 16 && i < data.size(); ++byteInLine) {
+			unsigned char byte = static_cast<unsigned char>(data[i++]);
+
+			int position1 = byteInLine * 3;
+			if (byteInLine >= 8)
+				++position1;
+
+			int position2 = 48 + 2 + byteInLine;
+
+			int lineStart = line * lineLength;
+			text[lineStart + position1] = toHex(((byte >> 4) & 0x0F));
+			text[lineStart + position1 + 1] = toHex((byte & 0x0F));
+
+			char normalizedByte;
+			if (byte >= 32 && byte <= 126)
+				normalizedByte = char(byte);
+			else
+				normalizedByte = '.';
+			text[lineStart + position2] = normalizedByte;
+		}
+		++line;
+	}
+
+	m_plainTextEdit->insertPlainText(text);
+	m_bytes += bytesToPrint;
 
 	if (atBottom)
 		m_plainTextEdit->verticalScrollBar()->setValue(m_plainTextEdit->verticalScrollBar()->maximum());
