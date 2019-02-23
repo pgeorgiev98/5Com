@@ -567,10 +567,6 @@ void MainWindow::continuousSend()
 		return;
 	}
 
-	if (!m_opened)
-		if (!openPort())
-			return;
-
 	QDialog *dialog = new QDialog(this);
 	if (m_continuousSendDialog)
 		delete m_continuousSendDialog;
@@ -639,6 +635,9 @@ void MainWindow::continuousSend()
 	connect(sendButton, &QPushButton::clicked, [this, sendTimer, input, layout, interval, text, sendPacket]() {
 		if (input->text().isEmpty())
 			return;
+		if (!m_opened)
+			if (!openPort())
+				return;
 		m_continuousPacketsSent = 0;
 		text->setText("0 messages sent");
 		layout->setCurrentIndex(1);
