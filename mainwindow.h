@@ -30,7 +30,6 @@ private slots:
 	void toggleConnect();
 	void readFromPort();
 	void refreshPorts();
-	void onPortSelectChanged();
 
 signals:
 	void bytesWritten(qint64 bytes);

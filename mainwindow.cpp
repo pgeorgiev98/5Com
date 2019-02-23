@@ -203,14 +203,24 @@ MainWindow::MainWindow(QWidget *parent)
 	refreshPorts();
 	if (m_portSelect->count() > 1)
 		m_portSelect->setCurrentIndex(1);
-	onPortSelectChanged();
 
 	QTimer *refreshTimer = new QTimer(this);
 	refreshTimer->start(2000);
 	connect(refreshTimer, &QTimer::timeout, this, &MainWindow::refreshPorts);
 
 	connect(m_port, &QSerialPort::readyRead, this, &MainWindow::readFromPort);
-	connect(m_portSelect, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &MainWindow::onPortSelectChanged);
+
+	// Disable some things depending on which port is selected
+	auto onSelectedPortChanged = [this, pinoutSignalsAction](int index) {
+		bool usingLoopback = (index == 0);
+		// Disable the pinout signals action for the Loopback device
+		pinoutSignalsAction->setDisabled(usingLoopback);
+		// Disable the port settings for the Loopback device
+		for (QWidget *w : {m_baudRateSelect, m_dataBitsSelect, m_paritySelect, m_stopBitsSelect})
+			w->setDisabled(usingLoopback);
+	};
+	connect(m_portSelect, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), onSelectedPortChanged);
+	onSelectedPortChanged(m_portSelect->currentIndex());
 
 	connect(m_port, static_cast<void(QSerialPort::*)(QSerialPort::SerialPortError)>(&QSerialPort::error), [this](QSerialPort::SerialPortError error) {
 		if (error != QSerialPort::SerialPortError::NoError && m_port->isOpen()) {
@@ -646,13 +656,6 @@ void MainWindow::continuousSend()
 		delete m_continuousSendDialog;
 		m_continuousSendDialog = nullptr;
 	});
-}
-
-void MainWindow::onPortSelectChanged()
-{
-	bool enabled = m_portSelect->currentIndex() != 0;
-	for (QWidget *w : {m_baudRateSelect, m_dataBitsSelect, m_paritySelect, m_stopBitsSelect})
-		w->setEnabled(enabled);
 }
 
 void MainWindow::clearScreen()
