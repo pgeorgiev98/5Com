@@ -226,9 +226,9 @@ MainWindow::MainWindow(QWidget *parent)
 	onSelectedPortChanged(m_portSelect->currentIndex());
 
 	connect(m_port, static_cast<void(QSerialPort::*)(QSerialPort::SerialPortError)>(&QSerialPort::error), [this](QSerialPort::SerialPortError error) {
-		if (error != QSerialPort::SerialPortError::NoError && m_port->isOpen()) {
-			QMessageBox::critical(this, APPLICATION_NAME, "Serial port error: " + m_port->errorString());
+		if (error != QSerialPort::SerialPortError::NoError && m_opened) {
 			closePort();
+			QMessageBox::critical(this, APPLICATION_NAME, "Serial port error: " + m_port->errorString());
 		}
 	});
 
