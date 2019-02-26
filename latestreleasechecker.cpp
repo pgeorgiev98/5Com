@@ -11,12 +11,22 @@
 
 #include <QDebug>
 
+static LatestReleaseChecker *s_instance = nullptr;
+
 LatestReleaseChecker::LatestReleaseChecker(QObject *parent)
 	: QObject(parent)
 	, m_manager(new QNetworkAccessManager(this))
 {
+	Q_ASSERT(s_instance == nullptr);
+	s_instance = this;
 	connect(m_manager, &QNetworkAccessManager::finished,
 			this, &LatestReleaseChecker::onRequestFinished);
+}
+
+LatestReleaseChecker *LatestReleaseChecker::instance()
+{
+	Q_ASSERT(s_instance != nullptr);
+	return s_instance;
 }
 
 void LatestReleaseChecker::checkLatestRelease()

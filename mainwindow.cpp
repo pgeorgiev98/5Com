@@ -57,6 +57,11 @@ MainWindow::MainWindow(QWidget *parent)
 	setMinimumSize(640, 480);
 	setWindowIcon(QIcon(":/icon.ico"));
 
+	LatestReleaseChecker *latestReleaseChecker = new LatestReleaseChecker(this);
+	QLabel *updateStatusBarLabel = new QLabel("Checking latest version...");
+	updateStatusBarLabel->setOpenExternalLinks(true);
+
+	statusBar()->addWidget(updateStatusBarLabel);
 	statusBar()->addPermanentWidget(m_statusBarLabel);
 
 	m_portSelect->addItem("Loopback");
@@ -243,6 +248,20 @@ MainWindow::MainWindow(QWidget *parent)
 		m_totalBytesWritten += bytes;
 		refreshStatusBar();
 	});
+
+	// For the automatic update checking
+
+	connect(latestReleaseChecker, &LatestReleaseChecker::failedToGetLatestRelease, [updateStatusBarLabel]() {
+		updateStatusBarLabel->setText("Failed to get check latest version");
+	});
+	connect(latestReleaseChecker, &LatestReleaseChecker::latestReleaseFound, [updateStatusBarLabel](const LatestReleaseChecker::Release &release) {
+		if (release.isNewerThan(VERSION))
+			updateStatusBarLabel->setText(QString("Newer version: <a href=\"%1\">%2</a>").arg(release.url).arg(release.versionString));
+		else
+			updateStatusBarLabel->setText("Application is up to date");
+	});
+
+	latestReleaseChecker->checkLatestRelease();
 }
 
 MainWindow::~MainWindow()
@@ -785,7 +804,7 @@ void MainWindow::showByteReceiveTimes()
 
 void MainWindow::showCheckForUpdates()
 {
-	LatestReleaseChecker checker;
+	LatestReleaseChecker *checker = LatestReleaseChecker::instance();
 	QDialog dialog(this);
 
 	QVBoxLayout *layout = new QVBoxLayout;
@@ -811,15 +830,15 @@ void MainWindow::showCheckForUpdates()
 
 	stackedLayout->setCurrentIndex(0);
 
-	checker.checkLatestRelease();
+	checker->checkLatestRelease();
 
-	connect(&checker, &LatestReleaseChecker::failedToGetLatestRelease,
+	auto con1 = connect(checker, &LatestReleaseChecker::failedToGetLatestRelease,
 			[latestReleaseLabel, stackedLayout](const QString &errorMessage) {
 		latestReleaseLabel->setText("Error: " + errorMessage);
 		stackedLayout->setCurrentIndex(1);
 	});
 
-	connect(&checker, &LatestReleaseChecker::latestReleaseFound,
+	auto con2 = connect(checker, &LatestReleaseChecker::latestReleaseFound,
 			[latestReleaseLabel, stackedLayout](const LatestReleaseChecker::Release &release) {
 		latestReleaseLabel->setText(QString(
 					"Latest release is version <b>%1</b>\n"
@@ -828,6 +847,9 @@ void MainWindow::showCheckForUpdates()
 	});
 
 	dialog.exec();
+
+	disconnect(con1);
+	disconnect(con2);
 }
 
 void MainWindow::showLicense()
