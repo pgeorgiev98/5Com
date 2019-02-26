@@ -21,4 +21,6 @@ Escape codes:\n\n\
 	label->setWordWrap(true);
 	label->setTextFormat(Qt::TextFormat::PlainText);
 	layout->addWidget(label);
+
+	setLayout(layout);
 }
