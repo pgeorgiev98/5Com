@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT += core gui widgets serialport
+QT += core gui widgets serialport network
 
 TARGET = 5Com
 TEMPLATE = app
@@ -30,7 +30,8 @@ SOURCES += \
     bytereceivetimesdialog.cpp \
     sendfiledialog.cpp \
     plaintextview.cpp \
-    escapecodesdialog.cpp
+    escapecodesdialog.cpp \
+    latestreleasechecker.cpp
 
 HEADERS += \
     mainwindow.h \
@@ -40,7 +41,8 @@ HEADERS += \
     sendfiledialog.h \
     plaintextview.h \
     common.h \
-    escapecodesdialog.h
+    escapecodesdialog.h \
+    latestreleasechecker.h
 
 RESOURCES += resources.qrc
 

@@ -1,11 +1,12 @@
 #include "mainwindow.h"
+#include "common.h"
 #include "hexview.h"
 #include "plaintextview.h"
 #include "asciitable.h"
 #include "escapecodesdialog.h"
 #include "bytereceivetimesdialog.h"
 #include "sendfiledialog.h"
-#include "common.h"
+#include "latestreleasechecker.h"
 #include <QComboBox>
 #include <QLineEdit>
 #include <QPlainTextEdit>
@@ -28,6 +29,7 @@
 #include <QStatusBar>
 #include <QTimer>
 #include <QTime>
+#include <QProgressBar>
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -163,6 +165,7 @@ MainWindow::MainWindow(QWidget *parent)
 	QAction *clearScreenAction = new QAction("C&lear screen");
 	QAction *asciiAction = new QAction("ASCII &table");
 	QAction *escapeCodesAction = new QAction("&Escape codes");
+	QAction *checkLatestVersionAction = new QAction("&Check latest version");
 	QAction *licenseAction = new QAction("&License");
 	QAction *aboutQtAction = new QAction("About &Qt");
 	QAction *aboutAction = new QAction("&About");
@@ -186,6 +189,7 @@ MainWindow::MainWindow(QWidget *parent)
 	auto helpMenu = menuBar()->addMenu("&Help");
 	helpMenu->addAction(asciiAction);
 	helpMenu->addAction(escapeCodesAction);
+	helpMenu->addAction(checkLatestVersionAction);
 	helpMenu->addAction(licenseAction);
 	helpMenu->addAction(aboutQtAction);
 	helpMenu->addAction(aboutAction);
@@ -199,6 +203,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(clearScreenAction, &QAction::triggered, this, &MainWindow::clearScreen);
 	connect(asciiAction, &QAction::triggered, this, &MainWindow::showAsciiTable);
 	connect(escapeCodesAction, &QAction::triggered, this, &MainWindow::showEscapeCodes);
+	connect(checkLatestVersionAction, &QAction::triggered, this, &MainWindow::showCheckForUpdates);
 	connect(licenseAction, &QAction::triggered, this, &MainWindow::showLicense);
 	connect(aboutQtAction, &QAction::triggered, this, &MainWindow::showAboutQtPage);
 	connect(aboutAction, &QAction::triggered, this, &MainWindow::showAboutPage);
@@ -776,6 +781,53 @@ void MainWindow::showByteReceiveTimes()
 		delete m_byteReceiveTimesDialog;
 		m_byteReceiveTimesDialog = nullptr;
 	});
+}
+
+void MainWindow::showCheckForUpdates()
+{
+	LatestReleaseChecker checker;
+	QDialog dialog(this);
+
+	QVBoxLayout *layout = new QVBoxLayout;
+	QStackedLayout *stackedLayout = new QStackedLayout;
+	QLabel *latestReleaseLabel = new QLabel;
+
+	latestReleaseLabel->setOpenExternalLinks(true);
+
+	dialog.setLayout(layout);
+	layout->addWidget(new QLabel(QString("You're currently using version <b>%1</b>").arg(VERSION)));
+	layout->addLayout(stackedLayout);
+
+	QWidget *loadingWidget = new QWidget;
+	QHBoxLayout *loadingLayout = new QHBoxLayout;
+	QProgressBar *progressBar = new QProgressBar;
+	progressBar->setRange(0, 0);
+	loadingLayout->addWidget(new QLabel("Checking latest version"));
+	loadingLayout->addWidget(progressBar);
+	loadingWidget->setLayout(loadingLayout);
+
+	stackedLayout->addWidget(loadingWidget);
+	stackedLayout->addWidget(latestReleaseLabel);
+
+	stackedLayout->setCurrentIndex(0);
+
+	checker.checkLatestRelease();
+
+	connect(&checker, &LatestReleaseChecker::failedToGetLatestRelease,
+			[latestReleaseLabel, stackedLayout](const QString &errorMessage) {
+		latestReleaseLabel->setText("Error: " + errorMessage);
+		stackedLayout->setCurrentIndex(1);
+	});
+
+	connect(&checker, &LatestReleaseChecker::latestReleaseFound,
+			[latestReleaseLabel, stackedLayout](const LatestReleaseChecker::Release &release) {
+		latestReleaseLabel->setText(QString(
+					"Latest release is version <b>%1</b>\n"
+					"You can get from <a href=\"%2\">here</a>").arg(release.versionString).arg(release.url));
+		stackedLayout->setCurrentIndex(1);
+	});
+
+	dialog.exec();
 }
 
 void MainWindow::showLicense()

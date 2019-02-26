@@ -40,6 +40,7 @@ public slots:
 	void showEscapeCodes();
 	void showPinoutSignals();
 	void showByteReceiveTimes();
+	void showCheckForUpdates();
 	void showLicense();
 	void showAboutPage();
 	void showAboutQtPage();
