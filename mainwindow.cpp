@@ -831,8 +831,6 @@ void MainWindow::showCheckForUpdates()
 
 	stackedLayout->setCurrentIndex(0);
 
-	checker->checkLatestRelease();
-
 	auto con1 = connect(checker, &LatestReleaseChecker::failedToGetLatestRelease,
 			[latestReleaseLabel, stackedLayout](const QString &errorMessage) {
 		latestReleaseLabel->setText("Error: " + errorMessage);
@@ -846,6 +844,8 @@ void MainWindow::showCheckForUpdates()
 					"You can get from <a href=\"%2\">here</a>").arg(release.versionString).arg(release.url));
 		stackedLayout->setCurrentIndex(1);
 	});
+
+	checker->checkLatestRelease();
 
 	dialog.exec();
 
