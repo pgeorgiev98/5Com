@@ -195,6 +195,7 @@ MainWindow::MainWindow(QWidget *parent)
 	helpMenu->addAction(asciiAction);
 	helpMenu->addAction(escapeCodesAction);
 	helpMenu->addAction(checkLatestVersionAction);
+	helpMenu->addSeparator();
 	helpMenu->addAction(licenseAction);
 	helpMenu->addAction(aboutQtAction);
 	helpMenu->addAction(aboutAction);
