@@ -843,9 +843,14 @@ void MainWindow::showCheckForUpdates()
 
 	auto con2 = connect(checker, &LatestReleaseChecker::latestReleaseFound,
 			[latestReleaseLabel, stackedLayout](const LatestReleaseChecker::Release &release) {
-		latestReleaseLabel->setText(QString(
-					"Latest release is version <b>%1</b>\n"
-					"You can get from <a href=\"%2\">here</a>").arg(release.versionString).arg(release.url));
+		if (release.isNewerThan(VERSION)) {
+			latestReleaseLabel->setText(QString(
+						"Latest release is version <b>%1</b>.\n"
+						"You can get from <a href=\"%2\">here</a>").arg(release.versionString).arg(release.url));
+		} else {
+			latestReleaseLabel->setText(QString(
+						"Latest release is version <b>%1</b>.").arg(release.versionString));
+		}
 		stackedLayout->setCurrentIndex(1);
 	});
 
