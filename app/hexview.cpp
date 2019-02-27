@@ -114,6 +114,7 @@ void HexView::insertData(const QByteArray &data)
 		++line;
 	}
 
+	m_plainTextEdit->moveCursor(QTextCursor::End);
 	m_plainTextEdit->insertPlainText(text);
 	m_bytes += bytesToPrint;
 
