@@ -469,22 +469,22 @@ void MainWindow::sendFromFile()
 
 void MainWindow::exportData()
 {
-	QFileDialog dialog(this, "Export", "", "TEXT (*.txt);;HEX (*.hex);;RAW (*)");
+#ifdef Q_OS_WIN
+	const char *filter = "TEXT (*.txt);;HEX (*.txt);;RAW (*)";
+#else
+	const char *filter = "TEXT (*);;HEX (*);;RAW (*)";
+#endif
+
+	QFileDialog dialog(this, "Export", "", filter);
 	dialog.setAcceptMode(QFileDialog::AcceptMode::AcceptSave);
 	if (!dialog.exec() || dialog.selectedFiles().isEmpty())
 		return;
 	QString path = dialog.selectedFiles()[0];
-	if (!path.endsWith(".hex") && !path.endsWith(".txt")) {
-		if (dialog.selectedNameFilter() == "TEXT (*.txt)")
-			path.append(".txt");
-		else if (dialog.selectedNameFilter() == "HEX (*.hex)")
-			path.append(".hex");
-	}
-	if (dialog.selectedNameFilter() == "RAW (*)")
+	if (dialog.selectedNameFilter().startsWith("RAW"))
 		exportRaw(path);
-	else if (dialog.selectedNameFilter() == "TEXT (*.txt)")
+	else if (dialog.selectedNameFilter().startsWith("TEXT"))
 		exportAsText(path);
-	else if (dialog.selectedNameFilter() == "HEX (*.hex)")
+	else if (dialog.selectedNameFilter().startsWith("HEX"))
 		exportAsHex(path);
 	else
 		Q_ASSERT(false);
