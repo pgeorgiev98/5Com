@@ -87,8 +87,6 @@ void LatestReleaseChecker::onRequestFinished(QNetworkReply *reply)
 	if (!version.isEmpty() && version[0] == 'v')
 		version.remove(0, 1);
 
-	Release release;
-	release.versionString = version;
-	release.url = url;
+	Release release(version, url);
 	emit latestReleaseFound(release);
 }

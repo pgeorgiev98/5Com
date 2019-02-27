@@ -19,23 +19,41 @@ public:
 	{
 		QString versionString, url;
 
+		Release(const QString &versionString, const QString &url)
+			: versionString(versionString)
+			, url(url)
+		{}
+
+		Release(const QString &versionString)
+			: versionString(versionString)
+		{}
+
 		bool isNewerThan(const QString &other) const
 		{
-			QStringList l1 = versionString.split('.');
-			QStringList l2 = other.split('.');
-			if (l1.size() != 3)
-				return true;
-			if (l2.size() != 3)
-				return false;
+			QRegExp sep("\\.-");
+			QStringList l1 = versionString.split(sep);
+			QStringList l2 = other.split(sep);
 
-			for (int i = 0; i < 3; ++i) {
-				int a = l1[i].toInt();
-				int b = l2[i].toInt();
-				if (a > b)
-					return true;
-				else if (a < b)
-					return false;
+			int minLen = qMin(l1.size(), l2.size());
+
+			for (int i = 0; i < minLen; ++i) {
+				bool ok1, ok2;
+				int a = l1[i].toInt(&ok1);
+				int b = l2[i].toInt(&ok2);
+				if (ok1 && ok2) {
+					if (a > b)
+						return true;
+					else if (a < b)
+						return false;
+				} else {
+					if (l1[i] > l2[i])
+						return true;
+				}
 			}
+
+			if (l1.size() > l2.size())
+				return true;
+
 			return false;
 		}
 	};
