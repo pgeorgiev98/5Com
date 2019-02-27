@@ -31,7 +31,8 @@ SOURCES += \
     sendfiledialog.cpp \
     plaintextview.cpp \
     escapecodesdialog.cpp \
-    latestreleasechecker.cpp
+    latestreleasechecker.cpp \
+    changelogdialog.cpp
 
 HEADERS += \
     mainwindow.h \
@@ -42,7 +43,8 @@ HEADERS += \
     plaintextview.h \
     common.h \
     escapecodesdialog.h \
-    latestreleasechecker.h
+    latestreleasechecker.h \
+    changelogdialog.h
 
 RESOURCES += resources.qrc
 

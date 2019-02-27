@@ -7,6 +7,7 @@
 #include "bytereceivetimesdialog.h"
 #include "sendfiledialog.h"
 #include "latestreleasechecker.h"
+#include "changelogdialog.h"
 #include <QComboBox>
 #include <QLineEdit>
 #include <QPlainTextEdit>
@@ -171,6 +172,7 @@ MainWindow::MainWindow(QWidget *parent)
 	QAction *asciiAction = new QAction("ASCII &table");
 	QAction *escapeCodesAction = new QAction("&Escape codes");
 	QAction *checkLatestVersionAction = new QAction("&Check latest version");
+	QAction *changelogAction = new QAction("Change&log");
 	QAction *licenseAction = new QAction("&License");
 	QAction *aboutQtAction = new QAction("About &Qt");
 	QAction *aboutAction = new QAction("&About");
@@ -196,6 +198,7 @@ MainWindow::MainWindow(QWidget *parent)
 	helpMenu->addAction(escapeCodesAction);
 	helpMenu->addAction(checkLatestVersionAction);
 	helpMenu->addSeparator();
+	helpMenu->addAction(changelogAction);
 	helpMenu->addAction(licenseAction);
 	helpMenu->addAction(aboutQtAction);
 	helpMenu->addAction(aboutAction);
@@ -210,6 +213,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(asciiAction, &QAction::triggered, this, &MainWindow::showAsciiTable);
 	connect(escapeCodesAction, &QAction::triggered, this, &MainWindow::showEscapeCodes);
 	connect(checkLatestVersionAction, &QAction::triggered, this, &MainWindow::showCheckForUpdates);
+	connect(changelogAction, &QAction::triggered, this, &MainWindow::showChangelog);
 	connect(licenseAction, &QAction::triggered, this, &MainWindow::showLicense);
 	connect(aboutQtAction, &QAction::triggered, this, &MainWindow::showAboutQtPage);
 	connect(aboutAction, &QAction::triggered, this, &MainWindow::showAboutPage);
@@ -851,6 +855,12 @@ void MainWindow::showCheckForUpdates()
 
 	disconnect(con1);
 	disconnect(con2);
+}
+
+void MainWindow::showChangelog()
+{
+	ChangelogDialog dialog(this);
+	dialog.exec();
 }
 
 void MainWindow::showLicense()

@@ -3,5 +3,6 @@
 <qresource>
 <file alias="icon.ico">res/5Com.ico</file>
 <file alias="LICENSE.txt">res/LICENSE.txt</file>
+<file alias="CHANGELOG.txt">CHANGELOG.md</file>
 </qresource>
 </RCC>

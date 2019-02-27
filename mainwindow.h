@@ -41,6 +41,7 @@ public slots:
 	void showPinoutSignals();
 	void showByteReceiveTimes();
 	void showCheckForUpdates();
+	void showChangelog();
 	void showLicense();
 	void showAboutPage();
 	void showAboutQtPage();
