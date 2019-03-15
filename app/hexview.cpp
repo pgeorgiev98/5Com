@@ -13,6 +13,7 @@ HexView::HexView(QWidget *parent)
 	layout->addWidget(m_plainTextEdit);
 
 	m_plainTextEdit->setReadOnly(true);
+	m_plainTextEdit->setUndoRedoEnabled(false);
 	m_plainTextEdit->setWordWrapMode(QTextOption::WrapMode::NoWrap);
 	m_plainTextEdit->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
 }

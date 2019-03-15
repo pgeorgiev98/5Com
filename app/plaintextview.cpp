@@ -13,6 +13,7 @@ PlainTextView::PlainTextView(QWidget *parent)
 	layout->addWidget(m_edit);
 
 	m_edit->setReadOnly(true);
+	m_edit->setUndoRedoEnabled(false);
 	m_edit->setWordWrapMode(QTextOption::WrapMode::NoWrap);
 	m_edit->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
 }
