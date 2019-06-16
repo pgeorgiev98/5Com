@@ -53,6 +53,7 @@ public slots:
 	void exportAsHex(const QString &path);
 	void clearScreen();
 	void refreshStatusBar();
+	void trimData();
 
 private:
 	qint64 m_totalBytesWritten;

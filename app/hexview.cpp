@@ -18,6 +18,20 @@ HexView::HexView(QWidget *parent)
 	m_plainTextEdit->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
 }
 
+void HexView::setData(const QByteArray &data)
+{
+	int scrollValue = m_plainTextEdit->verticalScrollBar()->value();
+	bool atBottom = scrollValue == m_plainTextEdit->verticalScrollBar()->maximum();
+
+	clear();
+	insertData(data);
+
+	if (atBottom)
+		m_plainTextEdit->verticalScrollBar()->setValue(m_plainTextEdit->verticalScrollBar()->maximum());
+	else
+		m_plainTextEdit->verticalScrollBar()->setValue(scrollValue);
+}
+
 void HexView::insertData(const QByteArray &data)
 {
 	static auto toHex = [](int n) -> char {

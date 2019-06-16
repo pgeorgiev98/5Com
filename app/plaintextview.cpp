@@ -18,6 +18,20 @@ PlainTextView::PlainTextView(QWidget *parent)
 	m_edit->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
 }
 
+void PlainTextView::setData(const QByteArray &data)
+{
+	int scrollValue = m_edit->verticalScrollBar()->value();
+	bool atBottom = scrollValue == m_edit->verticalScrollBar()->maximum();
+
+	clear();
+	insertData(data);
+
+	if (atBottom)
+		m_edit->verticalScrollBar()->setValue(m_edit->verticalScrollBar()->maximum());
+	else
+		m_edit->verticalScrollBar()->setValue(scrollValue);
+}
+
 void PlainTextView::insertData(const QByteArray &data)
 {
 	int scrollValue = m_edit->verticalScrollBar()->value();
@@ -65,7 +79,6 @@ void PlainTextView::insertData(const QByteArray &data)
 	QTextCursor cursor = m_edit->textCursor();
 	cursor.movePosition(QTextCursor::MoveOperation::End);
 	cursor.insertText(tmp);
-	//m_edit->insertPlainText(tmp);
 
 	if (atBottom)
 		m_edit->verticalScrollBar()->setValue(m_edit->verticalScrollBar()->maximum());

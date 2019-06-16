@@ -401,7 +401,9 @@ void MainWindow::displayData(const QByteArray &data)
 	m_textView->insertData(data);
 
 	if (m_byteReceiveTimesDialog)
-		m_byteReceiveTimesDialog->display(data);
+		m_byteReceiveTimesDialog->insertData(data);
+
+	trimData();
 
 	refreshStatusBar();
 }
@@ -912,4 +914,24 @@ void MainWindow::refreshStatusBar()
 {
 	m_statusBarLabel->setText("Bytes read: " + QString::number(m_receivedData.size()) +
 							 ", Bytes written: " + QString::number(m_totalBytesWritten));
+}
+
+void MainWindow::trimData()
+{
+	quint64 limit = quint64(Config().readBufferLimitKiB()) * 1024;
+
+	if (quint64(m_receivedData.size()) >= limit + limit / 5) {
+		int delta = int(limit / 5);
+		m_receivedData.remove(0, delta);
+
+		m_textView->setData(m_receivedData);
+		m_hexView->setData(m_receivedData);
+	}
+
+	if (m_byteReceiveTimesDialog) {
+		if (quint64(m_byteReceiveTimesDialog->bytes()) >= limit + limit / 5) {
+			int delta = int(limit / 5);
+			m_byteReceiveTimesDialog->removeFromBegining(delta);
+		}
+	}
 }

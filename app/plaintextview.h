@@ -17,6 +17,7 @@ public:
 signals:
 
 public slots:
+	void setData(const QByteArray &data);
 	void insertData(const QByteArray &data);
 	void clear();
 

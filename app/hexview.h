@@ -8,11 +8,12 @@ class QPlainTextEdit;
 class HexView : public QWidget
 {
 public:
-	void insertData(const QByteArray &data);
 	HexView(QWidget *parent = nullptr);
 	QString toPlainText() const;
 
 public slots:
+	void setData(const QByteArray &data);
+	void insertData(const QByteArray &data);
 	void clear();
 
 private:

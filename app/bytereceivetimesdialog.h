@@ -11,11 +11,11 @@ class ByteReceiveTimesDialog : public QDialog
 	Q_OBJECT
 public:
 	explicit ByteReceiveTimesDialog(int height, QWidget *parent = nullptr);
-
-signals:
+	int bytes() const;
 
 public slots:
-	void display(const QByteArray &bytes);
+	void removeFromBegining(int bytes);
+	void insertData(const QByteArray &data);
 	void clear();
 
 private:

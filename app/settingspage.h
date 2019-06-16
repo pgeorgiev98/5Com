@@ -4,6 +4,7 @@
 #include <QDialog>
 
 class QCheckBox;
+class QSpinBox;
 
 class SettingsPage : public QDialog
 {
@@ -17,6 +18,7 @@ private slots:
 
 private:
 	QCheckBox *m_includePtsDirectory;
+	QSpinBox *m_readBufferLimitKiB;
 };
 
 #endif // SETTINGSPAGE_H

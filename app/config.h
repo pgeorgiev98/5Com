@@ -19,6 +19,7 @@ public:
 		: m_settings(filePath, QSettings::IniFormat) {}
 
 	FIELD(bool, Bool, includePtsDirectory, setIncludePtsDirectory, "includePtsDirectory", false)
+	FIELD(int, Int, readBufferLimitKiB, setReadBufferLimitKiB, "readBufferLimitKiB", 100)
 
 	QSettings &settings() { return m_settings; }
 	QString path() const { return m_settings.fileName(); }
