@@ -8,6 +8,9 @@
 #include "sendfiledialog.h"
 #include "latestreleasechecker.h"
 #include "changelogdialog.h"
+#include "settingspage.h"
+#include "config.h"
+
 #include <QComboBox>
 #include <QLineEdit>
 #include <QPlainTextEdit>
@@ -169,6 +172,7 @@ MainWindow::MainWindow(QWidget *parent)
 	QAction *pinoutSignalsAction = new QAction("&Pinout signals");
 	QAction *byteReceiveTimesAction = new QAction("&Byte receive times");
 	QAction *clearScreenAction = new QAction("C&lear screen");
+	QAction *settingsAction = new QAction("&Settings");
 	QAction *asciiAction = new QAction("ASCII &table");
 	QAction *escapeCodesAction = new QAction("&Escape codes");
 	QAction *checkLatestVersionAction = new QAction("&Check latest version");
@@ -192,6 +196,7 @@ MainWindow::MainWindow(QWidget *parent)
 	toolsMenu->addAction(pinoutSignalsAction);
 	toolsMenu->addAction(byteReceiveTimesAction);
 	toolsMenu->addAction(clearScreenAction);
+	toolsMenu->addAction(settingsAction);
 
 	auto helpMenu = menuBar()->addMenu("&Help");
 	helpMenu->addAction(asciiAction);
@@ -210,6 +215,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(pinoutSignalsAction, &QAction::triggered, this, &MainWindow::showPinoutSignals);
 	connect(byteReceiveTimesAction, &QAction::triggered, this, &MainWindow::showByteReceiveTimes);
 	connect(clearScreenAction, &QAction::triggered, this, &MainWindow::clearScreen);
+	connect(settingsAction, &QAction::triggered, this, &MainWindow::showSettings);
 	connect(asciiAction, &QAction::triggered, this, &MainWindow::showAsciiTable);
 	connect(escapeCodesAction, &QAction::triggered, this, &MainWindow::showEscapeCodes);
 	connect(checkLatestVersionAction, &QAction::triggered, this, &MainWindow::showCheckForUpdates);
@@ -538,14 +544,16 @@ void MainWindow::refreshPorts()
 	for (auto portInfo : QSerialPortInfo::availablePorts())
 		ports << portInfo.portName();
 
-#if !defined(QT_NO_DEBUG) && defined(Q_OS_UNIX)
-	QDir ptsDir("/dev/pts/");
-	ptsDir.setFilter(QDir::AllEntries | QDir::System);
-	for (auto filename : ptsDir.entryList()) {
-		bool ok;
-		filename.toInt(&ok);
-		if (ok)
-			ports << (QString("pts/") + filename);
+#if defined(Q_OS_UNIX)
+	if (Config().includePtsDirectory()) {
+		QDir ptsDir("/dev/pts/");
+		ptsDir.setFilter(QDir::AllEntries | QDir::System);
+		for (auto filename : ptsDir.entryList()) {
+			bool ok;
+			filename.toInt(&ok);
+			if (ok)
+				ports << (QString("pts/") + filename);
+		}
 	}
 #endif
 
@@ -892,6 +900,12 @@ void MainWindow::showAboutPage()
 void MainWindow::showAboutQtPage()
 {
 	QMessageBox::aboutQt(this, "About Qt");
+}
+
+void MainWindow::showSettings()
+{
+	SettingsPage settingsPage(this);
+	settingsPage.exec();
 }
 
 void MainWindow::refreshStatusBar()

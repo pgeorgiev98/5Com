@@ -45,6 +45,7 @@ public slots:
 	void showLicense();
 	void showAboutPage();
 	void showAboutQtPage();
+	void showSettings();
 	void sendFromFile();
 	void exportData();
 	void exportRaw(const QString &path);

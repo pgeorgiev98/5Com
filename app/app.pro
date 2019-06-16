@@ -8,6 +8,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11 static
 
 SOURCES += \
+    line.cpp \
     main.cpp \
     mainwindow.cpp \
     hexview.cpp \
@@ -17,9 +18,12 @@ SOURCES += \
     plaintextview.cpp \
     escapecodesdialog.cpp \
     latestreleasechecker.cpp \
-    changelogdialog.cpp
+    changelogdialog.cpp \
+    settingspage.cpp
 
 HEADERS += \
+    config.h \
+    line.h \
     mainwindow.h \
     hexview.h \
     asciitable.h \
@@ -29,7 +33,8 @@ HEADERS += \
     common.h \
     escapecodesdialog.h \
     latestreleasechecker.h \
-    changelogdialog.h
+    changelogdialog.h \
+    settingspage.h
 
 RESOURCES += resources.qrc
 
