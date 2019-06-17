@@ -154,7 +154,7 @@ QByteArray ExportDialog::byteReceiveTimesTable() const
 		unsigned char b = byte.value;
 		QString ch(b);
 		if (b < ' ' || b > '~')
-			ch = "?";
+			ch.clear();
 
 		QString bin = QString::number(b, 2);
 		while (bin.length() < 8)
