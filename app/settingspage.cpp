@@ -23,6 +23,7 @@ SettingsPage::SettingsPage(QWidget *parent)
 #else
 	, m_includePtsDirectory(nullptr)
 #endif
+	, m_checkForUpdatesOnStartup(new QCheckBox("Check for updates on startup"))
 	, m_readBufferLimitKiB(new QSpinBox)
 {
 	m_readBufferLimitKiB->setSuffix("KiB");
@@ -36,6 +37,8 @@ SettingsPage::SettingsPage(QWidget *parent)
 
 	if (m_includePtsDirectory)
 		layout->addWidget(m_includePtsDirectory);
+
+	layout->addWidget(m_checkForUpdatesOnStartup);
 
 	layout->addLayout(labeledWidget("Read buffer limit: ", m_readBufferLimitKiB));
 
@@ -64,6 +67,7 @@ void SettingsPage::load()
 	Config c;
 	if (m_includePtsDirectory)
 		m_includePtsDirectory->setChecked(c.includePtsDirectory());
+	m_checkForUpdatesOnStartup->setChecked(c.checkForUpdatesOnStartup());
 	m_readBufferLimitKiB->setValue(c.readBufferLimitKiB());
 }
 
@@ -72,6 +76,7 @@ void SettingsPage::save()
 	Config c;
 	if (m_includePtsDirectory)
 		c.setIncludePtsDirectory(m_includePtsDirectory->isChecked());
+	c.setCheckForUpdatesOnStartup(m_checkForUpdatesOnStartup->isChecked());
 	c.setReadBufferLimitKiB(m_readBufferLimitKiB->value());
 
 	accept();

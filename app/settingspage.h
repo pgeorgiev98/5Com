@@ -18,6 +18,7 @@ private slots:
 
 private:
 	QCheckBox *m_includePtsDirectory;
+	QCheckBox *m_checkForUpdatesOnStartup;
 	QSpinBox *m_readBufferLimitKiB;
 };
 

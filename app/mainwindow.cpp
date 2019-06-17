@@ -58,14 +58,19 @@ MainWindow::MainWindow(QWidget *parent)
 	, m_asciiTableDialog(new AsciiTable(this))
 	, m_escapeCodesDialog(new EscapeCodesDialog(this))
 {
+	Config c;
 	setMinimumSize(640, 480);
 	setWindowIcon(QIcon(":/icon.ico"));
 
-	LatestReleaseChecker *latestReleaseChecker = new LatestReleaseChecker(this);
-	QLabel *updateStatusBarLabel = new QLabel("Checking latest version...");
-	updateStatusBarLabel->setOpenExternalLinks(true);
+	bool checkForUpdates = c.checkForUpdatesOnStartup();
+	QLabel *updateStatusBarLabel = new QLabel;
 
-	statusBar()->addWidget(updateStatusBarLabel);
+	if (checkForUpdates) {
+		updateStatusBarLabel->setText("Checking latest version...");
+		updateStatusBarLabel->setOpenExternalLinks(true);
+		statusBar()->addWidget(updateStatusBarLabel);
+	}
+
 	statusBar()->addPermanentWidget(m_statusBarLabel);
 
 	m_portSelect->addItem("Loopback");
@@ -260,19 +265,21 @@ MainWindow::MainWindow(QWidget *parent)
 		refreshStatusBar();
 	});
 
-	// For the automatic update checking
+	if (checkForUpdates) {
+		LatestReleaseChecker *latestReleaseChecker = new LatestReleaseChecker(this);
 
-	connect(latestReleaseChecker, &LatestReleaseChecker::failedToGetLatestRelease, [updateStatusBarLabel]() {
-		updateStatusBarLabel->setText("Failed to get check latest version");
-	});
-	connect(latestReleaseChecker, &LatestReleaseChecker::latestReleaseFound, [updateStatusBarLabel](const LatestReleaseChecker::Release &release) {
-		if (release.isNewerThan(VERSION))
-			updateStatusBarLabel->setText(QString("Newer version: <a href=\"%1\">%2</a>").arg(release.url).arg(release.versionString));
-		else
-			updateStatusBarLabel->setText("Application is up to date");
-	});
+		connect(latestReleaseChecker, &LatestReleaseChecker::failedToGetLatestRelease, [updateStatusBarLabel]() {
+			updateStatusBarLabel->setText("Failed to get check latest version");
+		});
+		connect(latestReleaseChecker, &LatestReleaseChecker::latestReleaseFound, [updateStatusBarLabel](const LatestReleaseChecker::Release &release) {
+			if (release.isNewerThan(VERSION))
+				updateStatusBarLabel->setText(QString("Newer version: <a href=\"%1\">%2</a>").arg(release.url).arg(release.versionString));
+			else
+				updateStatusBarLabel->setText("Application is up to date");
+		});
 
-	latestReleaseChecker->checkLatestRelease();
+		latestReleaseChecker->checkLatestRelease();
+	}
 }
 
 MainWindow::~MainWindow()
