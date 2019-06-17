@@ -483,7 +483,7 @@ void MainWindow::sendFromFile()
 
 void MainWindow::exportData()
 {
-	ExportDialog dialog(m_receivedData, m_textView, m_hexView, this);
+	ExportDialog dialog(m_receivedData, m_textView, m_hexView, m_byteReceiveTimesDialog, this);
 	dialog.exec();
 }
 
@@ -894,7 +894,7 @@ void MainWindow::trimData()
 	}
 
 	if (m_byteReceiveTimesDialog) {
-		if (quint64(m_byteReceiveTimesDialog->bytes()) >= limit + limit / 5) {
+		if (quint64(m_byteReceiveTimesDialog->bytesCount()) >= limit + limit / 5) {
 			int delta = int(limit / 5);
 			m_byteReceiveTimesDialog->removeFromBegining(delta);
 		}

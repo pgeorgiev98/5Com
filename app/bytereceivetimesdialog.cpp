@@ -35,9 +35,14 @@ ByteReceiveTimesDialog::ByteReceiveTimesDialog(int height, QWidget *parent)
 	setFixedHeight(height);
 }
 
-int ByteReceiveTimesDialog::bytes() const
+int ByteReceiveTimesDialog::bytesCount() const
 {
-	return m_table->rowCount();
+	return m_bytes.count();
+}
+
+const QVector<ByteReceiveTimesDialog::Byte> &ByteReceiveTimesDialog::bytes() const
+{
+	return m_bytes;
 }
 
 void ByteReceiveTimesDialog::removeFromBegining(int bytes)
@@ -57,6 +62,8 @@ void ByteReceiveTimesDialog::insertData(const QByteArray &data)
 	bool atBottom = m_table->verticalScrollBar()->value() == m_table->verticalScrollBar()->maximum();
 
 	for (const unsigned char byte : data) {
+		m_bytes.append(Byte {ms, byte});
+
 		QString ch(byte);
 		if (byte < ' ' || byte > '~')
 			ch = "�";
@@ -91,4 +98,5 @@ void ByteReceiveTimesDialog::clear()
 {
 	*m_startTime = QTime::currentTime();
 	m_table->setRowCount(0);
+	m_bytes.clear();
 }

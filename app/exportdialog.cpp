@@ -2,6 +2,7 @@
 #include "line.h"
 #include "plaintextview.h"
 #include "hexview.h"
+#include "bytereceivetimesdialog.h"
 #include "config.h"
 
 #include <QVBoxLayout>
@@ -11,18 +12,22 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QStandardPaths>
+#include <QTextStream>
 
 ExportDialog::ExportDialog(const QByteArray &rawData,
 						   PlainTextView *plaintTextView,
 						   HexView *hexView,
+						   ByteReceiveTimesDialog *byteReceiveTimesDialog,
 						   QWidget *parent)
 	: QDialog(parent)
 	, m_rawData(rawData)
 	, m_plainTextView(plaintTextView)
 	, m_hexView(hexView)
+	, m_byteReceiveTimesDialog(byteReceiveTimesDialog)
 	, m_rawDataButton(new QRadioButton("Binary file"))
 	, m_plainTextButton(new QRadioButton("Plain text file"))
 	, m_hexButton(new QRadioButton("Formatted hex file"))
+	, m_byteReceiveTimesButton(new QRadioButton("Byte receive times table"))
 {
 	QPushButton *exportButton = new QPushButton("Export");
 	m_rawDataButton->setChecked(true);
@@ -35,6 +40,7 @@ ExportDialog::ExportDialog(const QByteArray &rawData,
 	layout->addWidget(m_rawDataButton);
 	layout->addWidget(m_plainTextButton);
 	layout->addWidget(m_hexButton);
+	layout->addWidget(m_byteReceiveTimesButton);
 	layout->addWidget(exportButton);
 
 	connect(exportButton, &QPushButton::clicked, this, &ExportDialog::exportData);
@@ -53,6 +59,7 @@ void ExportDialog::exportData()
 {
 	static const char *binaryFilter = "Binary (*.bin)";
 	static const char *plainTextFilter = "Plain text (*.txt)";
+	static const char *csvFilter = "CSV file (*.csv)";
 	static const char *anyTypeFilter = "Any type (*)";
 
 	Config c;
@@ -64,6 +71,9 @@ void ExportDialog::exportData()
 	else if (m_hexButton->isChecked())
 		filters << plainTextFilter;
 #endif
+
+	if (m_byteReceiveTimesButton->isChecked())
+		filters << csvFilter;
 
 	filters << anyTypeFilter;
 
@@ -82,12 +92,16 @@ void ExportDialog::exportData()
 		path = dialog.selectedFiles().first();
 		QString filter = dialog.selectedNameFilter();
 
-		if (filter == binaryFilter && !path.endsWith(".bin")) {
+		if (filter == binaryFilter && !path.toLower().endsWith(".bin")) {
 			path.append(".bin");
 			if (!confirmReplaceFile(this, path))
 				continue;
-		} else if (filter == plainTextFilter && !path.endsWith(".txt")) {
+		} else if (filter == plainTextFilter && !path.toLower().endsWith(".txt")) {
 			path.append(".txt");
+			if (!confirmReplaceFile(this, path))
+				continue;
+		} else if (filter == csvFilter && !path.toLower().endsWith(".csv")) {
+			path.append(".csv");
 			if (!confirmReplaceFile(this, path))
 				continue;
 		}
@@ -112,6 +126,8 @@ void ExportDialog::exportData()
 		data = m_plainTextView->toPlainText().toLatin1();
 	else if (m_hexButton->isChecked())
 		data = m_hexView->toPlainText().toLatin1();
+	else if (m_byteReceiveTimesButton->isChecked())
+		data = byteReceiveTimesTable();
 
 	if (file.write(data) < 0) {
 		QMessageBox::critical(this, "Export error", "Failed to write to file: " + file.errorString());
@@ -120,4 +136,39 @@ void ExportDialog::exportData()
 	}
 
 	accept();
+}
+
+QByteArray ExportDialog::byteReceiveTimesTable() const
+{
+	const QChar sep = ',';
+	QString str;
+	QTextStream out(&str);
+	const auto &bytes = m_byteReceiveTimesDialog->bytes();
+
+	out << "Time (ms)" << sep
+		<< "Decimal" << sep
+		<< "Hex" << sep
+		<< "Binary" << sep
+		<< "Character" << endl;
+	for (const auto &byte : bytes) {
+		unsigned char b = byte.value;
+		QString ch(b);
+		if (b < ' ' || b > '~')
+			ch = "?";
+
+		QString bin = QString::number(b, 2);
+		while (bin.length() < 8)
+			bin.push_front('0');
+
+		QString hex = QString::number(b, 16);
+		while (bin.length() < 2)
+			bin.push_front('0');
+		out << byte.ms << sep
+			<< QString::number(b) << sep
+			<< bin << sep
+			<< hex << sep
+			<< ch << endl;
+	}
+
+	return str.toLatin1();
 }
