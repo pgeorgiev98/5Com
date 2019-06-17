@@ -67,7 +67,7 @@ MainWindow::MainWindow(QWidget *parent)
 	QLabel *updateStatusBarLabel = new QLabel;
 
 	if (checkForUpdates) {
-		updateStatusBarLabel->setText("Checking latest version...");
+		updateStatusBarLabel->setText("Checking for updates...");
 		updateStatusBarLabel->setOpenExternalLinks(true);
 		statusBar()->addWidget(updateStatusBarLabel);
 	}
@@ -171,7 +171,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 	connect(m_connectButton, &QPushButton::clicked, this, &MainWindow::toggleConnect);
 
-	QAction *writeFile = new QAction("Write &file");
+	QAction *writeFile = new QAction("Write &file to port");
 	QAction *exportAction = new QAction("&Export");
 	QAction *exitAction = new QAction("E&xit");
 	QAction *continuousSendAction = new QAction("&Continuous send");
@@ -181,7 +181,7 @@ MainWindow::MainWindow(QWidget *parent)
 	QAction *settingsAction = new QAction("&Settings");
 	QAction *asciiAction = new QAction("ASCII &table");
 	QAction *escapeCodesAction = new QAction("&Escape codes");
-	QAction *checkLatestVersionAction = new QAction("&Check latest version");
+	QAction *checkForUpdatesAction = new QAction("Check for &updates");
 	QAction *changelogAction = new QAction("Change&log");
 	QAction *licenseAction = new QAction("&License");
 	QAction *aboutQtAction = new QAction("About &Qt");
@@ -202,12 +202,12 @@ MainWindow::MainWindow(QWidget *parent)
 	toolsMenu->addAction(pinoutSignalsAction);
 	toolsMenu->addAction(byteReceiveTimesAction);
 	toolsMenu->addAction(clearScreenAction);
+	toolsMenu->addAction(checkForUpdatesAction);
 	toolsMenu->addAction(settingsAction);
 
 	auto helpMenu = menuBar()->addMenu("&Help");
 	helpMenu->addAction(asciiAction);
 	helpMenu->addAction(escapeCodesAction);
-	helpMenu->addAction(checkLatestVersionAction);
 	helpMenu->addSeparator();
 	helpMenu->addAction(changelogAction);
 	helpMenu->addAction(licenseAction);
@@ -224,7 +224,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(settingsAction, &QAction::triggered, this, &MainWindow::showSettings);
 	connect(asciiAction, &QAction::triggered, this, &MainWindow::showAsciiTable);
 	connect(escapeCodesAction, &QAction::triggered, this, &MainWindow::showEscapeCodes);
-	connect(checkLatestVersionAction, &QAction::triggered, this, &MainWindow::showCheckForUpdates);
+	connect(checkForUpdatesAction, &QAction::triggered, this, &MainWindow::showCheckForUpdates);
 	connect(changelogAction, &QAction::triggered, this, &MainWindow::showChangelog);
 	connect(licenseAction, &QAction::triggered, this, &MainWindow::showLicense);
 	connect(aboutQtAction, &QAction::triggered, this, &MainWindow::showAboutQtPage);
@@ -270,7 +270,7 @@ MainWindow::MainWindow(QWidget *parent)
 		LatestReleaseChecker *latestReleaseChecker = new LatestReleaseChecker(this);
 
 		connect(latestReleaseChecker, &LatestReleaseChecker::failedToGetLatestRelease, [updateStatusBarLabel]() {
-			updateStatusBarLabel->setText("Failed to get check latest version");
+			updateStatusBarLabel->setText("Failed to get latest version");
 		});
 		connect(latestReleaseChecker, &LatestReleaseChecker::latestReleaseFound, [updateStatusBarLabel](const LatestReleaseChecker::Release &release) {
 			if (release.isNewerThan(VERSION))
@@ -833,16 +833,25 @@ void MainWindow::showCheckForUpdates()
 	QVBoxLayout *layout = new QVBoxLayout;
 	QStackedLayout *stackedLayout = new QStackedLayout;
 	QLabel *latestReleaseLabel = new QLabel;
+	QPushButton *closeButton = new QPushButton("Close");
 
 	latestReleaseLabel->setOpenExternalLinks(true);
 
 	dialog.setLayout(layout);
 	layout->addWidget(new QLabel(QString("You're currently using version <b>%1</b>").arg(VERSION)));
 	layout->addLayout(stackedLayout);
+	{
+		QHBoxLayout *hbox = new QHBoxLayout;
+		hbox->addStretch(1);
+		hbox->addWidget(closeButton);
+		hbox->addStretch(1);
+		layout->addLayout(hbox);
+	}
 
 	QWidget *loadingWidget = new QWidget;
 	QHBoxLayout *loadingLayout = new QHBoxLayout;
 	QProgressBar *progressBar = new QProgressBar;
+	loadingLayout->setMargin(0);
 	progressBar->setRange(0, 0);
 	loadingLayout->addWidget(new QLabel("Checking latest version"));
 	loadingLayout->addWidget(progressBar);
@@ -874,6 +883,7 @@ void MainWindow::showCheckForUpdates()
 
 	checker->checkLatestRelease();
 
+	connect(closeButton, &QPushButton::clicked, &dialog, &QDialog::accept);
 	dialog.exec();
 
 	disconnect(con1);
