@@ -21,6 +21,7 @@ public:
 	FIELD(bool, Bool, includePtsDirectory, setIncludePtsDirectory, "includePtsDirectory", false)
 	FIELD(bool, Bool, checkForUpdatesOnStartup, setCheckForUpdatesOnStartup, "checkForUpdatesOnStartup", true)
 	FIELD(int, Int, readBufferLimitKiB, setReadBufferLimitKiB, "readBufferLimitKiB", 100)
+	FIELD(QString, String, lastExportDirectory, setLastExportDirectory, "lastExportDirectory", "")
 
 	QSettings &settings() { return m_settings; }
 	QString path() const { return m_settings.fileName(); }

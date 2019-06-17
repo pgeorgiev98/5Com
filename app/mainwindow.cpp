@@ -8,6 +8,7 @@
 #include "sendfiledialog.h"
 #include "latestreleasechecker.h"
 #include "changelogdialog.h"
+#include "exportdialog.h"
 #include "settingspage.h"
 #include "config.h"
 
@@ -484,62 +485,10 @@ void MainWindow::sendFromFile()
 
 void MainWindow::exportData()
 {
-#ifdef Q_OS_WIN
-	const char *filter = "TEXT (*.txt);;HEX (*.txt);;RAW (*)";
-#else
-	const char *filter = "TEXT (*);;HEX (*);;RAW (*)";
-#endif
-
-	QFileDialog dialog(this, "Export", "", filter);
-	dialog.setAcceptMode(QFileDialog::AcceptMode::AcceptSave);
-	if (!dialog.exec() || dialog.selectedFiles().isEmpty())
-		return;
-	QString path = dialog.selectedFiles()[0];
-	if (dialog.selectedNameFilter().startsWith("RAW"))
-		exportRaw(path);
-	else if (dialog.selectedNameFilter().startsWith("TEXT"))
-		exportAsText(path);
-	else if (dialog.selectedNameFilter().startsWith("HEX"))
-		exportAsHex(path);
-	else
-		Q_ASSERT(false);
+	ExportDialog dialog(m_receivedData, m_textView, m_hexView, this);
+	dialog.exec();
 }
 
-void MainWindow::exportRaw(const QString &path)
-{
-	QFile file(path);
-	if (!file.open(QIODevice::WriteOnly)) {
-		QMessageBox::critical(this, "Error", "Failed to open file: " + file.errorString());
-		return;
-	}
-	file.write(m_receivedData);
-}
-
-void MainWindow::exportAsText(const QString &path)
-{
-	QFile file(path);
-	if (!file.open(QIODevice::WriteOnly)) {
-		QMessageBox::critical(this, "Error", "Failed to open file: " + file.errorString());
-		return;
-	}
-	if (file.write(m_textView->toPlainText().toLatin1()) < 0) {
-		QMessageBox::critical(this, "Error", "Failed to write to file: " + file.errorString());
-		return;
-	}
-}
-
-void MainWindow::exportAsHex(const QString &path)
-{
-	QFile file(path);
-	if (!file.open(QIODevice::WriteOnly)) {
-		QMessageBox::critical(this, "Error", "Failed to open file: " + file.errorString());
-		return;
-	}
-	if (file.write(m_hexView->toPlainText().toLatin1()) < 0) {
-		QMessageBox::critical(this, "Error", "Failed to write to file: " + file.errorString());
-		return;
-	}
-}
 
 void MainWindow::readFromPort()
 {

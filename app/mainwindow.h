@@ -48,9 +48,6 @@ public slots:
 	void showSettings();
 	void sendFromFile();
 	void exportData();
-	void exportRaw(const QString &path);
-	void exportAsText(const QString &path);
-	void exportAsHex(const QString &path);
 	void clearScreen();
 	void refreshStatusBar();
 	void trimData();

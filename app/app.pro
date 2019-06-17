@@ -8,6 +8,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11 static
 
 SOURCES += \
+    exportdialog.cpp \
     line.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -23,6 +24,7 @@ SOURCES += \
 
 HEADERS += \
     config.h \
+    exportdialog.h \
     line.h \
     mainwindow.h \
     hexview.h \
