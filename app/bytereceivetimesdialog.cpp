@@ -8,7 +8,6 @@
 
 ByteReceiveTimesDialog::ByteReceiveTimesDialog(int height, QWidget *parent)
 	: QDialog(parent)
-	, m_startTime(new QTime(QTime::currentTime()))
 	, m_table(new QTableWidget)
 	, m_rowHeight(20)
 {
@@ -53,8 +52,11 @@ void ByteReceiveTimesDialog::removeFromBegining(int bytes)
 
 void ByteReceiveTimesDialog::insertData(const QByteArray &data)
 {
+	if (m_bytes.isEmpty())
+		m_startTime = QTime::currentTime();
+
 	QTime receiveTime = QTime::currentTime();
-	int ms = m_startTime->msecsTo(receiveTime);
+	int ms = m_startTime.msecsTo(receiveTime);
 	int row = m_table->rowCount();
 	for (int i = 0; i < data.count(); ++i)
 		m_table->insertRow(m_table->rowCount());
@@ -96,7 +98,6 @@ void ByteReceiveTimesDialog::insertData(const QByteArray &data)
 
 void ByteReceiveTimesDialog::clear()
 {
-	*m_startTime = QTime::currentTime();
 	m_table->setRowCount(0);
 	m_bytes.clear();
 }

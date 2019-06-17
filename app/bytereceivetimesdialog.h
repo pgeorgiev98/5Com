@@ -2,9 +2,9 @@
 #define BYTERECEIVETIMESDIALOG_H
 
 #include <QDialog>
+#include <QTime>
 
 class QTableWidget;
-class QTime;
 
 class ByteReceiveTimesDialog : public QDialog
 {
@@ -26,7 +26,7 @@ public slots:
 	void clear();
 
 private:
-	QTime *m_startTime;
+	QTime m_startTime;
 	QTableWidget *m_table;
 	int m_rowHeight;
 	QVector<Byte> m_bytes;
