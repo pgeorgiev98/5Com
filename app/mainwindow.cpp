@@ -37,6 +37,7 @@
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
+	, m_totalBytesRead(0)
 	, m_totalBytesWritten(0)
 	, m_continuousPacketsSent(0)
 	, m_statusBarLabel(new QLabel)
@@ -401,12 +402,11 @@ void MainWindow::closePort()
 
 void MainWindow::displayData(const QByteArray &data)
 {
+	m_totalBytesRead += data.size();
 	m_receivedData.append(data);
 
 	m_hexView->insertData(data);
-
 	m_textView->insertData(data);
-
 	if (m_byteReceiveTimesDialog)
 		m_byteReceiveTimesDialog->insertData(data);
 
@@ -701,6 +701,7 @@ void MainWindow::continuousSend()
 void MainWindow::clearScreen()
 {
 	m_receivedData.clear();
+	m_totalBytesRead = 0;
 	m_totalBytesWritten = 0;
 	m_hexView->clear();
 	m_textView->clear();
@@ -919,7 +920,7 @@ void MainWindow::showSettings()
 
 void MainWindow::refreshStatusBar()
 {
-	m_statusBarLabel->setText("Bytes read: " + QString::number(m_receivedData.size()) +
+	m_statusBarLabel->setText("Bytes read: " + QString::number(m_totalBytesRead) +
 							 ", Bytes written: " + QString::number(m_totalBytesWritten));
 }
 

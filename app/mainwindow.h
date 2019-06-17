@@ -56,6 +56,7 @@ public slots:
 	void trimData();
 
 private:
+	qint64 m_totalBytesRead;
 	qint64 m_totalBytesWritten;
 	QByteArray m_receivedData;
 	int m_continuousPacketsSent;
