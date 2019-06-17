@@ -14,13 +14,11 @@
 
 #include <QComboBox>
 #include <QLineEdit>
-#include <QPlainTextEdit>
 #include <QTabWidget>
 #include <QLabel>
 #include <QPushButton>
 #include <QSpinBox>
 #include <QCheckBox>
-#include <QScrollBar>
 #include <QMenuBar>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
