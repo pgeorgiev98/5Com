@@ -38,6 +38,7 @@ ExportDialog::ExportDialog(const QByteArray &rawData,
 	QPushButton *exportButton = new QPushButton("Export");
 	m_rawDataButton->setChecked(true);
 	m_exportWithCRLFEndings->setChecked(c.exportWithCRLFEndings());
+	m_byteReceiveTimesButton->setDisabled(m_byteReceiveTimesDialog == nullptr);
 
 	QVBoxLayout *layout = new QVBoxLayout;
 	layout->setSpacing(16);
