@@ -1,15 +1,18 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include <QList>
 #include <QVariant>
 #include <QSettings>
+#include <QStringList>
 
 #ifdef Q_OS_WIN
 #define BUILDING_FOR_WINDOWS true
 #else
 #define BUILDING_FOR_WINDOWS false
 #endif
+
+#define EXPORT_SEPARATOR_STRINGS QStringList({", (comma)", "; (semicolon)", "<Tab>", "<Space>"})
+#define EXPORT_SEPARATORS QStringList({",", ";", "\t", " "})
 
 #define FIELD(TYPE, CONV, NAME, SETTER, KEY, DEFAULT) \
 	TYPE NAME() const { return m_settings.value(KEY, DEFAULT).to ## CONV(); } \
@@ -27,6 +30,8 @@ public:
 	FIELD(int, Int, readBufferLimitKiB, setReadBufferLimitKiB, "readBufferLimitKiB", 100)
 	FIELD(QString, String, lastExportDirectory, setLastExportDirectory, "lastExportDirectory", "")
 	FIELD(bool, Bool, exportWithCRLFEndings, setExportWithCRLFEndings, "exportWithCRLFEndings", BUILDING_FOR_WINDOWS)
+	FIELD(bool, Bool, exportWithSepStatement, setExportWithSepStatement, "exportWithSepStatement", false)
+	FIELD(QString, String, exportSeparator, setExportSeparator, "exportSeparator", ",")
 
 	QSettings &settings() { return m_settings; }
 	QString path() const { return m_settings.fileName(); }

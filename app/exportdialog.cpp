@@ -13,6 +13,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QGroupBox>
+#include <QComboBox>
 
 #include <QStandardPaths>
 #include <QTextStream>
@@ -29,6 +30,8 @@ ExportDialog::ExportDialog(const QByteArray &rawData,
 	, m_byteReceiveTimesDialog(byteReceiveTimesDialog)
 
 	, m_exportWithCRLFEndings(new QCheckBox("Export with CR-LF line endings"))
+	, m_includeSepStatement(new QCheckBox("Include a sep statement for better MS Excel compatibility"))
+	, m_csvSeparator(new QComboBox)
 	, m_rawDataButton(new QRadioButton("Binary file"))
 	, m_plainTextButton(new QRadioButton("Plain text file"))
 	, m_hexButton(new QRadioButton("Formatted hex file"))
@@ -38,6 +41,14 @@ ExportDialog::ExportDialog(const QByteArray &rawData,
 	QPushButton *exportButton = new QPushButton("Export");
 	m_rawDataButton->setChecked(true);
 	m_exportWithCRLFEndings->setChecked(c.exportWithCRLFEndings());
+	m_includeSepStatement->setChecked(c.exportWithSepStatement());
+	m_csvSeparator->addItems(EXPORT_SEPARATOR_STRINGS);
+	if (!EXPORT_SEPARATORS.contains(c.exportSeparator())) {
+		m_csvSeparator->addItem(c.exportSeparator());
+		m_csvSeparator->setCurrentIndex(m_csvSeparator->count() - 1);
+	} else {
+		m_csvSeparator->setCurrentIndex(EXPORT_SEPARATORS.indexOf(c.exportSeparator()));
+	}
 	m_byteReceiveTimesButton->setDisabled(m_byteReceiveTimesDialog == nullptr);
 
 	QVBoxLayout *layout = new QVBoxLayout;
@@ -52,6 +63,17 @@ ExportDialog::ExportDialog(const QByteArray &rawData,
 	exportTypesLayout->addWidget(m_hexButton);
 	exportTypesLayout->addWidget(m_byteReceiveTimesButton);
 
+	QGroupBox *tableSettings = new QGroupBox;
+	QVBoxLayout *tableSettingsLayout = new QVBoxLayout;
+	tableSettings->setLayout(tableSettingsLayout);
+	tableSettingsLayout->addWidget(m_includeSepStatement);
+	QHBoxLayout *hbox = new QHBoxLayout;
+	hbox->addWidget(new QLabel("CSV separator: "));
+	hbox->addWidget(m_csvSeparator);
+	hbox->addStretch(1);
+	tableSettingsLayout->addLayout(hbox);
+	exportTypesLayout->addWidget(tableSettings);
+
 	layout->addWidget(exportTypeBox);
 	layout->addWidget(m_exportWithCRLFEndings);
 	layout->addWidget(exportButton);
@@ -60,6 +82,8 @@ ExportDialog::ExportDialog(const QByteArray &rawData,
 
 	m_exportWithCRLFEndings->setDisabled(m_rawDataButton->isChecked());
 	connect(m_rawDataButton, &QRadioButton::toggled, m_exportWithCRLFEndings, &QWidget::setDisabled);
+	tableSettings->setEnabled(m_byteReceiveTimesButton->isChecked());
+	connect(m_byteReceiveTimesButton, &QRadioButton::toggled, tableSettings, &QWidget::setEnabled);
 }
 
 static bool confirmReplaceFile(ExportDialog *t, const QString &path)
@@ -150,6 +174,15 @@ void ExportDialog::exportData()
 		data.replace('\n', "\r\n");
 	c.setExportWithCRLFEndings(m_exportWithCRLFEndings->isChecked());
 
+	if (m_byteReceiveTimesButton->isChecked()) {
+		if (m_csvSeparator->currentIndex() < EXPORT_SEPARATORS.size())
+			c.setExportSeparator(EXPORT_SEPARATORS[m_csvSeparator->currentIndex()]);
+		else
+			c.setExportSeparator(m_csvSeparator->currentText());
+	}
+
+	c.setExportWithSepStatement(m_includeSepStatement->isChecked());
+
 	if (file.write(data) < 0) {
 		QMessageBox::critical(this, "Export error", "Failed to write to file: " + file.errorString());
 		reject();
@@ -161,10 +194,20 @@ void ExportDialog::exportData()
 
 QByteArray ExportDialog::byteReceiveTimesTable() const
 {
-	const QChar sep = ',';
+	QString sep;
+	{
+		int index = m_csvSeparator->currentIndex();
+		if (index < EXPORT_SEPARATORS.size())
+			sep = EXPORT_SEPARATORS[index];
+		else
+			sep = m_csvSeparator->currentText();
+	}
 	QString str;
 	QTextStream out(&str);
 	const auto &bytes = m_byteReceiveTimesDialog->bytes();
+
+	if (m_includeSepStatement->isChecked())
+		out << "sep=" << sep << endl;
 
 	out << "Time (ms)" << sep
 		<< "Decimal" << sep

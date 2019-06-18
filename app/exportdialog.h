@@ -9,6 +9,7 @@ class ByteReceiveTimesDialog;
 
 class QRadioButton;
 class QCheckBox;
+class QComboBox;
 
 class ExportDialog : public QDialog
 {
@@ -30,6 +31,8 @@ private:
 	ByteReceiveTimesDialog *m_byteReceiveTimesDialog;
 
 	QCheckBox *m_exportWithCRLFEndings;
+	QCheckBox *m_includeSepStatement;
+	QComboBox *m_csvSeparator;
 	QRadioButton *m_rawDataButton;
 	QRadioButton *m_plainTextButton;
 	QRadioButton *m_hexButton;
