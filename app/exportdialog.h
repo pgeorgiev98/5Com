@@ -6,7 +6,9 @@
 class PlainTextView;
 class HexView;
 class ByteReceiveTimesDialog;
+
 class QRadioButton;
+class QCheckBox;
 
 class ExportDialog : public QDialog
 {
@@ -26,6 +28,8 @@ private:
 	PlainTextView *m_plainTextView;
 	HexView *m_hexView;
 	ByteReceiveTimesDialog *m_byteReceiveTimesDialog;
+
+	QCheckBox *m_exportWithCRLFEndings;
 	QRadioButton *m_rawDataButton;
 	QRadioButton *m_plainTextButton;
 	QRadioButton *m_hexButton;

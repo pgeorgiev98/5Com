@@ -8,9 +8,12 @@
 #include <QVBoxLayout>
 #include <QRadioButton>
 #include <QPushButton>
+#include <QCheckBox>
 #include <QLabel>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QGroupBox>
+
 #include <QStandardPaths>
 #include <QTextStream>
 
@@ -24,26 +27,38 @@ ExportDialog::ExportDialog(const QByteArray &rawData,
 	, m_plainTextView(plaintTextView)
 	, m_hexView(hexView)
 	, m_byteReceiveTimesDialog(byteReceiveTimesDialog)
+
+	, m_exportWithCRLFEndings(new QCheckBox("Export with CR-LF line endings"))
 	, m_rawDataButton(new QRadioButton("Binary file"))
 	, m_plainTextButton(new QRadioButton("Plain text file"))
 	, m_hexButton(new QRadioButton("Formatted hex file"))
 	, m_byteReceiveTimesButton(new QRadioButton("Byte receive times table"))
 {
+	Config c;
 	QPushButton *exportButton = new QPushButton("Export");
 	m_rawDataButton->setChecked(true);
+	m_exportWithCRLFEndings->setChecked(c.exportWithCRLFEndings());
 
 	QVBoxLayout *layout = new QVBoxLayout;
+	layout->setSpacing(16);
 	setLayout(layout);
 
-	layout->addWidget(new QLabel("Export as a"), 0, Qt::AlignHCenter);
-	layout->addWidget(new Line(Line::Horizontal));
-	layout->addWidget(m_rawDataButton);
-	layout->addWidget(m_plainTextButton);
-	layout->addWidget(m_hexButton);
-	layout->addWidget(m_byteReceiveTimesButton);
+	QGroupBox *exportTypeBox = new QGroupBox("Export type");
+	QVBoxLayout *exportTypesLayout = new QVBoxLayout;
+	exportTypeBox->setLayout(exportTypesLayout);
+	exportTypesLayout->addWidget(m_rawDataButton);
+	exportTypesLayout->addWidget(m_plainTextButton);
+	exportTypesLayout->addWidget(m_hexButton);
+	exportTypesLayout->addWidget(m_byteReceiveTimesButton);
+
+	layout->addWidget(exportTypeBox);
+	layout->addWidget(m_exportWithCRLFEndings);
 	layout->addWidget(exportButton);
 
 	connect(exportButton, &QPushButton::clicked, this, &ExportDialog::exportData);
+
+	m_exportWithCRLFEndings->setDisabled(m_rawDataButton->isChecked());
+	connect(m_rawDataButton, &QRadioButton::toggled, m_exportWithCRLFEndings, &QWidget::setDisabled);
 }
 
 static bool confirmReplaceFile(ExportDialog *t, const QString &path)
@@ -128,6 +143,11 @@ void ExportDialog::exportData()
 		data = m_hexView->toPlainText().toLatin1();
 	else if (m_byteReceiveTimesButton->isChecked())
 		data = byteReceiveTimesTable();
+
+	if (!m_rawDataButton->isChecked() &&
+			m_exportWithCRLFEndings->isChecked())
+		data.replace('\n', "\r\n");
+	c.setExportWithCRLFEndings(m_exportWithCRLFEndings->isChecked());
 
 	if (file.write(data) < 0) {
 		QMessageBox::critical(this, "Export error", "Failed to write to file: " + file.errorString());

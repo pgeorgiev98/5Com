@@ -5,7 +5,11 @@
 #include <QVariant>
 #include <QSettings>
 
-#include "common.h"
+#ifdef Q_OS_WIN
+#define BUILDING_FOR_WINDOWS true
+#else
+#define BUILDING_FOR_WINDOWS false
+#endif
 
 #define FIELD(TYPE, CONV, NAME, SETTER, KEY, DEFAULT) \
 	TYPE NAME() const { return m_settings.value(KEY, DEFAULT).to ## CONV(); } \
@@ -22,6 +26,7 @@ public:
 	FIELD(bool, Bool, checkForUpdatesOnStartup, setCheckForUpdatesOnStartup, "checkForUpdatesOnStartup", true)
 	FIELD(int, Int, readBufferLimitKiB, setReadBufferLimitKiB, "readBufferLimitKiB", 100)
 	FIELD(QString, String, lastExportDirectory, setLastExportDirectory, "lastExportDirectory", "")
+	FIELD(bool, Bool, exportWithCRLFEndings, setExportWithCRLFEndings, "exportWithCRLFEndings", BUILDING_FOR_WINDOWS)
 
 	QSettings &settings() { return m_settings; }
 	QString path() const { return m_settings.fileName(); }
