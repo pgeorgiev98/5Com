@@ -11,6 +11,8 @@
 #include "exportdialog.h"
 #include "settingspage.h"
 #include "config.h"
+#include "serialport.h"
+#include "continuoussendwindow.h"
 
 #include <QComboBox>
 #include <QLineEdit>
@@ -49,10 +51,8 @@ MainWindow::MainWindow(QWidget *parent)
 	, m_inputField(new QLineEdit)
 	, m_textView(new PlainTextView)
 	, m_hexView(new HexView)
-	, m_port(new QSerialPort(this))
-	, m_opened(false)
-	, m_usingLoopback(false)
-	, m_continuousSendDialog(nullptr)
+	, m_port(new SerialPort(this))
+	, m_continuousSendWindow(new ContinuousSendWindow(m_port, this))
 	, m_pinoutSignalsDialog(nullptr)
 	, m_byteReceiveTimesDialog(nullptr)
 	, m_asciiTableDialog(new AsciiTable(this))
@@ -88,6 +88,15 @@ MainWindow::MainWindow(QWidget *parent)
 	m_connectButton->setText(" Connect  ");
 
 	m_baudRateSelect->addItem("Add Custom");
+
+	connect(m_portSelect, &QComboBox::currentTextChanged, [this](const QString &text) {
+		if (m_portSelect->currentIndex() == 0) {
+			m_port->setLoopback(true);
+		} else {
+			m_port->setLoopback(false);
+			m_port->setPortName(text);
+		}
+	});
 	connect(m_baudRateSelect, &QComboBox::currentTextChanged, [this](const QString &text) {
 		if (text == "Add Custom") {
 			QGridLayout *layout = new QGridLayout;
@@ -124,7 +133,11 @@ MainWindow::MainWindow(QWidget *parent)
 				m_baudRateSelect->setCurrentText(baudString);
 			}
 		}
+		m_port->setBaudRate(m_baudRateSelect->currentText().toInt());
 	});
+	connect(m_dataBitsSelect, &QComboBox::currentTextChanged, m_port, &SerialPort::setDataBits);
+	connect(m_paritySelect, &QComboBox::currentTextChanged, m_port, &SerialPort::setParity);
+	connect(m_stopBitsSelect, &QComboBox::currentTextChanged, m_port, &SerialPort::setStopBits);
 
 
 	QWidget *central = new QWidget;
@@ -162,8 +175,8 @@ MainWindow::MainWindow(QWidget *parent)
 
 		layout->addLayout(inputLayout);
 
-		connect(sendButton, &QPushButton::clicked, this, &MainWindow::sendDataFromMainInput);
-		connect(m_inputField, &QLineEdit::returnPressed, this, &MainWindow::sendDataFromMainInput);
+		connect(sendButton, &QPushButton::clicked, this, &MainWindow::sendDataFromInput);
+		connect(m_inputField, &QLineEdit::returnPressed, this, &MainWindow::sendDataFromInput);
 	}
 
 	layout->addWidget(tabs);
@@ -237,8 +250,6 @@ MainWindow::MainWindow(QWidget *parent)
 	refreshTimer->start(2000);
 	connect(refreshTimer, &QTimer::timeout, this, &MainWindow::refreshPorts);
 
-	connect(m_port, &QSerialPort::readyRead, this, &MainWindow::readFromPort);
-
 	// Disable some things depending on which port is selected
 	auto onSelectedPortChanged = [this, pinoutSignalsAction](int index) {
 		bool usingLoopback = (index == 0);
@@ -251,12 +262,12 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(m_portSelect, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged), onSelectedPortChanged);
 	onSelectedPortChanged(m_portSelect->currentIndex());
 
-	connect(m_port, static_cast<void(QSerialPort::*)(QSerialPort::SerialPortError)>(&QSerialPort::error), [this](QSerialPort::SerialPortError error) {
-		if (error != QSerialPort::SerialPortError::NoError && m_opened) {
-			closePort();
-			QMessageBox::critical(this, APPLICATION_NAME, "Serial port error: " + m_port->errorString());
-		}
+	connect(m_port, &SerialPort::dataRead, this, &MainWindow::displayData);
+	connect(m_port, &SerialPort::errorOccurred, [this](const QString &errorString) {
+		QMessageBox::critical(this, APPLICATION_NAME, errorString);
 	});
+	connect(m_port, &SerialPort::opened, this, &MainWindow::onPortOpened);
+	connect(m_port, &SerialPort::closed, this, &MainWindow::onPortClosed);
 
 	refreshStatusBar();
 
@@ -287,116 +298,17 @@ MainWindow::~MainWindow()
 
 }
 
-void MainWindow::sendRawData(const QByteArray &data)
+void MainWindow::sendDataFromInput()
 {
-	if (!m_opened)
-		if (!openPort())
+	if (!m_port->isOpen())
+		if (!m_port->open())
 			return;
-
-	if (m_usingLoopback) {
-		displayData(data);
-		emit bytesWritten(data.size());
-	} else {
-		m_port->write(data);
-	}
-}
-
-void MainWindow::sendData(const QString &input)
-{
-	if (!m_opened)
-		if (!openPort())
-			return;
-	QByteArray output;
-	for (int i = 0; i < input.size(); ++i) {
-		QChar c = input[i];
-		char newChar = c.toLatin1();
-		if (c == '\\' && i + 1 < input.size()) {
-			if (input[i + 1] == '\\') {
-				newChar = '\\';
-				++i;
-			} else if (input[i + 1] == 'n') {
-				newChar = '\n';
-				++i;
-			} else if (input[i + 1] == 'r') {
-				newChar = '\r';
-				++i;
-			} else if (input[i + 1] == 't') {
-				newChar = '\t';
-				++i;
-			} else if (input[i + 1] == 'x' && i + 3 < input.size() &&
-					 ((input[i + 2] >= '0' && input[i + 2] <= '9') ||
-					  (input[i + 2].toLower() >= 'a' && input[i + 2].toLower() <= 'f')) &&
-					 ((input[i + 3] >= '0' && input[i + 3] <= '9') ||
-					  (input[i + 3].toLower() >= 'a' && input[i + 3].toLower() <= 'f'))) {
-				newChar = char(QString(input[i + 2]).toInt(nullptr, 16) * 16 +
-						QString(input[i + 3]).toInt(nullptr, 16));
-						i += 3;
-			}
-		}
-		output.append(newChar);
-	}
-	sendRawData(output);
-}
-
-bool MainWindow::openPort()
-{
-	if (m_portSelect->currentIndex() == 0) {
-		m_usingLoopback = true;
-	} else {
-		m_usingLoopback = false;
-		m_port->setPortName(m_portSelect->currentText());
-		m_port->setBaudRate(m_baudRateSelect->currentText().toInt());
-		m_port->setDataBits(QSerialPort::DataBits(m_dataBitsSelect->currentText().toInt()));
-		static const QSerialPort::Parity parity[5] = {QSerialPort::EvenParity,
-													  QSerialPort::MarkParity,
-													  QSerialPort::OddParity,
-													  QSerialPort::SpaceParity,
-													  QSerialPort::NoParity};
-		m_port->setParity(parity[m_paritySelect->currentIndex()]);
-		static const QSerialPort::StopBits stopBits[3] = {QSerialPort::OneStop,
-														  QSerialPort::OneAndHalfStop,
-														  QSerialPort::TwoStop};
-		m_port->setStopBits(stopBits[m_stopBitsSelect->currentIndex()]);
-
-		if (!m_port->open(QIODevice::ReadWrite)) {
-			QMessageBox::critical(this, "Error", "Failed to open port: " + m_port->errorString());
-			return false;
-		}
-		connect(m_port, &QIODevice::bytesWritten, this, &MainWindow::bytesWritten);
-	}
-
-	for (QWidget *w : {m_portSelect, m_baudRateSelect,
-		 m_dataBitsSelect, m_paritySelect, m_stopBitsSelect})
-		w->setEnabled(false);
-
-	m_connectButton->setText("Disconnect");
-
-	m_opened = true;
-
-	return true;
+	m_port->writeFormattedData(m_inputField->text());
 }
 
 void MainWindow::closePort()
 {
-	m_opened = false;
-
-	if (!m_usingLoopback) {
-		m_port->close();
-		for (QWidget *w : {m_baudRateSelect,
-			 m_dataBitsSelect, m_paritySelect, m_stopBitsSelect})
-			w->setEnabled(true);
-		disconnect(m_port, &QIODevice::bytesWritten, this, &MainWindow::bytesWritten);
-	}
-
-	m_portSelect->setEnabled(true);
-
-	m_connectButton->setText(" Connect  ");
-
-	// Close the pinout signals dialog if it's opened
-	if (m_pinoutSignalsDialog) {
-		m_pinoutSignalsDialog->deleteLater();
-		m_pinoutSignalsDialog = nullptr;
-	}
+	m_port->close();
 }
 
 void MainWindow::displayData(const QByteArray &data)
@@ -416,10 +328,37 @@ void MainWindow::displayData(const QByteArray &data)
 
 void MainWindow::toggleConnect()
 {
-	if (m_opened)
+	if (m_port->isOpen())
 		closePort();
 	else
-		openPort();
+		m_port->open();
+}
+
+void MainWindow::onPortOpened()
+{
+	for (QWidget *w : {m_portSelect, m_baudRateSelect,
+		 m_dataBitsSelect, m_paritySelect, m_stopBitsSelect})
+		w->setEnabled(false);
+
+	m_connectButton->setText("Disconnect");
+}
+
+void MainWindow::onPortClosed()
+{
+	if (m_portSelect->currentIndex() != 0)
+		for (QWidget *w : {m_baudRateSelect,
+			 m_dataBitsSelect, m_paritySelect, m_stopBitsSelect})
+			w->setEnabled(true);
+
+	m_portSelect->setEnabled(true);
+
+	m_connectButton->setText(" Connect  ");
+
+	// Close the pinout signals dialog if it's opened
+	if (m_pinoutSignalsDialog) {
+		m_pinoutSignalsDialog->deleteLater();
+		m_pinoutSignalsDialog = nullptr;
+	}
 }
 
 void MainWindow::showAsciiTable()
@@ -438,8 +377,9 @@ void MainWindow::showEscapeCodes()
 
 void MainWindow::sendFromFile()
 {
-	if (!m_opened)
-		if (!openPort())
+	bool portWasOpen = m_port->isOpen();
+	if (!m_port->isOpen())
+		if (!m_port->open())
 			return;
 
 	QString fileName = QFileDialog::getOpenFileName(this);
@@ -468,7 +408,7 @@ void MainWindow::sendFromFile()
 
 	connect(this, &MainWindow::bytesWritten, &dialog, &SendFileDialog::onBytesSent);
 
-	sendRawData(data);
+	m_port->writeRawData(data);
 	QTime startTime = QTime::currentTime();
 
 	if (dialog.exec()) {
@@ -476,8 +416,8 @@ void MainWindow::sendFromFile()
 		double secondsDelta = startTime.msecsTo(endTime) / 1000.0;
 		QMessageBox::information(this, "Success", "Data successfully sent in " + QString::number(secondsDelta, 'g', 2) + " seconds");
 	} else {
-		closePort();
-		openPort();
+		if (!portWasOpen)
+			closePort();
 	}
 }
 
@@ -485,12 +425,6 @@ void MainWindow::exportData()
 {
 	ExportDialog dialog(m_receivedData, m_textView, m_hexView, m_byteReceiveTimesDialog, this);
 	dialog.exec();
-}
-
-
-void MainWindow::readFromPort()
-{
-	displayData(m_port->readAll());
 }
 
 void MainWindow::refreshPorts()
@@ -548,101 +482,13 @@ void MainWindow::refreshPorts()
 
 void MainWindow::continuousSend()
 {
-	if (m_continuousSendDialog) {
-		m_continuousSendDialog->show();
-		m_continuousSendDialog->activateWindow();
-		m_continuousSendDialog->raise();
+	if (!m_continuousSendWindow->isVisible()) {
+		m_continuousSendWindow->show();
+		m_continuousSendWindow->activateWindow();
+		m_continuousSendWindow->raise();
+		m_continuousSendWindow->setInput(m_inputField->text());
 		return;
 	}
-
-	QDialog *dialog = new QDialog(this);
-	if (m_continuousSendDialog)
-		delete m_continuousSendDialog;
-	m_continuousSendDialog = dialog;
-
-	QStackedLayout *layout = new QStackedLayout;
-	dialog->setLayout(layout);
-
-	QWidget *setupWidget = new QWidget;
-	layout->addWidget(setupWidget);
-	QGridLayout *setupLayout = new QGridLayout;
-	setupWidget->setLayout(setupLayout);
-
-	QLineEdit *input = new QLineEdit;
-	input->setText(m_inputField->text());
-	QSpinBox *interval = new QSpinBox;
-	interval->setRange(0, 1000000000);
-	interval->setValue(200);
-	interval->setSuffix("ms");
-	QCheckBox *sendIndefinitely = new QCheckBox("Send indefinitely");
-	sendIndefinitely->setChecked(true);
-	QSpinBox *packetCount = new QSpinBox;
-	packetCount->setRange(1, 1000000000);
-	packetCount->setEnabled(false);
-	QPushButton *sendButton = new QPushButton("Send");
-
-	int row = 0;
-	setupLayout->addWidget(input, row++, 0, 1, 2);
-
-	setupLayout->addWidget(new QLabel("Send interval: "), row, 0);
-	setupLayout->addWidget(interval, row++, 1);
-
-	setupLayout->addWidget(sendIndefinitely, row++, 0, 1, 2);
-
-	setupLayout->addWidget(new QLabel("Number of messages to send: "), row, 0);
-	setupLayout->addWidget(packetCount, row++, 1);
-
-	setupLayout->addWidget(sendButton, row, 0, 1, 2);
-
-	QWidget *sendingWidget = new QWidget;
-	layout->addWidget(sendingWidget);
-	QVBoxLayout *sendingLayout = new QVBoxLayout;
-	sendingWidget->setLayout(sendingLayout);
-
-	QLabel *text = new QLabel();
-	QPushButton *cancelButton = new QPushButton("Cancel");
-	sendingLayout->addWidget(text, 0, Qt::AlignCenter);
-	sendingLayout->addWidget(cancelButton);
-
-
-	QTimer *sendTimer = new QTimer(dialog);
-
-	auto cancel = [layout, sendTimer]() {
-		sendTimer->stop();
-		layout->setCurrentIndex(0);
-	};
-
-	auto sendPacket = [this, input, sendIndefinitely, packetCount, text, cancel]() {
-		sendData(input->text());
-		++m_continuousPacketsSent;
-		text->setText(QString::number(m_continuousPacketsSent) + " messages sent");
-		if (!sendIndefinitely->isChecked() && m_continuousPacketsSent >= packetCount->value())
-			cancel();
-	};
-
-	connect(sendButton, &QPushButton::clicked, [this, sendTimer, input, layout, interval, text, sendPacket]() {
-		if (input->text().isEmpty())
-			return;
-		if (!m_opened)
-			if (!openPort())
-				return;
-		m_continuousPacketsSent = 0;
-		text->setText("0 messages sent");
-		layout->setCurrentIndex(1);
-		sendPacket();
-		sendTimer->start(interval->value());
-	});
-
-	connect(cancelButton, &QPushButton::clicked, cancel);
-	connect(sendTimer, &QTimer::timeout, sendPacket);
-	connect(sendIndefinitely, &QCheckBox::stateChanged, packetCount, &QSpinBox::setDisabled);
-
-	dialog->show();
-
-	connect(dialog, &QDialog::finished, [this]() {
-		delete m_continuousSendDialog;
-		m_continuousSendDialog = nullptr;
-	});
 }
 
 void MainWindow::clearScreen()
@@ -657,11 +503,6 @@ void MainWindow::clearScreen()
 	refreshStatusBar();
 }
 
-void MainWindow::sendDataFromMainInput()
-{
-	sendData(m_inputField->text());
-}
-
 void MainWindow::showPinoutSignals()
 {
 	if (m_pinoutSignalsDialog) {
@@ -671,8 +512,8 @@ void MainWindow::showPinoutSignals()
 		return;
 	}
 
-	if (!m_opened)
-		if (!openPort())
+	if (!m_port->isOpen())
+		if (!m_port->open())
 			return;
 
 	QDialog *dialog = new QDialog(this);

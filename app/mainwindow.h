@@ -9,8 +9,9 @@ class QLineEdit;
 class HexView;
 class PlainTextView;
 class QPushButton;
-class QSerialPort;
+class SerialPort;
 class ByteReceiveTimesDialog;
+class ContinuousSendWindow;
 
 class MainWindow : public QMainWindow
 {
@@ -21,15 +22,14 @@ public:
 	~MainWindow();
 
 private slots:
-	void sendRawData(const QByteArray &data);
-	void sendData(const QString &data);
-	void sendDataFromMainInput();
-	bool openPort();
+	void sendDataFromInput();
 	void closePort();
 	void displayData(const QByteArray &data);
 	void toggleConnect();
-	void readFromPort();
 	void refreshPorts();
+
+	void onPortOpened();
+	void onPortClosed();
 
 signals:
 	void bytesWritten(qint64 bytes);
@@ -71,11 +71,9 @@ private:
 	PlainTextView *m_textView;
 	HexView *m_hexView;
 
-	QSerialPort *m_port;
-	bool m_opened;
-	bool m_usingLoopback;
+	SerialPort *m_port;
 
-	QDialog *m_continuousSendDialog;
+	ContinuousSendWindow *m_continuousSendWindow;
 	QDialog *m_pinoutSignalsDialog;
 	ByteReceiveTimesDialog *m_byteReceiveTimesDialog;
 	QDialog *m_asciiTableDialog;

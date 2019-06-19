@@ -8,6 +8,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11 static
 
 SOURCES += \
+    continuoussendwindow.cpp \
     exportdialog.cpp \
     line.cpp \
     main.cpp \
@@ -20,10 +21,12 @@ SOURCES += \
     escapecodesdialog.cpp \
     latestreleasechecker.cpp \
     changelogdialog.cpp \
+    serialport.cpp \
     settingspage.cpp
 
 HEADERS += \
     config.h \
+    continuoussendwindow.h \
     exportdialog.h \
     line.h \
     mainwindow.h \
@@ -36,6 +39,7 @@ HEADERS += \
     escapecodesdialog.h \
     latestreleasechecker.h \
     changelogdialog.h \
+    serialport.h \
     settingspage.h
 
 RESOURCES += resources.qrc
