@@ -31,9 +31,6 @@ private slots:
 	void onPortOpened();
 	void onPortClosed();
 
-signals:
-	void bytesWritten(qint64 bytes);
-
 public slots:
 	void continuousSend();
 	void showAsciiTable();

@@ -269,12 +269,13 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(m_port, &SerialPort::opened, this, &MainWindow::onPortOpened);
 	connect(m_port, &SerialPort::closed, this, &MainWindow::onPortClosed);
 
-	refreshStatusBar();
-
-	connect(this, &MainWindow::bytesWritten, [this](qint64 bytes) {
+	connect(m_port, &SerialPort::bytesWritten, [this](qint64 bytes) {
 		m_totalBytesWritten += bytes;
 		refreshStatusBar();
 	});
+
+
+	refreshStatusBar();
 
 	if (checkForUpdates) {
 		LatestReleaseChecker *latestReleaseChecker = new LatestReleaseChecker(this);
@@ -406,7 +407,7 @@ void MainWindow::sendFromFile()
 
 	SendFileDialog dialog(data.size(), this);
 
-	connect(this, &MainWindow::bytesWritten, &dialog, &SendFileDialog::onBytesSent);
+	connect(m_port, &SerialPort::bytesWritten, &dialog, &SendFileDialog::onBytesSent);
 
 	m_port->writeRawData(data);
 	QTime startTime = QTime::currentTime();

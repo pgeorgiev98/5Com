@@ -21,6 +21,7 @@ SerialPort::SerialPort(QObject *parent)
 			emit closed();
 		}
 	});
+	connect(m_port, &QSerialPort::bytesWritten, this, &SerialPort::bytesWritten);
 }
 
 QString SerialPort::errorString() const
