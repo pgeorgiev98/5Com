@@ -65,6 +65,7 @@ ContinuousSendWindow::ContinuousSendWindow(SerialPort *port, QWidget *parent)
 	connect(cancelButton, &QPushButton::clicked, this, &ContinuousSendWindow::stopSending);
 	connect(m_sendTimer, &QTimer::timeout, this, &ContinuousSendWindow::sendPacket);
 	connect(m_sendIndefinitely, &QCheckBox::stateChanged, m_packetCount, &QSpinBox::setDisabled);
+	connect(this, &QDialog::finished, this, &ContinuousSendWindow::stopSending);
 }
 
 void ContinuousSendWindow::setInput(const QString &text)
