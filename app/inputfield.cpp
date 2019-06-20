@@ -32,6 +32,11 @@ void InputField::onInputEntered()
 	int historyLength = c.inputHistoryLength();
 	while (count() > historyLength)
 		removeItem(count() - 1);
+
+	if (c.clearInputOnSend()) {
+		clearEditText();
+		m_searching = false;
+	}
 }
 
 void InputField::keyPressEvent(QKeyEvent *event)

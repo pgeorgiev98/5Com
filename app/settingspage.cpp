@@ -26,6 +26,7 @@ SettingsPage::SettingsPage(QWidget *parent)
 	, m_checkForUpdatesOnStartup(new QCheckBox("Check for updates on startup"))
 	, m_readBufferLimitKiB(new QSpinBox)
 	, m_inputHistoryLength(new QSpinBox)
+	, m_clearInputOnSend(new QCheckBox("Clear the input field on send"))
 {
 	m_readBufferLimitKiB->setSuffix("KiB");
 	m_readBufferLimitKiB->setRange(1, std::numeric_limits<int>::max());
@@ -44,6 +45,7 @@ SettingsPage::SettingsPage(QWidget *parent)
 
 	layout->addLayout(labeledWidget("Read buffer limit: ", m_readBufferLimitKiB));
 	layout->addLayout(labeledWidget("Input history length: ", m_inputHistoryLength));
+	layout->addWidget(m_clearInputOnSend);
 
 	{
 		QHBoxLayout *hbox = new QHBoxLayout;
@@ -73,6 +75,7 @@ void SettingsPage::load()
 	m_checkForUpdatesOnStartup->setChecked(c.checkForUpdatesOnStartup());
 	m_readBufferLimitKiB->setValue(c.readBufferLimitKiB());
 	m_inputHistoryLength->setValue(c.inputHistoryLength());
+	m_clearInputOnSend->setChecked(c.clearInputOnSend());
 }
 
 void SettingsPage::save()
@@ -83,6 +86,7 @@ void SettingsPage::save()
 	c.setCheckForUpdatesOnStartup(m_checkForUpdatesOnStartup->isChecked());
 	c.setReadBufferLimitKiB(m_readBufferLimitKiB->value());
 	c.setInputHistoryLength(m_inputHistoryLength->value());
+	c.setClearInputOnSend(m_clearInputOnSend->isChecked());
 
 	accept();
 }

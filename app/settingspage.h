@@ -21,6 +21,7 @@ private:
 	QCheckBox *m_checkForUpdatesOnStartup;
 	QSpinBox *m_readBufferLimitKiB;
 	QSpinBox *m_inputHistoryLength;
+	QCheckBox *m_clearInputOnSend;
 };
 
 #endif // SETTINGSPAGE_H

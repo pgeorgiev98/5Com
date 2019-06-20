@@ -33,6 +33,7 @@ public:
 	FIELD(bool, Bool, exportWithSepStatement, setExportWithSepStatement, "exportWithSepStatement", false)
 	FIELD(QString, String, exportSeparator, setExportSeparator, "exportSeparator", ",")
 	FIELD(int, Int, inputHistoryLength, setInputHistoryLength, "inputHistoryLength", 10)
+	FIELD(bool, Bool, clearInputOnSend, setClearInputOnSend, "clearInputOnSend", false)
 
 	QSettings &settings() { return m_settings; }
 	QString path() const { return m_settings.fileName(); }
