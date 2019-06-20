@@ -50,18 +50,23 @@ SettingsPage::SettingsPage(QWidget *parent)
 	{
 		QHBoxLayout *hbox = new QHBoxLayout;
 		QPushButton *cancel = new QPushButton("Cancel");
+		QPushButton *ok = new QPushButton("Ok");
 		QPushButton *apply = new QPushButton("Apply");
 		apply->setAutoDefault(true);
 		apply->setDefault(true);
 		hbox->addStretch(1);
+		hbox->addWidget(apply);
+		hbox->addStretch(1);
 		hbox->addWidget(cancel);
 		hbox->addStretch(1);
-		hbox->addWidget(apply);
+		hbox->addWidget(ok);
 		hbox->addStretch(1);
 		layout->addLayout(hbox);
 
 		connect(cancel, &QPushButton::clicked, this, &QDialog::reject);
 		connect(apply, &QPushButton::clicked, this, &SettingsPage::save);
+		connect(ok, &QPushButton::clicked, this, &SettingsPage::save);
+		connect(ok, &QPushButton::clicked, this, &SettingsPage::accept);
 	}
 
 	load();
@@ -87,6 +92,4 @@ void SettingsPage::save()
 	c.setReadBufferLimitKiB(m_readBufferLimitKiB->value());
 	c.setInputHistoryLength(m_inputHistoryLength->value());
 	c.setClearInputOnSend(m_clearInputOnSend->isChecked());
-
-	accept();
 }

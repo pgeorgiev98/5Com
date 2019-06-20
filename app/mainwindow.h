@@ -12,6 +12,7 @@ class SerialPort;
 class ByteReceiveTimesDialog;
 class ContinuousSendWindow;
 class InputField;
+class SettingsPage;
 
 class MainWindow : public QMainWindow
 {
@@ -75,6 +76,7 @@ private:
 	ByteReceiveTimesDialog *m_byteReceiveTimesDialog;
 	QDialog *m_asciiTableDialog;
 	QDialog *m_escapeCodesDialog;
+	SettingsPage *m_settingsPage;
 };
 
 #endif // MAINWINDOW_H

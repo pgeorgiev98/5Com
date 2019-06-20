@@ -58,6 +58,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, m_byteReceiveTimesDialog(nullptr)
 	, m_asciiTableDialog(new AsciiTable(this))
 	, m_escapeCodesDialog(new EscapeCodesDialog(this))
+	, m_settingsPage(new SettingsPage(this))
 {
 	Config c;
 	setMinimumSize(640, 480);
@@ -721,8 +722,9 @@ void MainWindow::showAboutQtPage()
 
 void MainWindow::showSettings()
 {
-	SettingsPage settingsPage(this);
-	settingsPage.exec();
+	m_settingsPage->show();
+	m_settingsPage->activateWindow();
+	m_settingsPage->raise();
 }
 
 void MainWindow::refreshStatusBar()
