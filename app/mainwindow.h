@@ -5,13 +5,13 @@
 
 class QLabel;
 class QComboBox;
-class QLineEdit;
 class HexView;
 class PlainTextView;
 class QPushButton;
 class SerialPort;
 class ByteReceiveTimesDialog;
 class ContinuousSendWindow;
+class InputField;
 
 class MainWindow : public QMainWindow
 {
@@ -64,7 +64,7 @@ private:
 	QComboBox *m_stopBitsSelect;
 	QPushButton *m_connectButton;
 
-	QLineEdit *m_inputField;
+	InputField *m_inputField;
 	PlainTextView *m_textView;
 	HexView *m_hexView;
 

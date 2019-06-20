@@ -10,6 +10,7 @@ CONFIG += c++11 static
 SOURCES += \
     continuoussendwindow.cpp \
     exportdialog.cpp \
+    inputfield.cpp \
     line.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -28,6 +29,7 @@ HEADERS += \
     config.h \
     continuoussendwindow.h \
     exportdialog.h \
+    inputfield.h \
     line.h \
     mainwindow.h \
     hexview.h \

@@ -13,6 +13,7 @@
 #include "config.h"
 #include "serialport.h"
 #include "continuoussendwindow.h"
+#include "inputfield.h"
 
 #include <QComboBox>
 #include <QLineEdit>
@@ -48,7 +49,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, m_paritySelect(new QComboBox)
 	, m_stopBitsSelect(new QComboBox)
 	, m_connectButton(new QPushButton)
-	, m_inputField(new QLineEdit)
+	, m_inputField(new InputField)
 	, m_textView(new PlainTextView)
 	, m_hexView(new HexView)
 	, m_port(new SerialPort(this))
@@ -170,13 +171,13 @@ MainWindow::MainWindow(QWidget *parent)
 	{
 		QPushButton *sendButton = new QPushButton("Send");
 		QHBoxLayout *inputLayout = new QHBoxLayout;
-		inputLayout->addWidget(m_inputField);
+		inputLayout->addWidget(m_inputField, 1);
 		inputLayout->addWidget(sendButton);
 
 		layout->addLayout(inputLayout);
 
 		connect(sendButton, &QPushButton::clicked, this, &MainWindow::sendDataFromInput);
-		connect(m_inputField, &QLineEdit::returnPressed, this, &MainWindow::sendDataFromInput);
+		connect(m_inputField->lineEdit(), &QLineEdit::returnPressed, this, &MainWindow::sendDataFromInput);
 	}
 
 	layout->addWidget(tabs);
@@ -301,10 +302,17 @@ MainWindow::~MainWindow()
 
 void MainWindow::sendDataFromInput()
 {
+	QString input = m_inputField->currentText();
+	if (input.isEmpty())
+		return;
+
+	m_inputField->onInputEntered();
+
+	// Open port and send the data
 	if (!m_port->isOpen())
 		if (!m_port->open())
 			return;
-	m_port->writeFormattedData(m_inputField->text());
+	m_port->writeFormattedData(input);
 }
 
 void MainWindow::closePort()
@@ -487,7 +495,7 @@ void MainWindow::continuousSend()
 		m_continuousSendWindow->show();
 		m_continuousSendWindow->activateWindow();
 		m_continuousSendWindow->raise();
-		m_continuousSendWindow->setInput(m_inputField->text());
+		m_continuousSendWindow->setInput(m_inputField->currentText());
 		return;
 	}
 }

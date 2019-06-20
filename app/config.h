@@ -32,6 +32,7 @@ public:
 	FIELD(bool, Bool, exportWithCRLFEndings, setExportWithCRLFEndings, "exportWithCRLFEndings", BUILDING_FOR_WINDOWS)
 	FIELD(bool, Bool, exportWithSepStatement, setExportWithSepStatement, "exportWithSepStatement", false)
 	FIELD(QString, String, exportSeparator, setExportSeparator, "exportSeparator", ",")
+	FIELD(int, Int, inputHistoryLength, setInputHistoryLength, "inputHistoryLength", 10)
 
 	QSettings &settings() { return m_settings; }
 	QString path() const { return m_settings.fileName(); }
