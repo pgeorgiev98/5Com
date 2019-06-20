@@ -11,6 +11,7 @@ class QPushButton;
 class SerialPort;
 class ByteReceiveTimesDialog;
 class ContinuousSendWindow;
+class SendSequenceWindow;
 class InputField;
 class SettingsPage;
 
@@ -34,6 +35,7 @@ private slots:
 
 public slots:
 	void continuousSend();
+	void sendSequence();
 	void showAsciiTable();
 	void showEscapeCodes();
 	void showPinoutSignals();
@@ -72,6 +74,7 @@ private:
 	SerialPort *m_port;
 
 	ContinuousSendWindow *m_continuousSendWindow;
+	SendSequenceWindow *m_sendSequenceWindow;
 	QDialog *m_pinoutSignalsDialog;
 	ByteReceiveTimesDialog *m_byteReceiveTimesDialog;
 	QDialog *m_asciiTableDialog;

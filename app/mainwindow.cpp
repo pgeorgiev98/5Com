@@ -13,6 +13,7 @@
 #include "config.h"
 #include "serialport.h"
 #include "continuoussendwindow.h"
+#include "sendsequencewindow.h"
 #include "inputfield.h"
 
 #include <QComboBox>
@@ -54,6 +55,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, m_hexView(new HexView)
 	, m_port(new SerialPort(this))
 	, m_continuousSendWindow(new ContinuousSendWindow(m_port, this))
+	, m_sendSequenceWindow(new SendSequenceWindow(m_port, this))
 	, m_pinoutSignalsDialog(nullptr)
 	, m_byteReceiveTimesDialog(nullptr)
 	, m_asciiTableDialog(new AsciiTable(this))
@@ -189,6 +191,7 @@ MainWindow::MainWindow(QWidget *parent)
 	QAction *exportAction = new QAction("&Export");
 	QAction *exitAction = new QAction("E&xit");
 	QAction *continuousSendAction = new QAction("&Continuous send");
+	QAction *sendSequenceAction = new QAction("&Send sequence");
 	QAction *pinoutSignalsAction = new QAction("&Pinout signals");
 	QAction *byteReceiveTimesAction = new QAction("&Byte receive times");
 	QAction *clearScreenAction = new QAction("C&lear screen");
@@ -213,6 +216,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 	auto toolsMenu = menuBar()->addMenu("&Tools");
 	toolsMenu->addAction(continuousSendAction);
+	toolsMenu->addAction(sendSequenceAction);
 	toolsMenu->addAction(pinoutSignalsAction);
 	toolsMenu->addAction(byteReceiveTimesAction);
 	toolsMenu->addAction(clearScreenAction);
@@ -232,6 +236,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(exportAction, &QAction::triggered, this, &MainWindow::exportData);
 	connect(exitAction, &QAction::triggered, this, &QMainWindow::close);
 	connect(continuousSendAction, &QAction::triggered, this, &MainWindow::continuousSend);
+	connect(sendSequenceAction, &QAction::triggered, this, &MainWindow::sendSequence);
 	connect(pinoutSignalsAction, &QAction::triggered, this, &MainWindow::showPinoutSignals);
 	connect(byteReceiveTimesAction, &QAction::triggered, this, &MainWindow::showByteReceiveTimes);
 	connect(clearScreenAction, &QAction::triggered, this, &MainWindow::clearScreen);
@@ -499,6 +504,13 @@ void MainWindow::continuousSend()
 		m_continuousSendWindow->setInput(m_inputField->currentText());
 		return;
 	}
+}
+
+void MainWindow::sendSequence()
+{
+	m_sendSequenceWindow->show();
+	m_sendSequenceWindow->activateWindow();
+	m_sendSequenceWindow->raise();
 }
 
 void MainWindow::clearScreen()

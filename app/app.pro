@@ -22,6 +22,7 @@ SOURCES += \
     escapecodesdialog.cpp \
     latestreleasechecker.cpp \
     changelogdialog.cpp \
+    sendsequencewindow.cpp \
     serialport.cpp \
     settingspage.cpp
 
@@ -41,6 +42,7 @@ HEADERS += \
     escapecodesdialog.h \
     latestreleasechecker.h \
     changelogdialog.h \
+    sendsequencewindow.h \
     serialport.h \
     settingspage.h
 
