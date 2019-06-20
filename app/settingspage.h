@@ -20,6 +20,7 @@ private:
 	QCheckBox *m_includePtsDirectory;
 	QCheckBox *m_checkForUpdatesOnStartup;
 	QSpinBox *m_readBufferLimitKiB;
+	QSpinBox *m_inputHistoryLength;
 };
 
 #endif // SETTINGSPAGE_H

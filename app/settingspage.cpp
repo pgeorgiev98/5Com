@@ -25,9 +25,11 @@ SettingsPage::SettingsPage(QWidget *parent)
 #endif
 	, m_checkForUpdatesOnStartup(new QCheckBox("Check for updates on startup"))
 	, m_readBufferLimitKiB(new QSpinBox)
+	, m_inputHistoryLength(new QSpinBox)
 {
 	m_readBufferLimitKiB->setSuffix("KiB");
 	m_readBufferLimitKiB->setRange(1, std::numeric_limits<int>::max());
+	m_inputHistoryLength->setRange(1, 10000);
 
 	QVBoxLayout *layout = new QVBoxLayout;
 	setLayout(layout);
@@ -41,6 +43,7 @@ SettingsPage::SettingsPage(QWidget *parent)
 	layout->addWidget(m_checkForUpdatesOnStartup);
 
 	layout->addLayout(labeledWidget("Read buffer limit: ", m_readBufferLimitKiB));
+	layout->addLayout(labeledWidget("Input history length: ", m_inputHistoryLength));
 
 	{
 		QHBoxLayout *hbox = new QHBoxLayout;
@@ -69,6 +72,7 @@ void SettingsPage::load()
 		m_includePtsDirectory->setChecked(c.includePtsDirectory());
 	m_checkForUpdatesOnStartup->setChecked(c.checkForUpdatesOnStartup());
 	m_readBufferLimitKiB->setValue(c.readBufferLimitKiB());
+	m_inputHistoryLength->setValue(c.inputHistoryLength());
 }
 
 void SettingsPage::save()
@@ -78,6 +82,7 @@ void SettingsPage::save()
 		c.setIncludePtsDirectory(m_includePtsDirectory->isChecked());
 	c.setCheckForUpdatesOnStartup(m_checkForUpdatesOnStartup->isChecked());
 	c.setReadBufferLimitKiB(m_readBufferLimitKiB->value());
+	c.setInputHistoryLength(m_inputHistoryLength->value());
 
 	accept();
 }
