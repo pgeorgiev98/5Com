@@ -22,16 +22,18 @@ signals:
 private slots:
 	void onSendClicked();
 	void addOperation(OperationType);
+	void addOperation(OperationType, int);
 	void clearOperations();
 	void removeOperation(int i, bool adjustSize = false);
 	void executeNextOperation();
+	void onActionButtonClicked();
 
 protected:
 	void reject() override;
 
 private:
 	struct Operation {
-		QWidget *label, *input;
+		QWidget *label, *input, *actionButton;
 		OperationType type;
 	};
 	QVector<Operation> m_operations;

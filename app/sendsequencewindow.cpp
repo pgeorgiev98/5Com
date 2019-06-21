@@ -87,11 +87,25 @@ void SendSequenceWindow::onSendClicked()
 
 void SendSequenceWindow::addOperation(SendSequenceWindow::OperationType type)
 {
+	addOperation(type, m_operations.size());
+}
+
+void SendSequenceWindow::addOperation(SendSequenceWindow::OperationType type, int row)
+{
 	m_operationsLayout->removeWidget(m_addnewButton);
 	m_operationsLayout->removeWidget(m_clearOperationsButton);
 	m_operationsLayout->addWidget(m_addnewButton, m_operations.size() + 1, 3, Qt::AlignRight);
 	m_operationsLayout->addWidget(m_clearOperationsButton, m_operations.size() + 1, 0, Qt::AlignLeft);
-	int row = m_operations.size();
+
+	for (int i = m_operations.size() - 1; i >= row; --i) {
+		m_operationsLayout->removeWidget(m_operations[i].label);
+		m_operationsLayout->removeWidget(m_operations[i].input);
+		m_operationsLayout->removeWidget(m_operations[i].actionButton);
+		m_operationsLayout->addWidget(m_operations[i].label, i + 1, 0);
+		m_operationsLayout->addWidget(m_operations[i].input, i + 1, 1);
+		m_operationsLayout->addWidget(m_operations[i].actionButton, i + 1, 3);
+	}
+
 	Operation op;
 	op.type = type;
 	if (type == OperationType::Send) {
@@ -110,7 +124,12 @@ void SendSequenceWindow::addOperation(SendSequenceWindow::OperationType type)
 		input->selectAll();
 		op.input = input;
 	}
-	m_operations.append(op);
+	QToolButton *actionButton = new QToolButton;
+	actionButton->setText("...");
+	m_operationsLayout->addWidget(actionButton, row, 3);
+	op.actionButton = actionButton;
+	connect(actionButton, &QToolButton::clicked, this, &SendSequenceWindow::onActionButtonClicked);
+	m_operations.insert(row, op);
 
 	emit operationsCountChanged(m_operations.count());
 }
@@ -126,13 +145,24 @@ void SendSequenceWindow::removeOperation(int i, bool adjustSize)
 {
 	m_operationsLayout->removeWidget(m_operations[i].label);
 	m_operationsLayout->removeWidget(m_operations[i].input);
+	m_operationsLayout->removeWidget(m_operations[i].actionButton);
 	m_operations[i].label->deleteLater();
 	m_operations[i].input->deleteLater();
+	m_operations[i].actionButton->deleteLater();
+
+	for (int j = i; j < m_operations.size() - 1; ++j) {
+		m_operationsLayout->removeWidget(m_operations[j + 1].label);
+		m_operationsLayout->removeWidget(m_operations[j + 1].input);
+		m_operationsLayout->removeWidget(m_operations[j + 1].actionButton);
+		m_operationsLayout->addWidget(m_operations[j + 1].label, j, 0);
+		m_operationsLayout->addWidget(m_operations[j + 1].input, j, 1);
+		m_operationsLayout->addWidget(m_operations[j + 1].actionButton, j, 3);
+	}
 
 	m_operationsLayout->removeWidget(m_addnewButton);
 	m_operationsLayout->removeWidget(m_clearOperationsButton);
-	m_operationsLayout->addWidget(m_addnewButton, i, 3, Qt::AlignRight);
-	m_operationsLayout->addWidget(m_clearOperationsButton, i, 0, Qt::AlignLeft);
+	m_operationsLayout->addWidget(m_addnewButton, m_operations.size() - 1, 3, Qt::AlignRight);
+	m_operationsLayout->addWidget(m_clearOperationsButton, m_operations.size() - 1, 0, Qt::AlignLeft);
 
 	m_operations.removeAt(i);
 
@@ -179,4 +209,47 @@ void SendSequenceWindow::reject()
 		m_timer->stop();
 	}
 	QDialog::reject();
+}
+
+void SendSequenceWindow::onActionButtonClicked()
+{
+	int i;
+	QWidget *s = reinterpret_cast<QWidget *>(sender());
+	for (i = 0; i < m_operations.size(); ++i)
+		if (m_operations[i].actionButton == s)
+			break;
+
+	QMenu menu(s);
+	QAction removeAction("Remove");
+	QMenu addBefore("Add before this");
+	QMenu addAfter("Add after this");
+	QAction addSendBefore("Send");
+	QAction addWaitBefore("Wait");
+	QAction addSendAfter("Send");
+	QAction addWaitAfter("Wait");
+
+	addBefore.addAction(&addSendBefore);
+	addBefore.addAction(&addWaitBefore);
+	addAfter.addAction(&addSendAfter);
+	addAfter.addAction(&addWaitAfter);
+
+	menu.addAction(&removeAction);
+	menu.addMenu(&addBefore);
+	menu.addMenu(&addAfter);
+
+	QPoint pos = s->pos();
+	pos.setX(pos.x() + s->width());
+	menu.popup(QWidget::mapToGlobal(pos));
+	QAction *action = menu.exec();
+	if (action == &removeAction) {
+		removeOperation(i, true);
+	} else if (action == &addSendBefore) {
+		addOperation(OperationType::Send, i);
+	} else if (action == &addWaitBefore) {
+		addOperation(OperationType::Wait, i);
+	} else if (action == &addSendAfter) {
+		addOperation(OperationType::Send, i + 1);
+	} else if (action == &addWaitAfter) {
+		addOperation(OperationType::Wait, i + 1);
+	}
 }
