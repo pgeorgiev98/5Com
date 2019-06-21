@@ -27,6 +27,7 @@ private slots:
 	void removeOperation(int i, bool adjustSize = false);
 	void executeNextOperation();
 	void onActionButtonClicked();
+	void cancelSequence();
 
 protected:
 	void reject() override;
@@ -41,6 +42,7 @@ private:
 	QGridLayout *m_operationsLayout;
 	QToolButton *m_addnewButton;
 	QToolButton *m_clearOperationsButton;
+	QPushButton *m_sendButton;
 	int m_currentOperation;
 	QTimer *m_timer;
 };

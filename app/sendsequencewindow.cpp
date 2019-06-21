@@ -23,13 +23,13 @@ SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 	, m_operationsLayout(new QGridLayout)
 	, m_addnewButton(new QToolButton)
 	, m_clearOperationsButton(new QToolButton)
+	, m_sendButton(new QPushButton("Send"))
 	, m_currentOperation(-1)
 	, m_timer(new QTimer(this))
 {
 	m_addnewButton->setText("+");
 	m_clearOperationsButton->setText("Clear");
 	setMinimumWidth(400);
-	QPushButton *sendButton = new QPushButton("Send");
 	QVBoxLayout *layout = new QVBoxLayout;
 	setLayout(layout);
 
@@ -40,7 +40,7 @@ SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 	{
 		QHBoxLayout *hbox = new QHBoxLayout;
 		hbox->addStretch(1);
-		hbox->addWidget(sendButton);
+		hbox->addWidget(m_sendButton);
 		hbox->addStretch(1);
 		layout->addLayout(hbox);
 	}
@@ -48,7 +48,7 @@ SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 	m_operationsLayout->addWidget(m_addnewButton, 0, 3, Qt::AlignRight);
 	m_operationsLayout->addWidget(m_clearOperationsButton, 0, 0, Qt::AlignLeft);
 
-	connect(sendButton, &QPushButton::clicked, this, &SendSequenceWindow::onSendClicked);
+	connect(m_sendButton, &QPushButton::clicked, this, &SendSequenceWindow::onSendClicked);
 	connect(m_addnewButton, &QPushButton::clicked, [this]() {
 		QMenu menu(m_addnewButton);
 		QAction sendAction("Send");
@@ -65,24 +65,29 @@ SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 			addOperation(OperationType::Wait);
 	});
 	connect(m_clearOperationsButton, &QPushButton::clicked, this, &SendSequenceWindow::clearOperations);
-	sendButton->setEnabled(false);
-	connect(this, &SendSequenceWindow::operationsCountChanged, [sendButton](int count) {
-		sendButton->setEnabled(count > 0);
+	m_sendButton->setEnabled(false);
+	connect(this, &SendSequenceWindow::operationsCountChanged, [this](int count) {
+		m_sendButton->setEnabled(count > 0);
 	});
 	connect(m_timer, &QTimer::timeout, this, &SendSequenceWindow::executeNextOperation);
 }
 
 void SendSequenceWindow::onSendClicked()
 {
-	if (!m_port->isOpen())
-		if (!m_port->open())
-			return;
+	if (m_currentOperation == -1) {
+		if (!m_port->isOpen())
+			if (!m_port->open())
+				return;
 
-	for (int i = 0; i < m_operations.size(); ++i)
-		m_operationsLayout->itemAtPosition(i, 0)->widget()->setStyleSheet("");
+		for (int i = 0; i < m_operations.size(); ++i)
+			m_operationsLayout->itemAtPosition(i, 0)->widget()->setStyleSheet("");
 
-	m_currentOperation = 0;
-	executeNextOperation();
+		m_currentOperation = 0;
+		m_sendButton->setText("Cancel");
+		executeNextOperation();
+	} else {
+		cancelSequence();
+	}
 }
 
 void SendSequenceWindow::addOperation(SendSequenceWindow::OperationType type)
@@ -175,7 +180,7 @@ void SendSequenceWindow::removeOperation(int i, bool adjustSize)
 void SendSequenceWindow::executeNextOperation()
 {
 	if (m_currentOperation == m_operations.size()) {
-		m_currentOperation = -1;
+		cancelSequence();
 		return;
 	}
 
@@ -205,8 +210,7 @@ void SendSequenceWindow::reject()
 		if (b != QMessageBox::StandardButton::Yes)
 			return;
 
-		m_currentOperation = -1;
-		m_timer->stop();
+		cancelSequence();
 	}
 	QDialog::reject();
 }
@@ -252,4 +256,11 @@ void SendSequenceWindow::onActionButtonClicked()
 	} else if (action == &addWaitAfter) {
 		addOperation(OperationType::Wait, i + 1);
 	}
+}
+
+void SendSequenceWindow::cancelSequence()
+{
+	m_timer->stop();
+	m_currentOperation = -1;
+	m_sendButton->setText("Send");
 }
