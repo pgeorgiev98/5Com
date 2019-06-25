@@ -37,6 +37,7 @@
 #include <QTimer>
 #include <QTime>
 #include <QProgressBar>
+#include <QShortcut>
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -207,7 +208,7 @@ MainWindow::MainWindow(QWidget *parent)
 	writeFile->setShortcut(QKeySequence::Open);
 	exportAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
 	exitAction->setShortcut(QKeySequence::Quit);
-	clearScreenAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_L));
+	clearScreenAction->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_L));
 
 	auto fileMenu = menuBar()->addMenu("&File");
 	fileMenu->addAction(writeFile);
@@ -281,6 +282,9 @@ MainWindow::MainWindow(QWidget *parent)
 		refreshStatusBar();
 	});
 
+	// Keyboard shortcuts
+	QShortcut *focusInputShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_L), this);
+	connect(focusInputShortcut, &QShortcut::activated, [this]() { m_inputField->setFocus(); });
 
 	refreshStatusBar();
 
