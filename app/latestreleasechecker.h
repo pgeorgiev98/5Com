@@ -13,15 +13,16 @@ class LatestReleaseChecker : public QObject
 public:
 	explicit LatestReleaseChecker(QObject *parent = nullptr);
 
-	static LatestReleaseChecker *instance();
-
 	struct Release
 	{
 		QString versionString, url;
+		QString windowsDownloadUrl;
 
-		Release(const QString &versionString, const QString &url)
+		Release(const QString &versionString, const QString &url,
+				const QString &windowsDownloadUrl)
 			: versionString(versionString)
 			, url(url)
+			, windowsDownloadUrl(windowsDownloadUrl)
 		{}
 
 		Release(const QString &versionString)

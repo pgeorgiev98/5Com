@@ -7,26 +7,17 @@
 
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonArray>
 #include <QJsonParseError>
 
 #include <QDebug>
-
-static LatestReleaseChecker *s_instance = nullptr;
 
 LatestReleaseChecker::LatestReleaseChecker(QObject *parent)
 	: QObject(parent)
 	, m_manager(new QNetworkAccessManager(this))
 {
-	Q_ASSERT(s_instance == nullptr);
-	s_instance = this;
 	connect(m_manager, &QNetworkAccessManager::finished,
 			this, &LatestReleaseChecker::onRequestFinished);
-}
-
-LatestReleaseChecker *LatestReleaseChecker::instance()
-{
-	Q_ASSERT(s_instance != nullptr);
-	return s_instance;
 }
 
 void LatestReleaseChecker::checkLatestRelease()
@@ -81,12 +72,36 @@ void LatestReleaseChecker::onRequestFinished(QNetworkReply *reply)
 		return;
 	}
 
+	QString windowsDownloadUrl;
+
+	auto assetsRef = rootObject.find("assets");
+	if (assetsRef->isArray()) {
+		auto assetsArr = assetsRef->toArray();
+		for (int i = 0; i < assetsArr.count(); ++i) {
+			auto assetRef = assetsArr[i];
+			if (!assetRef.isObject())
+				continue;
+			auto asset = assetRef.toObject();
+			auto name = asset.find("name");
+			if (!name->isString())
+				continue;
+			auto browserDownloadUrl = asset.find("browser_download_url");
+			if (!browserDownloadUrl->isString())
+				continue;
+			if (!name->toString().contains("win32"))
+				continue;
+
+			windowsDownloadUrl = browserDownloadUrl->toString();
+			break;
+		}
+	}
+
 	QString version = tagNameRef.toString();
 	QString url = htmlUrlRef.toString();
 
 	if (!version.isEmpty() && version[0] == 'v')
 		version.remove(0, 1);
 
-	Release release(version, url);
+	Release release(version, url, windowsDownloadUrl);
 	emit latestReleaseFound(release);
 }

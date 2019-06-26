@@ -15,6 +15,7 @@
 #include "continuoussendwindow.h"
 #include "sendsequencewindow.h"
 #include "inputfield.h"
+#include "checkforupdatesdialog.h"
 
 #include <QComboBox>
 #include <QLineEdit>
@@ -641,67 +642,8 @@ void MainWindow::showByteReceiveTimes()
 
 void MainWindow::showCheckForUpdates()
 {
-	LatestReleaseChecker *checker = LatestReleaseChecker::instance();
-	QDialog dialog(this);
-
-	QVBoxLayout *layout = new QVBoxLayout;
-	QStackedLayout *stackedLayout = new QStackedLayout;
-	QLabel *latestReleaseLabel = new QLabel;
-	QPushButton *closeButton = new QPushButton("Close");
-
-	latestReleaseLabel->setOpenExternalLinks(true);
-
-	dialog.setLayout(layout);
-	layout->addWidget(new QLabel(QString("You're currently using version <b>%1</b>").arg(VERSION)));
-	layout->addLayout(stackedLayout);
-	{
-		QHBoxLayout *hbox = new QHBoxLayout;
-		hbox->addStretch(1);
-		hbox->addWidget(closeButton);
-		hbox->addStretch(1);
-		layout->addLayout(hbox);
-	}
-
-	QWidget *loadingWidget = new QWidget;
-	QHBoxLayout *loadingLayout = new QHBoxLayout;
-	QProgressBar *progressBar = new QProgressBar;
-	loadingLayout->setMargin(0);
-	progressBar->setRange(0, 0);
-	loadingLayout->addWidget(new QLabel("Checking latest version"));
-	loadingLayout->addWidget(progressBar);
-	loadingWidget->setLayout(loadingLayout);
-
-	stackedLayout->addWidget(loadingWidget);
-	stackedLayout->addWidget(latestReleaseLabel);
-
-	stackedLayout->setCurrentIndex(0);
-
-	auto con1 = connect(checker, &LatestReleaseChecker::failedToGetLatestRelease,
-			[latestReleaseLabel, stackedLayout](const QString &errorMessage) {
-		latestReleaseLabel->setText("Error: " + errorMessage);
-		stackedLayout->setCurrentIndex(1);
-	});
-
-	auto con2 = connect(checker, &LatestReleaseChecker::latestReleaseFound,
-			[latestReleaseLabel, stackedLayout](const LatestReleaseChecker::Release &release) {
-		if (release.isNewerThan(VERSION)) {
-			latestReleaseLabel->setText(QString(
-						"Latest release is version <b>%1</b>.\n"
-						"You can get from <a href=\"%2\">here</a>").arg(release.versionString).arg(release.url));
-		} else {
-			latestReleaseLabel->setText(QString(
-						"Latest release is version <b>%1</b>.").arg(release.versionString));
-		}
-		stackedLayout->setCurrentIndex(1);
-	});
-
-	checker->checkLatestRelease();
-
-	connect(closeButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+	CheckForUpdatesDialog dialog(this);
 	dialog.exec();
-
-	disconnect(con1);
-	disconnect(con2);
 }
 
 void MainWindow::showChangelog()

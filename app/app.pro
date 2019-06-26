@@ -8,6 +8,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11 static
 
 SOURCES += \
+    checkforupdatesdialog.cpp \
     continuoussendwindow.cpp \
     exportdialog.cpp \
     inputfield.cpp \
@@ -27,6 +28,7 @@ SOURCES += \
     settingspage.cpp
 
 HEADERS += \
+    checkforupdatesdialog.h \
     config.h \
     continuoussendwindow.h \
     exportdialog.h \
@@ -47,6 +49,10 @@ HEADERS += \
     settingspage.h
 
 RESOURCES += resources.qrc
+
+win32: QT += gui-private
+win32: SOURCES += autoupdatedialog.cpp
+win32: HEADERS += autoupdatedialog.h
 
 win32:QMAKE_LFLAGS_RELEASE += -static-libstdc++ -static-libgcc -static -lpthread
 win32:RC_ICONS = res/5Com.ico
