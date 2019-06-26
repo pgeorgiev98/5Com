@@ -306,11 +306,6 @@ MainWindow::MainWindow(QWidget *parent)
 	}
 }
 
-MainWindow::~MainWindow()
-{
-
-}
-
 void MainWindow::sendDataFromInput()
 {
 	QString input = m_inputField->currentText();
