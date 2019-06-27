@@ -11,6 +11,7 @@ public:
 
 public slots:
 	void onInputEntered();
+	void clearText();
 
 protected:
 	void keyPressEvent(QKeyEvent *) override;

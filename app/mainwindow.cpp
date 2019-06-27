@@ -287,7 +287,12 @@ MainWindow::MainWindow(QWidget *parent)
 
 	// Keyboard shortcuts
 	QShortcut *focusInputShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_L), this);
+	QShortcut *clearInputShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_W), m_inputField);
 	connect(focusInputShortcut, &QShortcut::activated, [this]() { m_inputField->setFocus(); });
+	connect(clearInputShortcut, &QShortcut::activated, [this]() {
+		if (m_inputField->hasFocus())
+			m_inputField->clearText();
+	});
 
 	refreshStatusBar();
 
@@ -405,7 +410,8 @@ void MainWindow::showKeyboardShortcuts()
 				   "Write file to port", QKeySequence(QKeySequence::Quit).toString(),
 				   "Export", "Ctrl+E",
 				   "Clear screen", "Ctrl+Shift+L",
-				   "Focus input", "Ctrl+L"};
+				   "Focus input", "Ctrl+L",
+				   "Clear input", "Ctrl+W"};
 	for (unsigned int i = 0; i < sizeof(m) / sizeof(QString); i += 2) {
 		layout->addWidget(new QLabel(m[i  ]), i / 2, 0);
 		layout->addWidget(new QLabel(m[i+1]), i / 2, 1);

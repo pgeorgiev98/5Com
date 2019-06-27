@@ -39,6 +39,13 @@ void InputField::onInputEntered()
 	}
 }
 
+void InputField::clearText()
+{
+	m_searching = false;
+	m_searchPrefix.clear();
+	clearEditText();
+}
+
 void InputField::keyPressEvent(QKeyEvent *event)
 {
 	// Scroll through the history with Up/Down
