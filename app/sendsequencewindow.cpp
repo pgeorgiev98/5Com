@@ -106,6 +106,7 @@ void SendSequenceWindow::onSendClicked()
 
 		m_currentOperation = 0;
 		m_sendButton->setText("Cancel");
+
 		executeNextOperation();
 	} else {
 		cancelSequence();
@@ -158,11 +159,15 @@ void SendSequenceWindow::addOperation(SendSequenceWindow::OperationType type, in
 	connect(actionButton, &QToolButton::clicked, this, &SendSequenceWindow::onActionButtonClicked);
 	m_operations.insert(row, op);
 
+	if (m_currentOperation != -1 && row <= m_currentOperation)
+		++m_currentOperation;
+
 	emit operationsCountChanged(m_operations.count());
 }
 
 void SendSequenceWindow::clearOperations()
 {
+	cancelSequence();
 	while (!m_operations.isEmpty())
 		removeOperation(m_operations.size() - 1);
 	QTimer::singleShot(0, this, &QWidget::adjustSize);
@@ -193,6 +198,9 @@ void SendSequenceWindow::removeOperation(int i, bool adjustSize)
 
 	m_operations.removeAt(i);
 
+	if (m_currentOperation != -1 && i <= m_currentOperation)
+		--m_currentOperation;
+
 	emit operationsCountChanged(m_operations.size());
 
 	if (adjustSize)
@@ -201,7 +209,7 @@ void SendSequenceWindow::removeOperation(int i, bool adjustSize)
 
 void SendSequenceWindow::executeNextOperation()
 {
-	if (m_currentOperation == m_operations.size()) {
+	if (m_currentOperation >= m_operations.size()) {
 		if (m_sendIndefinitely->isChecked()) {
 			m_currentOperation = 0;
 		} else if (m_sequencesCount->value() > 1) {
