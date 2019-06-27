@@ -37,13 +37,14 @@ public slots:
 	void sendSequence();
 	void showAsciiTable();
 	void showEscapeCodes();
+	void showKeyboardShortcuts();
 	void showPinoutSignals();
 	void showByteReceiveTimes();
-	void showCheckForUpdates();
 	void showChangelog();
 	void showLicense();
 	void showAboutPage();
 	void showAboutQtPage();
+	void showCheckForUpdates();
 	void showSettings();
 	void sendFromFile();
 	void exportData();

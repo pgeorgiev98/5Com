@@ -196,10 +196,11 @@ MainWindow::MainWindow(QWidget *parent)
 	QAction *pinoutSignalsAction = new QAction("&Pinout signals");
 	QAction *byteReceiveTimesAction = new QAction("&Byte receive times");
 	QAction *clearScreenAction = new QAction("C&lear screen");
+	QAction *checkForUpdatesAction = new QAction("Check for &updates");
 	QAction *settingsAction = new QAction("&Settings");
 	QAction *asciiAction = new QAction("ASCII &table");
 	QAction *escapeCodesAction = new QAction("&Escape codes");
-	QAction *checkForUpdatesAction = new QAction("Check for &updates");
+	QAction *keyboardShortcutsAction = new QAction("&Keyboard shortcuts");
 	QAction *changelogAction = new QAction("Change&log");
 	QAction *licenseAction = new QAction("&License");
 	QAction *aboutQtAction = new QAction("About &Qt");
@@ -227,6 +228,7 @@ MainWindow::MainWindow(QWidget *parent)
 	auto helpMenu = menuBar()->addMenu("&Help");
 	helpMenu->addAction(asciiAction);
 	helpMenu->addAction(escapeCodesAction);
+	helpMenu->addAction(keyboardShortcutsAction);
 	helpMenu->addSeparator();
 	helpMenu->addAction(changelogAction);
 	helpMenu->addAction(licenseAction);
@@ -241,10 +243,11 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(pinoutSignalsAction, &QAction::triggered, this, &MainWindow::showPinoutSignals);
 	connect(byteReceiveTimesAction, &QAction::triggered, this, &MainWindow::showByteReceiveTimes);
 	connect(clearScreenAction, &QAction::triggered, this, &MainWindow::clearScreen);
+	connect(checkForUpdatesAction, &QAction::triggered, this, &MainWindow::showCheckForUpdates);
 	connect(settingsAction, &QAction::triggered, this, &MainWindow::showSettings);
 	connect(asciiAction, &QAction::triggered, this, &MainWindow::showAsciiTable);
 	connect(escapeCodesAction, &QAction::triggered, this, &MainWindow::showEscapeCodes);
-	connect(checkForUpdatesAction, &QAction::triggered, this, &MainWindow::showCheckForUpdates);
+	connect(keyboardShortcutsAction, &QAction::triggered, this, &MainWindow::showKeyboardShortcuts);
 	connect(changelogAction, &QAction::triggered, this, &MainWindow::showChangelog);
 	connect(licenseAction, &QAction::triggered, this, &MainWindow::showLicense);
 	connect(aboutQtAction, &QAction::triggered, this, &MainWindow::showAboutQtPage);
@@ -391,6 +394,24 @@ void MainWindow::showEscapeCodes()
 	m_escapeCodesDialog->show();
 	m_escapeCodesDialog->activateWindow();
 	m_escapeCodesDialog->raise();
+}
+
+void MainWindow::showKeyboardShortcuts()
+{
+	QDialog dialog(this);
+	QGridLayout *layout = new QGridLayout;
+	layout->setHorizontalSpacing(24);
+	QString m[] = {"Exit", QKeySequence(QKeySequence::Quit).toString(),
+				   "Write file to port", QKeySequence(QKeySequence::Quit).toString(),
+				   "Export", "Ctrl+E",
+				   "Clear screen", "Ctrl+Shift+L",
+				   "Focus input", "Ctrl+L"};
+	for (unsigned int i = 0; i < sizeof(m) / sizeof(QString); i += 2) {
+		layout->addWidget(new QLabel(m[i  ]), i / 2, 0);
+		layout->addWidget(new QLabel(m[i+1]), i / 2, 1);
+	}
+	dialog.setLayout(layout);
+	dialog.exec();
 }
 
 void MainWindow::sendFromFile()
