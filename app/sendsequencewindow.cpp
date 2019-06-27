@@ -8,6 +8,7 @@
 
 #include <QPushButton>
 #include <QToolButton>
+#include <QCheckBox>
 #include <QSpinBox>
 #include <QLineEdit>
 #include <QLabel>
@@ -23,12 +24,17 @@ SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 	, m_operationsLayout(new QGridLayout)
 	, m_addnewButton(new QToolButton)
 	, m_clearOperationsButton(new QToolButton)
+	, m_sendIndefinitely(new QCheckBox("Send indefinitely"))
+	, m_sequencesCount(new QSpinBox)
 	, m_sendButton(new QPushButton("Send"))
 	, m_currentOperation(-1)
 	, m_timer(new QTimer(this))
 {
 	m_addnewButton->setText("+");
 	m_clearOperationsButton->setText("Clear");
+	m_sendIndefinitely->setChecked(false);
+	m_sequencesCount->setRange(1, INT_MAX);
+	m_sequencesCount->setValue(1);
 	setMinimumWidth(400);
 	QVBoxLayout *layout = new QVBoxLayout;
 	setLayout(layout);
@@ -36,6 +42,23 @@ SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 	layout->addWidget(new QLabel("Send sequence"), 0, Qt::AlignHCenter);
 	layout->addWidget(new Line(Line::Horizontal));
 	layout->addLayout(m_operationsLayout);
+	layout->addSpacing(16);
+	{
+		QFrame *sendSettings = new QFrame;
+		sendSettings->setFrameShape(QFrame::Shape::Panel);
+		QVBoxLayout *l = new QVBoxLayout;
+		sendSettings->setLayout(l);
+
+		l->addWidget(m_sendIndefinitely);
+		{
+			QHBoxLayout *hbox = new QHBoxLayout;
+			hbox->addWidget(new QLabel("Number of sequences to send: "));
+			hbox->addWidget(m_sequencesCount);
+			l->addLayout(hbox);
+		}
+
+		layout->addWidget(sendSettings);
+	}
 
 	{
 		QHBoxLayout *hbox = new QHBoxLayout;
@@ -65,6 +88,8 @@ SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 			addOperation(OperationType::Wait);
 	});
 	connect(m_clearOperationsButton, &QPushButton::clicked, this, &SendSequenceWindow::clearOperations);
+	connect(m_sendIndefinitely, &QCheckBox::stateChanged, m_sequencesCount, &QWidget::setDisabled);
+	m_sequencesCount->setDisabled(m_sendIndefinitely->isChecked());
 	m_sendButton->setEnabled(false);
 	connect(this, &SendSequenceWindow::operationsCountChanged, [this](int count) {
 		m_sendButton->setEnabled(count > 0);
@@ -78,9 +103,6 @@ void SendSequenceWindow::onSendClicked()
 		if (!m_port->isOpen())
 			if (!m_port->open())
 				return;
-
-		for (int i = 0; i < m_operations.size(); ++i)
-			m_operationsLayout->itemAtPosition(i, 0)->widget()->setStyleSheet("");
 
 		m_currentOperation = 0;
 		m_sendButton->setText("Cancel");
@@ -180,12 +202,23 @@ void SendSequenceWindow::removeOperation(int i, bool adjustSize)
 void SendSequenceWindow::executeNextOperation()
 {
 	if (m_currentOperation == m_operations.size()) {
-		cancelSequence();
-		return;
+		if (m_sendIndefinitely->isChecked()) {
+			m_currentOperation = 0;
+		} else if (m_sequencesCount->value() > 1) {
+			m_sequencesCount->setValue(m_sequencesCount->value() - 1);
+			m_currentOperation = 0;
+		} else {
+			cancelSequence();
+			return;
+		}
 	}
 
 	if (m_currentOperation == -1)
 		return;
+
+	if (m_currentOperation == 0)
+		for (int i = 0; i < m_operations.size(); ++i)
+			m_operationsLayout->itemAtPosition(i, 0)->widget()->setStyleSheet("");
 
 	int i = m_currentOperation++;
 

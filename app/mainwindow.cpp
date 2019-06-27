@@ -192,7 +192,7 @@ MainWindow::MainWindow(QWidget *parent)
 	QAction *exportAction = new QAction("&Export");
 	QAction *exitAction = new QAction("E&xit");
 	QAction *continuousSendAction = new QAction("&Continuous send");
-	QAction *sendSequenceAction = new QAction("&Send sequence");
+	QAction *sendSequenceAction = new QAction("Send se&quence");
 	QAction *pinoutSignalsAction = new QAction("&Pinout signals");
 	QAction *byteReceiveTimesAction = new QAction("&Byte receive times");
 	QAction *clearScreenAction = new QAction("C&lear screen");

@@ -8,6 +8,8 @@ class SerialPort;
 
 class QGridLayout;
 class QToolButton;
+class QCheckBox;
+class QSpinBox;
 
 class SendSequenceWindow : public QDialog
 {
@@ -42,6 +44,8 @@ private:
 	QGridLayout *m_operationsLayout;
 	QToolButton *m_addnewButton;
 	QToolButton *m_clearOperationsButton;
+	QCheckBox *m_sendIndefinitely;
+	QSpinBox *m_sequencesCount;
 	QPushButton *m_sendButton;
 	int m_currentOperation;
 	QTimer *m_timer;
