@@ -217,12 +217,15 @@ void SendSequenceWindow::executeNextOperation()
 		return;
 
 	if (m_currentOperation == 0)
-		for (int i = 0; i < m_operations.size(); ++i)
+		for (int i = 1; i < m_operations.size(); ++i)
 			m_operationsLayout->itemAtPosition(i, 0)->widget()->setStyleSheet("");
 
 	int i = m_currentOperation++;
 
-	m_operationsLayout->itemAtPosition(i, 0)->widget()->setStyleSheet("color: green");
+	if (i >= 1)
+		m_operationsLayout->itemAtPosition(i - 1, 0)->widget()->setStyleSheet("color: green");
+
+	m_operationsLayout->itemAtPosition(i, 0)->widget()->setStyleSheet("color: blue");
 
 	Operation op = m_operations[i];
 	if (op.type == OperationType::Send) {
