@@ -12,7 +12,7 @@
 #include <QPushButton>
 #include <QProgressBar>
 
-CheckForUpdatesDialog::CheckForUpdatesDialog(QWidget *parent)
+CheckForUpdatesDialog::CheckForUpdatesDialog(const LatestReleaseChecker::Release *release, QWidget *parent)
 	: QDialog(parent)
 	, m_latestReleaseChecker(new LatestReleaseChecker(this))
 	, m_latestRelease(LatestReleaseChecker::Release(VERSION))
@@ -71,7 +71,11 @@ CheckForUpdatesDialog::CheckForUpdatesDialog(QWidget *parent)
 	connect(m_latestReleaseChecker, &LatestReleaseChecker::latestReleaseFound,
 			this, &CheckForUpdatesDialog::onLatestReleaseFound);
 
-	m_latestReleaseChecker->checkLatestRelease();
+	if (release) {
+		onLatestReleaseFound(*release);
+	} else {
+		m_latestReleaseChecker->checkLatestRelease();
+	}
 }
 
 void CheckForUpdatesDialog::onUpdateClicked()

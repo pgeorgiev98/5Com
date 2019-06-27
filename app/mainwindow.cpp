@@ -73,7 +73,6 @@ MainWindow::MainWindow(QWidget *parent)
 
 	if (checkForUpdates) {
 		updateStatusBarLabel->setText("Checking for updates...");
-		updateStatusBarLabel->setOpenExternalLinks(true);
 		statusBar()->addWidget(updateStatusBarLabel);
 	}
 
@@ -297,9 +296,13 @@ MainWindow::MainWindow(QWidget *parent)
 		});
 		connect(latestReleaseChecker, &LatestReleaseChecker::latestReleaseFound, [updateStatusBarLabel](const LatestReleaseChecker::Release &release) {
 			if (release.isNewerThan(VERSION))
-				updateStatusBarLabel->setText(QString("Newer version: <a href=\"%1\">%2</a>").arg(release.url).arg(release.versionString));
+				updateStatusBarLabel->setText("<a href=\"example.com\">A newer version is available</a>");
 			else
 				updateStatusBarLabel->setText("Application is up to date");
+		});
+		connect(updateStatusBarLabel, &QLabel::linkActivated, [this, latestReleaseChecker]() {
+			CheckForUpdatesDialog dialog(&latestReleaseChecker->latestRelease(), this);
+			dialog.exec();
 		});
 
 		latestReleaseChecker->checkLatestRelease();
@@ -637,7 +640,7 @@ void MainWindow::showByteReceiveTimes()
 
 void MainWindow::showCheckForUpdates()
 {
-	CheckForUpdatesDialog dialog(this);
+	CheckForUpdatesDialog dialog(nullptr, this);
 	dialog.exec();
 }
 

@@ -15,9 +15,15 @@
 LatestReleaseChecker::LatestReleaseChecker(QObject *parent)
 	: QObject(parent)
 	, m_manager(new QNetworkAccessManager(this))
+	, m_latestRelease(Release(VERSION))
 {
 	connect(m_manager, &QNetworkAccessManager::finished,
 			this, &LatestReleaseChecker::onRequestFinished);
+}
+
+const LatestReleaseChecker::Release &LatestReleaseChecker::latestRelease() const
+{
+	return m_latestRelease;
 }
 
 void LatestReleaseChecker::checkLatestRelease()
@@ -102,6 +108,6 @@ void LatestReleaseChecker::onRequestFinished(QNetworkReply *reply)
 	if (!version.isEmpty() && version[0] == 'v')
 		version.remove(0, 1);
 
-	Release release(version, url, windowsDownloadUrl);
-	emit latestReleaseFound(release);
+	m_latestRelease = Release(version, url, windowsDownloadUrl);
+	emit latestReleaseFound(m_latestRelease);
 }

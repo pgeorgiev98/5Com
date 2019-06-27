@@ -59,6 +59,8 @@ public:
 		}
 	};
 
+	const Release &latestRelease() const;
+
 signals:
 	void failedToGetLatestRelease(const QString &errorMessage);
 	void latestReleaseFound(const Release &latestRelease);
@@ -71,6 +73,7 @@ private slots:
 
 private:
 	QNetworkAccessManager *m_manager;
+	Release m_latestRelease;
 };
 
 #endif // LATESTRELEASECHECKER_H

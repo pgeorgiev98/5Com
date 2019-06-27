@@ -11,7 +11,7 @@ class CheckForUpdatesDialog : public QDialog
 {
 	Q_OBJECT
 public:
-	explicit CheckForUpdatesDialog(QWidget *parent = nullptr);
+	explicit CheckForUpdatesDialog(const LatestReleaseChecker::Release *release, QWidget *parent = nullptr);
 
 private slots:
 	void onUpdateClicked();
