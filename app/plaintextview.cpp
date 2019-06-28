@@ -7,6 +7,7 @@ PlainTextView::PlainTextView(QWidget *parent)
 	: QWidget(parent)
 	, m_edit(new QPlainTextEdit)
 	, m_lastChar('\0')
+	, m_colorSpecialCharacters(false)
 {
 	QHBoxLayout *layout = new QHBoxLayout;
 	setLayout(layout);
@@ -16,6 +17,8 @@ PlainTextView::PlainTextView(QWidget *parent)
 	m_edit->setUndoRedoEnabled(false);
 	m_edit->setWordWrapMode(QTextOption::WrapMode::NoWrap);
 	m_edit->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+
+	m_defaultTextColor = m_edit->currentCharFormat().foreground().color();
 }
 
 void PlainTextView::setData(const QByteArray &data)
@@ -36,6 +39,13 @@ void PlainTextView::insertData(const QByteArray &data)
 {
 	int scrollValue = m_edit->verticalScrollBar()->value();
 	bool atBottom = scrollValue == m_edit->verticalScrollBar()->maximum();
+
+	QTextCursor cursor = m_edit->textCursor();
+	cursor.movePosition(QTextCursor::End);
+	m_edit->setTextCursor(cursor);
+	QTextCharFormat tcf = m_edit->currentCharFormat();
+	tcf.setForeground(QBrush(m_defaultTextColor));
+	m_edit->setCurrentCharFormat(tcf);
 
 	QString tmp;
 	for (const unsigned char c : data) {
@@ -59,16 +69,40 @@ void PlainTextView::insertData(const QByteArray &data)
 		else if (c == '\x1B') replace = "<ESC>";
 		else if (c == '\x7F') replace = "<DEL>";
 
-		if (replace) {
-			tmp.append(replace);
-		} else if (c > 0x7f) {
-			static const char hex[16] = {'0', '1', '2', '3', '4', '5',
-										'6', '7', '8', '9', 'A', 'B',
-										'C', 'D', 'E', 'F'};
-			tmp.append('<');
-			tmp.append(hex[(c >> 4) & 0x0f]);
-			tmp.append(hex[c & 0x0f]);
-			tmp.append('>');
+		if (replace || c > 0x7f) {
+			if (!tmp.isEmpty()) {
+				m_edit->insertPlainText(tmp);
+				tmp.clear();
+			}
+			if (replace) {
+				if (m_colorSpecialCharacters) {
+					tcf.setForeground(QBrush(Qt::blue));
+					m_edit->setCurrentCharFormat(tcf);
+				}
+				m_edit->insertPlainText(replace);
+				if (m_colorSpecialCharacters) {
+					tcf.setForeground(QBrush(m_defaultTextColor));
+					m_edit->setCurrentCharFormat(tcf);
+				}
+			} else if (c > 0x7f) {
+				static const char hex[16] = {'0', '1', '2', '3', '4', '5',
+											 '6', '7', '8', '9', 'A', 'B',
+											 'C', 'D', 'E', 'F'};
+				tmp.append('<');
+				tmp.append(hex[(c >> 4) & 0x0f]);
+				tmp.append(hex[c & 0x0f]);
+				tmp.append('>');
+				if (m_colorSpecialCharacters) {
+					tcf.setForeground(QBrush(Qt::red));
+					m_edit->setCurrentCharFormat(tcf);
+				}
+				m_edit->insertPlainText(tmp);
+				if (m_colorSpecialCharacters) {
+					tcf.setForeground(QBrush(m_defaultTextColor));
+					m_edit->setCurrentCharFormat(tcf);
+				}
+				tmp.clear();
+			}
 		} else {
 			tmp.append(c);
 		}
@@ -76,9 +110,8 @@ void PlainTextView::insertData(const QByteArray &data)
 		m_lastChar = c;
 	}
 
-	QTextCursor cursor = m_edit->textCursor();
-	cursor.movePosition(QTextCursor::MoveOperation::End);
-	cursor.insertText(tmp);
+	if (!tmp.isEmpty())
+		m_edit->insertPlainText(tmp);
 
 	if (atBottom)
 		m_edit->verticalScrollBar()->setValue(m_edit->verticalScrollBar()->maximum());
@@ -90,6 +123,11 @@ void PlainTextView::clear()
 {
 	m_edit->clear();
 	m_lastChar = '\0';
+}
+
+void PlainTextView::setColorSpecialCharacters(bool colorSpecialCharaters)
+{
+	m_colorSpecialCharacters = colorSpecialCharaters;
 }
 
 QString PlainTextView::toPlainText() const

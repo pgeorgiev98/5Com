@@ -27,6 +27,7 @@ SettingsPage::SettingsPage(QWidget *parent)
 	, m_readBufferLimitKiB(new QSpinBox)
 	, m_inputHistoryLength(new QSpinBox)
 	, m_clearInputOnSend(new QCheckBox("Clear the input field on send"))
+	, m_colorSpecialCharacters(new QCheckBox("Color special characters in 'Plain Text View'"))
 {
 	m_readBufferLimitKiB->setSuffix("KiB");
 	m_readBufferLimitKiB->setRange(1, std::numeric_limits<int>::max());
@@ -46,6 +47,7 @@ SettingsPage::SettingsPage(QWidget *parent)
 	layout->addLayout(labeledWidget("Read buffer limit: ", m_readBufferLimitKiB));
 	layout->addLayout(labeledWidget("Input history length: ", m_inputHistoryLength));
 	layout->addWidget(m_clearInputOnSend);
+	layout->addWidget(m_colorSpecialCharacters);
 
 	{
 		QHBoxLayout *hbox = new QHBoxLayout;
@@ -81,6 +83,9 @@ void SettingsPage::load()
 	m_readBufferLimitKiB->setValue(c.readBufferLimitKiB());
 	m_inputHistoryLength->setValue(c.inputHistoryLength());
 	m_clearInputOnSend->setChecked(c.clearInputOnSend());
+	m_colorSpecialCharacters->setChecked(c.colorSpecialCharacters());
+
+	emit settingsChanged();
 }
 
 void SettingsPage::save()
@@ -92,4 +97,7 @@ void SettingsPage::save()
 	c.setReadBufferLimitKiB(m_readBufferLimitKiB->value());
 	c.setInputHistoryLength(m_inputHistoryLength->value());
 	c.setClearInputOnSend(m_clearInputOnSend->isChecked());
+	c.setColorSpecialCharacters(m_colorSpecialCharacters->isChecked());
+
+	emit settingsChanged();
 }

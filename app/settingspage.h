@@ -12,6 +12,9 @@ class SettingsPage : public QDialog
 public:
 	explicit SettingsPage(QWidget *parent = nullptr);
 
+signals:
+	void settingsChanged();
+
 private slots:
 	void load();
 	void save();
@@ -22,6 +25,7 @@ private:
 	QSpinBox *m_readBufferLimitKiB;
 	QSpinBox *m_inputHistoryLength;
 	QCheckBox *m_clearInputOnSend;
+	QCheckBox *m_colorSpecialCharacters;
 };
 
 #endif // SETTINGSPAGE_H

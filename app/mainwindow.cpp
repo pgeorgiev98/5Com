@@ -294,6 +294,13 @@ MainWindow::MainWindow(QWidget *parent)
 			m_inputField->clearText();
 	});
 
+	m_textView->setColorSpecialCharacters(c.colorSpecialCharacters());
+	connect(m_settingsPage, &SettingsPage::settingsChanged, [this]() {
+		m_textView->clear();
+		m_textView->setColorSpecialCharacters(Config().colorSpecialCharacters());
+		m_textView->insertData(m_receivedData);
+	});
+
 	refreshStatusBar();
 
 	if (checkForUpdates) {

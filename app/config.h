@@ -34,6 +34,7 @@ public:
 	FIELD(QString, String, exportSeparator, setExportSeparator, "exportSeparator", ",")
 	FIELD(int, Int, inputHistoryLength, setInputHistoryLength, "inputHistoryLength", 10)
 	FIELD(bool, Bool, clearInputOnSend, setClearInputOnSend, "clearInputOnSend", false)
+	FIELD(bool, Bool, colorSpecialCharacters, setColorSpecialCharacters, "colorSpecialCharacters", true)
 
 	QSettings &settings() { return m_settings; }
 	QString path() const { return m_settings.fileName(); }
