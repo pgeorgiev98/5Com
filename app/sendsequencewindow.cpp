@@ -17,31 +17,57 @@
 #include <QTimer>
 #include <QMessageBox>
 #include <QCloseEvent>
+#include <QScrollArea>
+#include <QScrollBar>
 
 SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 	: QDialog(parent)
 	, m_port(port)
 	, m_operationsLayout(new QGridLayout)
-	, m_addnewButton(new QToolButton)
-	, m_clearOperationsButton(new QToolButton)
+	, m_operationsScrollArea(new QScrollArea)
 	, m_sendIndefinitely(new QCheckBox("Send indefinitely"))
 	, m_sequencesCount(new QSpinBox)
 	, m_sendButton(new QPushButton("Send"))
 	, m_currentOperation(-1)
 	, m_timer(new QTimer(this))
 {
-	m_addnewButton->setText("+");
-	m_clearOperationsButton->setText("Clear");
+	m_operationsLayout->setAlignment(Qt::AlignTop);
 	m_sendIndefinitely->setChecked(false);
 	m_sequencesCount->setRange(1, INT_MAX);
 	m_sequencesCount->setValue(1);
+
+	QToolButton *addNewButton = new QToolButton;
+	QToolButton *clearOperationsButton = new QToolButton;
+	addNewButton->setText("+");
+	clearOperationsButton->setText("Clear");
+
 	setMinimumWidth(400);
+	setMinimumHeight(400);
 	QVBoxLayout *layout = new QVBoxLayout;
 	setLayout(layout);
 
+	{
+		QHBoxLayout *hbox = new QHBoxLayout;
+		addNewButton->setText("+");
+		clearOperationsButton->setText("Clear");
+		hbox->addWidget(clearOperationsButton);
+		hbox->addStretch(1);
+		hbox->addWidget(addNewButton);
+
+		QVBoxLayout *vbox = new QVBoxLayout;
+
+		vbox->addLayout(m_operationsLayout, 1);
+		vbox->addLayout(hbox);
+
+		QWidget *operationsWidget = new QWidget;
+		operationsWidget->setLayout(vbox);
+		m_operationsScrollArea->setWidget(operationsWidget);
+		m_operationsScrollArea->setWidgetResizable(true);
+	}
+
 	layout->addWidget(new QLabel("Send sequence"), 0, Qt::AlignHCenter);
 	layout->addWidget(new Line(Line::Horizontal));
-	layout->addLayout(m_operationsLayout);
+	layout->addWidget(m_operationsScrollArea);
 	layout->addSpacing(16);
 	{
 		QFrame *sendSettings = new QFrame;
@@ -68,26 +94,23 @@ SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 		layout->addLayout(hbox);
 	}
 
-	m_operationsLayout->addWidget(m_addnewButton, 0, 3, Qt::AlignRight);
-	m_operationsLayout->addWidget(m_clearOperationsButton, 0, 0, Qt::AlignLeft);
-
 	connect(m_sendButton, &QPushButton::clicked, this, &SendSequenceWindow::onSendClicked);
-	connect(m_addnewButton, &QPushButton::clicked, [this]() {
-		QMenu menu(m_addnewButton);
+	connect(addNewButton, &QPushButton::clicked, [this, addNewButton]() {
+		QMenu menu(addNewButton);
 		QAction sendAction("Send");
 		QAction waitAction("Wait");
 		menu.addAction(&sendAction);
 		menu.addAction(&waitAction);
-		QPoint pos = m_addnewButton->pos();
-		pos.setX(pos.x() + m_addnewButton->width());
-		menu.popup(QWidget::mapToGlobal(pos));
+		QPoint pos = addNewButton->pos();
+		pos.setX(pos.x() + addNewButton->width());
+		menu.popup(m_operationsScrollArea->viewport()->mapToGlobal(pos));
 		QAction *action = menu.exec();
 		if (action == &sendAction)
 			addOperation(OperationType::Send);
 		else if (action == &waitAction)
 			addOperation(OperationType::Wait);
 	});
-	connect(m_clearOperationsButton, &QPushButton::clicked, this, &SendSequenceWindow::clearOperations);
+	connect(clearOperationsButton, &QPushButton::clicked, this, &SendSequenceWindow::clearOperations);
 	connect(m_sendIndefinitely, &QCheckBox::stateChanged, m_sequencesCount, &QWidget::setDisabled);
 	m_sequencesCount->setDisabled(m_sendIndefinitely->isChecked());
 	m_sendButton->setEnabled(false);
@@ -116,15 +139,15 @@ void SendSequenceWindow::onSendClicked()
 void SendSequenceWindow::addOperation(SendSequenceWindow::OperationType type)
 {
 	addOperation(type, m_operations.size());
+	// Scroll to bottom; this looks pretty badly hacked
+	QTimer::singleShot(1, [this]() {
+		auto sb = m_operationsScrollArea->verticalScrollBar();
+		sb->setValue(sb->maximum());
+	});
 }
 
 void SendSequenceWindow::addOperation(SendSequenceWindow::OperationType type, int row)
 {
-	m_operationsLayout->removeWidget(m_addnewButton);
-	m_operationsLayout->removeWidget(m_clearOperationsButton);
-	m_operationsLayout->addWidget(m_addnewButton, m_operations.size() + 1, 3, Qt::AlignRight);
-	m_operationsLayout->addWidget(m_clearOperationsButton, m_operations.size() + 1, 0, Qt::AlignLeft);
-
 	for (int i = m_operations.size() - 1; i >= row; --i) {
 		m_operationsLayout->removeWidget(m_operations[i].label);
 		m_operationsLayout->removeWidget(m_operations[i].input);
@@ -190,11 +213,6 @@ void SendSequenceWindow::removeOperation(int i, bool adjustSize)
 		m_operationsLayout->addWidget(m_operations[j + 1].input, j, 1);
 		m_operationsLayout->addWidget(m_operations[j + 1].actionButton, j, 3);
 	}
-
-	m_operationsLayout->removeWidget(m_addnewButton);
-	m_operationsLayout->removeWidget(m_clearOperationsButton);
-	m_operationsLayout->addWidget(m_addnewButton, m_operations.size() - 1, 3, Qt::AlignRight);
-	m_operationsLayout->addWidget(m_clearOperationsButton, m_operations.size() - 1, 0, Qt::AlignLeft);
 
 	m_operations.removeAt(i);
 
@@ -287,6 +305,7 @@ void SendSequenceWindow::onActionButtonClicked()
 
 	QPoint pos = s->pos();
 	pos.setX(pos.x() + s->width());
+	pos.setY(pos.y() - m_operationsScrollArea->verticalScrollBar()->value());
 	menu.popup(QWidget::mapToGlobal(pos));
 	QAction *action = menu.exec();
 	if (action == &removeAction) {

@@ -7,7 +7,7 @@
 class SerialPort;
 
 class QGridLayout;
-class QToolButton;
+class QScrollArea;
 class QCheckBox;
 class QSpinBox;
 
@@ -42,8 +42,7 @@ private:
 	QVector<Operation> m_operations;
 	SerialPort *m_port;
 	QGridLayout *m_operationsLayout;
-	QToolButton *m_addnewButton;
-	QToolButton *m_clearOperationsButton;
+	QScrollArea *m_operationsScrollArea;
 	QCheckBox *m_sendIndefinitely;
 	QSpinBox *m_sequencesCount;
 	QPushButton *m_sendButton;
