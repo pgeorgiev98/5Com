@@ -257,7 +257,7 @@ void SendSequenceWindow::executeNextOperation()
 	if (op.type == OperationType::Send) {
 		QLineEdit *input = static_cast<QLineEdit *>(m_operationsLayout->itemAtPosition(i, 1)->widget());
 		m_port->writeFormattedData(input->text());
-		executeNextOperation();
+		QTimer::singleShot(0, this, &SendSequenceWindow::executeNextOperation);
 	} else if (op.type == OperationType::Wait) {
 		QSpinBox *input = static_cast<QSpinBox *>(m_operationsLayout->itemAtPosition(i, 1)->widget());
 		m_timer->start(input->value());
