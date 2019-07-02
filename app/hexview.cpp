@@ -293,7 +293,7 @@ int HexView::getHoverCell(const QPoint &mousePos) const
 	int x = mousePos.x();
 	int y = mousePos.y();
 
-	if (x > 9 * m_cellPadding + 8 * m_cellSize)
+	if (x > 8 * m_cellPadding + 8 * m_cellSize)
 		x -= m_cellPadding;
 
 	x -= m_cellPadding / 2;
