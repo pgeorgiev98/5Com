@@ -39,6 +39,7 @@
 #include <QTime>
 #include <QProgressBar>
 #include <QShortcut>
+#include <QScrollArea>
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -152,7 +153,13 @@ MainWindow::MainWindow(QWidget *parent)
 
 	QTabWidget *tabs = new QTabWidget;
 	tabs->addTab(m_textView, "Plain Text View");
-	tabs->addTab(m_hexView, "Hex View");
+	{
+		QScrollArea *area = new QScrollArea;
+		area->setPalette(m_hexView->palette());
+		area->setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
+		area->setWidget(m_hexView);
+		tabs->addTab(area, "Hex View");
+	}
 
 	{
 		QGridLayout *portLayout = new QGridLayout;
