@@ -5,8 +5,10 @@
 #include <QPaintEvent>
 #include <QMouseEvent>
 #include <QtGlobal>
-
-#include <QDebug>
+#include <QMenu>
+#include <QAction>
+#include <QClipboard>
+#include <QGuiApplication>
 
 static QColor backgroundColor("#ffffff");
 static QColor textColor("#000000");
@@ -16,6 +18,9 @@ static QColor selectedTextColor("#000000");
 
 #define cellX(x) (x * m_cellSize + (x + 1 + (x > 7)) * m_cellPadding)
 #define textX(x) (cellX(17) + x * m_characterWidth)
+
+static const char hexTable[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
+								  '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
 HexView::HexView(QWidget *parent)
 	: QWidget(parent)
@@ -84,8 +89,6 @@ void HexView::insertData(const QByteArray &data)
 
 void HexView::paintEvent(QPaintEvent *event)
 {
-	static const char hexTable[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
-									  '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 	QPainter painter(this);
 
 	painter.setFont(m_font);
@@ -190,14 +193,68 @@ void HexView::mouseMoveEvent(QMouseEvent *event)
 
 void HexView::mousePressEvent(QMouseEvent *event)
 {
+	if (event->button() == Qt::RightButton) {
+		int selectionStart = -1;
+		int selectionEnd = -1;
+		if (m_selection == Selection::Cells || m_selection == Selection::Text) {
+			selectionStart = qMin(m_selectionStart, m_selectionEnd);
+			selectionEnd = qMax(m_selectionStart, m_selectionEnd) + 1;
+		} else if (m_selection == Selection::CellRows || m_selection == Selection::TextRows) {
+			if (m_selectionStart < m_selectionEnd) {
+				selectionStart = m_selectionStart;
+				selectionEnd = m_selectionEnd + 1;
+			} else {
+				selectionStart = m_selectionEnd - 15;
+				selectionEnd = m_selectionStart + 16;
+			}
+		}
+		if (selectionEnd > m_data.size())
+			selectionEnd = m_data.size();
+
+		QMenu menu(this);
+		QAction copyTextAction("Copy text");
+		QAction copyHexAction("Copy hex");
+		menu.addAction(&copyTextAction);
+		menu.addAction(&copyHexAction);
+		menu.popup(event->globalPos());
+		bool copyEnabled = (selectionStart < selectionEnd);
+		copyTextAction.setEnabled(copyEnabled);
+		copyHexAction.setEnabled(copyEnabled);
+		QAction *a = menu.exec();
+
+		QClipboard *clipboard = QGuiApplication::clipboard();
+
+		if (a == &copyTextAction) {
+			QString s;
+			for (int i = selectionStart; i < selectionEnd; ++i) {
+				char b = m_data[i];
+				s.append((b >= 32 && b <= 126) ? b : '.');
+			}
+			clipboard->setText(s);
+		} else if (a == &copyHexAction) {
+			QString cell = "00 ";
+			QString s;
+			for (int i = selectionStart; i < selectionEnd; ++i) {
+				unsigned char byte = static_cast<unsigned char>(m_data[i]);
+				cell[0] = hexTable[(byte >> 4) & 0xF];
+				cell[1] = hexTable[(byte >> 0) & 0xF];
+				s.append(cell);
+			}
+			s.remove(s.size() - 1, 1);
+			clipboard->setText(s);
+		}
+		return;
+	}
 	int hoverCellIndex = getHoverCell(event->pos());
 	int hoverTextIndex = getHoverText(event->pos());
 	int newIndex = qMax(hoverCellIndex, hoverTextIndex);
 	m_selectionStart = newIndex;
 	m_selectionEnd = m_selectionStart;
-	if (newIndex == hoverCellIndex)
+	if (newIndex == -1)
+		m_selection = Selection::None;
+	else if (newIndex == hoverCellIndex)
 		m_selection = Selection::Cells;
-	else
+	else if (newIndex == hoverTextIndex)
 		m_selection = Selection::Text;
 	m_selecting = (newIndex != -1);
 	repaint();
