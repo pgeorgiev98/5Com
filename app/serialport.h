@@ -10,6 +10,7 @@ class SerialPort : public QObject
 public:
 	explicit SerialPort(QObject *parent = nullptr);
 	QString errorString() const;
+	QString portName() const;
 	bool isOpen() const;
 	QSerialPort::PinoutSignals pinoutSignals() const;
 	bool isDataTerminalReady() const;
@@ -41,6 +42,7 @@ public slots:
 private:
 	bool m_loopback;
 	bool m_isOpen;
+	QString m_portName;
 
 	QSerialPort *m_port;
 };

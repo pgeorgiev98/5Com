@@ -32,6 +32,11 @@ QString SerialPort::errorString() const
 		return m_port->errorString();
 }
 
+QString SerialPort::portName() const
+{
+	return m_portName;
+}
+
 bool SerialPort::isOpen() const
 {
 	return m_isOpen;
@@ -65,10 +70,13 @@ bool SerialPort::setRequestToSend(bool rts)
 void SerialPort::setLoopback(bool loopback)
 {
 	m_loopback = loopback;
+	if (loopback)
+		m_portName = "Loopback";
 }
 
 void SerialPort::setPortName(const QString &portName)
 {
+	m_portName = portName;
 	m_port->setPortName(portName);
 }
 

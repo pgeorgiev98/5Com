@@ -28,6 +28,7 @@ SettingsPage::SettingsPage(QWidget *parent)
 	, m_inputHistoryLength(new QSpinBox)
 	, m_clearInputOnSend(new QCheckBox("Clear the input field on send"))
 	, m_colorSpecialCharacters(new QCheckBox("Color special characters in 'Plain Text View'"))
+	, m_rememberLastUsedPort(new QCheckBox("Remember last used port"))
 {
 	m_readBufferLimitKiB->setSuffix("KiB");
 	m_readBufferLimitKiB->setRange(1, std::numeric_limits<int>::max());
@@ -48,6 +49,7 @@ SettingsPage::SettingsPage(QWidget *parent)
 	layout->addLayout(labeledWidget("Input history length: ", m_inputHistoryLength));
 	layout->addWidget(m_clearInputOnSend);
 	layout->addWidget(m_colorSpecialCharacters);
+	layout->addWidget(m_rememberLastUsedPort);
 
 	{
 		QHBoxLayout *hbox = new QHBoxLayout;
@@ -84,6 +86,7 @@ void SettingsPage::load()
 	m_inputHistoryLength->setValue(c.inputHistoryLength());
 	m_clearInputOnSend->setChecked(c.clearInputOnSend());
 	m_colorSpecialCharacters->setChecked(c.colorSpecialCharacters());
+	m_rememberLastUsedPort->setChecked(c.rememberLastUsedPort());
 
 	emit settingsChanged();
 }
@@ -98,6 +101,7 @@ void SettingsPage::save()
 	c.setInputHistoryLength(m_inputHistoryLength->value());
 	c.setClearInputOnSend(m_clearInputOnSend->isChecked());
 	c.setColorSpecialCharacters(m_colorSpecialCharacters->isChecked());
+	c.setRememberLastUsedPort(m_rememberLastUsedPort->isChecked());
 
 	emit settingsChanged();
 }

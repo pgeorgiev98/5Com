@@ -35,6 +35,8 @@ public:
 	FIELD(int, Int, inputHistoryLength, setInputHistoryLength, "inputHistoryLength", 10)
 	FIELD(bool, Bool, clearInputOnSend, setClearInputOnSend, "clearInputOnSend", false)
 	FIELD(bool, Bool, colorSpecialCharacters, setColorSpecialCharacters, "colorSpecialCharacters", true)
+	FIELD(bool, Bool, rememberLastUsedPort, setRememberLastUsedPort, "rememberLastUsedPort", true)
+	FIELD(QString, String, lastUsedPort, setLastUsedPort, "lastUsedPort", QString())
 
 	QSettings &settings() { return m_settings; }
 	QString path() const { return m_settings.fileName(); }

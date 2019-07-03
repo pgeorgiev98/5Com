@@ -263,6 +263,11 @@ MainWindow::MainWindow(QWidget *parent)
 	refreshPorts();
 	if (m_portSelect->count() > 1)
 		m_portSelect->setCurrentIndex(1);
+	if (c.rememberLastUsedPort()) {
+		QString lastPort = c.lastUsedPort();
+		if (!lastPort.isEmpty())
+			m_portSelect->setCurrentText(lastPort);
+	}
 
 	QTimer *refreshTimer = new QTimer(this);
 	refreshTimer->start(2000);
@@ -379,6 +384,10 @@ void MainWindow::onPortOpened()
 	for (QWidget *w : {m_portSelect, m_baudRateSelect,
 		 m_dataBitsSelect, m_paritySelect, m_stopBitsSelect})
 		w->setEnabled(false);
+
+	Config c;
+	if (c.rememberLastUsedPort())
+		c.setLastUsedPort(m_port->portName());
 
 	m_connectButton->setText("Disconnect");
 }

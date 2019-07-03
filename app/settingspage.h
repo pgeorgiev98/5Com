@@ -26,6 +26,7 @@ private:
 	QSpinBox *m_inputHistoryLength;
 	QCheckBox *m_clearInputOnSend;
 	QCheckBox *m_colorSpecialCharacters;
+	QCheckBox *m_rememberLastUsedPort;
 };
 
 #endif // SETTINGSPAGE_H
