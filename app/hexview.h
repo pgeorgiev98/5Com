@@ -19,6 +19,7 @@ public slots:
 	void clear();
 	void setData(const QByteArray &data);
 	void insertData(const QByteArray &data);
+	void setBytesPerLine(int bytesPerLine);
 
 protected:
 	void paintEvent(QPaintEvent *) override;
@@ -33,6 +34,7 @@ private:
 	QFontMetrics m_fontMetrics;
 	int m_characterWidth;
 	int m_cellSize, m_cellPadding;
+	int m_bytesPerLine;
 	QByteArray m_data;
 	int m_hoveredIndex;
 	int m_selectionStart;

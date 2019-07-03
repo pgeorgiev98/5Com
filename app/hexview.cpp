@@ -16,8 +16,8 @@ static QColor hoverTextColor("#ff0000");
 static QColor selectedColor("#0000ff");
 static QColor selectedTextColor("#000000");
 
-#define cellX(x) (x * m_cellSize + (x + 1 + (x > 7)) * m_cellPadding)
-#define textX(x) (cellX(17) + x * (m_characterWidth + 5))
+#define cellX(x) ((x) * m_cellSize + ((x) + 1 + ((x) / 8)) * m_cellPadding)
+#define textX(x) (cellX(m_bytesPerLine + 1) + x * (m_characterWidth + 5))
 
 static const char hexTable[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
 								  '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
@@ -33,6 +33,7 @@ HexView::HexView(QWidget *parent)
 #endif
 	, m_cellSize(m_fontMetrics.height())
 	, m_cellPadding(m_characterWidth)
+	, m_bytesPerLine(16)
 	, m_hoveredIndex(-1)
 	, m_selectionStart(-1)
 	, m_selectionEnd(-1)
@@ -49,7 +50,7 @@ HexView::HexView(QWidget *parent)
 	pal.setColor(QPalette::Background, backgroundColor);
 	setAutoFillBackground(true);
 	setPalette(pal);
-	setFixedWidth(textX(16) + m_cellPadding);
+	setFixedWidth(textX(m_bytesPerLine) + m_cellPadding);
 	setMinimumHeight(80);
 	setMouseTracking(true);
 }
@@ -63,7 +64,7 @@ QString HexView::toPlainText() const
 	QString byte = "FF ";
 	int i = 0;
 	while (i < m_data.size()) {
-		for (int x = 0; i < m_data.size() && x < 16; ++x, ++i) {
+		for (int x = 0; i < m_data.size() && x < m_bytesPerLine; ++x, ++i) {
 			unsigned char b = static_cast<unsigned char>(m_data[i]);
 			byte[0] = hexTable[(b >> 4) & 0xF];
 			byte[1] = hexTable[(b >> 0) & 0xF];
@@ -78,7 +79,7 @@ void HexView::clear()
 {
 	m_data.clear();
 
-	int rows = m_data.size() / 16 + (m_data.size() % 16 > 0);
+	int rows = m_data.size() / m_bytesPerLine + (m_data.size() % m_bytesPerLine > 0);
 	int widgetHeight = rows * m_cellSize + (rows + 1) * m_cellPadding;
 	if (widgetHeight != height())
 		resize(width(), widgetHeight);
@@ -96,11 +97,23 @@ void HexView::insertData(const QByteArray &data)
 {
 	m_data.append(data);
 
-	int rows = m_data.size() / 16 + (m_data.size() % 16 > 0);
+	int rows = m_data.size() / m_bytesPerLine + (m_data.size() % m_bytesPerLine > 0);
 	int widgetHeight = rows * m_cellSize + (rows + 1) * m_cellPadding;
 	if (widgetHeight != height())
 		resize(width(), widgetHeight);
 
+	repaint();
+}
+
+void HexView::setBytesPerLine(int bytesPerLine)
+{
+	m_bytesPerLine = bytesPerLine;
+
+	setFixedWidth(textX(m_bytesPerLine) + m_cellPadding);
+	int rows = m_data.size() / m_bytesPerLine + (m_data.size() % m_bytesPerLine > 0);
+	int widgetHeight = rows * m_cellSize + (rows + 1) * m_cellPadding;
+	if (widgetHeight != height())
+		resize(width(), widgetHeight);
 	repaint();
 }
 
@@ -123,16 +136,16 @@ void HexView::paintEvent(QPaintEvent *event)
 			selectionStart = m_selectionStart;
 			selectionEnd = m_selectionEnd + 1;
 		} else {
-			selectionStart = m_selectionEnd - 15;
-			selectionEnd = m_selectionStart + 16;
+			selectionStart = m_selectionEnd - m_bytesPerLine + 1;
+			selectionEnd = m_selectionStart + m_bytesPerLine;
 		}
 	}
 
 	QString cellText = "FF";
 	QString ch = "a";
-	int i = startY * 16;
+	int i = startY * m_bytesPerLine;
 	for (int y = startY; i < m_data.size() && y < endY; ++y) {
-		for (int x = 0; i < m_data.size() && x < 16; ++x, ++i) {
+		for (int x = 0; i < m_data.size() && x < m_bytesPerLine; ++x, ++i) {
 			unsigned char byte = static_cast<unsigned char>(m_data[i]);
 			cellText[0] = hexTable[(byte >> 4) & 0xF];
 			cellText[1] = hexTable[(byte >> 0) & 0xF];
@@ -197,12 +210,12 @@ void HexView::mouseMoveEvent(QMouseEvent *event)
 					if (m_selection == Selection::Cells)
 						m_selectionEnd = m_hoveredIndex;
 					else if (m_selection == Selection::CellRows)
-						m_selectionEnd = 16 * (m_hoveredIndex / 16) + 15;
+						m_selectionEnd = m_bytesPerLine * (m_hoveredIndex / m_bytesPerLine) + m_bytesPerLine - 1;
 			} else if (newIndex == hoverTextIndex && (m_selection == Selection::Text || m_selection == Selection::TextRows)) {
 					if (m_selection == Selection::Text)
 						m_selectionEnd = m_hoveredIndex;
 					else if (m_selection == Selection::TextRows)
-						m_selectionEnd = 16 * (m_hoveredIndex / 16) + 15;
+						m_selectionEnd = m_bytesPerLine * (m_hoveredIndex / m_bytesPerLine) + m_bytesPerLine - 1;
 				}
 			}
 		}
@@ -224,8 +237,8 @@ void HexView::mousePressEvent(QMouseEvent *event)
 				selectionStart = m_selectionStart;
 				selectionEnd = m_selectionEnd + 1;
 			} else {
-				selectionStart = m_selectionEnd - 15;
-				selectionEnd = m_selectionStart + 16;
+				selectionStart = m_selectionEnd - m_bytesPerLine + 1;
+				selectionEnd = m_selectionStart + m_bytesPerLine;
 			}
 		}
 		if (selectionEnd > m_data.size())
@@ -291,8 +304,8 @@ void HexView::mouseDoubleClickEvent(QMouseEvent *event)
 	int hoverTextIndex = getHoverText(event->pos());
 	int newIndex = qMax(hoverCellIndex, hoverTextIndex);
 	if (newIndex != -1) {
-		m_selectionStart = 16 * (newIndex / 16);
-		m_selectionEnd = m_selectionStart + 15;
+		m_selectionStart = m_bytesPerLine * (newIndex / m_bytesPerLine);
+		m_selectionEnd = m_selectionStart + m_bytesPerLine - 1;
 		if (newIndex == hoverCellIndex)
 			m_selection = Selection::CellRows;
 		else
@@ -313,8 +326,14 @@ int HexView::getHoverCell(const QPoint &mousePos) const
 	int x = mousePos.x();
 	int y = mousePos.y();
 
-	if (x > 8 * m_cellPadding + 8 * m_cellSize)
-		x -= m_cellPadding;
+	{
+		int vx = x;
+		while (vx > 8 * m_cellPadding + 8 * m_cellSize) {
+			x -= m_cellPadding;
+			vx -= m_cellPadding;
+			vx -= 8 * m_cellPadding + 8 * m_cellSize;
+		}
+	}
 
 	x -= m_cellPadding / 2;
 	y -= m_cellPadding / 2;
@@ -322,14 +341,14 @@ int HexView::getHoverCell(const QPoint &mousePos) const
 	int xi = -1;
 	int yi = -1;
 
-	if (x >= 0 && x < 16 * (m_cellPadding + m_cellSize))
+	if (x >= 0 && x < m_bytesPerLine * (m_cellPadding + m_cellSize))
 		xi = x / (m_cellPadding + m_cellSize);
 
 	if (y >= 0 && y < m_data.size() * (m_cellPadding + m_cellSize))
 		yi = y / (m_cellPadding + m_cellSize);
 
 	if (xi != -1 && yi != -1)
-		return xi + 16 * yi;
+		return xi + m_bytesPerLine * yi;
 
 	return -1;
 }
@@ -339,16 +358,16 @@ int HexView::getHoverText(const QPoint &mousePos) const
 	int x = mousePos.x();
 	int y = mousePos.y();
 
-	x -= cellX(17);
+	x -= cellX(m_bytesPerLine + 1);
 
 	int xi = -1, yi = -2;
-	if (x >= 0 && x < (m_characterWidth + 5) * 16)
+	if (x >= 0 && x < (m_characterWidth + 5) * m_bytesPerLine)
 		xi = x / (m_characterWidth + 5);
 	if (y >= 0 && y < m_data.size() * (m_cellPadding + m_cellSize))
 		yi = y / (m_cellPadding + m_cellSize);
 
 	if (xi != -1 && yi != -1)
-		return xi + 16 * yi;
+		return xi + m_bytesPerLine * yi;
 
 	return -1;
 }

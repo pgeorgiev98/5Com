@@ -6,6 +6,7 @@
 class QLabel;
 class QComboBox;
 class QScrollArea;
+class QSpinBox;
 class HexView;
 class PlainTextView;
 class QPushButton;
@@ -53,6 +54,9 @@ public slots:
 	void refreshStatusBar();
 	void trimData();
 
+protected:
+	void resizeEvent(QResizeEvent *);
+
 private:
 	qint64 m_totalBytesRead;
 	qint64 m_totalBytesWritten;
@@ -67,6 +71,9 @@ private:
 	QComboBox *m_paritySelect;
 	QComboBox *m_stopBitsSelect;
 	QPushButton *m_connectButton;
+
+	QTabWidget *m_tabs;
+	QSpinBox *m_hexViewBytesPerLine;
 
 	InputField *m_inputField;
 	PlainTextView *m_textView;

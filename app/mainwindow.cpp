@@ -42,6 +42,8 @@
 #include <QScrollArea>
 #include <QScrollBar>
 
+#include <QDebug>
+
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, m_totalBytesRead(0)
@@ -54,6 +56,8 @@ MainWindow::MainWindow(QWidget *parent)
 	, m_paritySelect(new QComboBox)
 	, m_stopBitsSelect(new QComboBox)
 	, m_connectButton(new QPushButton)
+	, m_tabs(new QTabWidget)
+	, m_hexViewBytesPerLine(new QSpinBox(m_tabs))
 	, m_inputField(new InputField)
 	, m_textView(new PlainTextView)
 	, m_hexView(new HexView)
@@ -153,13 +157,18 @@ MainWindow::MainWindow(QWidget *parent)
 	central->setLayout(layout);
 	setCentralWidget(central);
 
-	QTabWidget *tabs = new QTabWidget;
-	tabs->addTab(m_textView, "Plain Text View");
+	m_tabs->addTab(m_textView, "Plain Text View");
 	{
 		m_hexViewScrollArea->setPalette(m_hexView->palette());
 		m_hexViewScrollArea->setWidget(m_hexView);
-		tabs->addTab(m_hexViewScrollArea, "Hex View");
+		m_tabs->addTab(m_hexViewScrollArea, "Hex View");
 	}
+
+	m_hexViewBytesPerLine->setSuffix(" bytes per line");
+	m_hexViewBytesPerLine->setRange(1, 128);
+	m_hexViewBytesPerLine->setValue(16);
+	m_hexViewBytesPerLine->adjustSize();
+	m_hexViewBytesPerLine->move(this->width() - m_hexViewBytesPerLine->width(), 0);
 
 	{
 		QGridLayout *portLayout = new QGridLayout;
@@ -191,7 +200,7 @@ MainWindow::MainWindow(QWidget *parent)
 		connect(m_inputField->lineEdit(), &QLineEdit::returnPressed, this, &MainWindow::sendDataFromInput);
 	}
 
-	layout->addWidget(tabs);
+	layout->addWidget(m_tabs);
 
 	connect(m_connectButton, &QPushButton::clicked, this, &MainWindow::toggleConnect);
 
@@ -312,6 +321,9 @@ MainWindow::MainWindow(QWidget *parent)
 		m_textView->setColorSpecialCharacters(Config().colorSpecialCharacters());
 		m_textView->insertData(m_receivedData);
 	});
+
+	connect(m_hexViewBytesPerLine, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+			m_hexView, &HexView::setBytesPerLine);
 
 	refreshStatusBar();
 
@@ -766,4 +778,10 @@ void MainWindow::trimData()
 			m_byteReceiveTimesDialog->removeFromBegining(delta);
 		}
 	}
+}
+
+
+void MainWindow::resizeEvent(QResizeEvent *)
+{
+	m_hexViewBytesPerLine->move(m_tabs->width() - m_hexViewBytesPerLine->width(), 0);
 }
