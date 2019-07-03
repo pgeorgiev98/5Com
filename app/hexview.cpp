@@ -138,12 +138,15 @@ void HexView::paintEvent(QPaintEvent *event)
 					painter.setBrush(selectedColor);
 				else
 					painter.setBrush(backgroundColor);
-				painter.setPen(selectedColor);
+				if (i == m_hoveredIndex)
+					painter.setPen(hoverTextColor);
+				else
+					painter.setPen(selectedColor);
 
 				painter.drawRect(cellCoord.x() - m_cellPadding / 2,
 								 cellCoord.y() - m_fontMetrics.ascent() - m_cellPadding / 2,
 								 m_characterWidth * 2 + m_cellPadding,
-								 m_cellSize + m_cellPadding);
+								 m_cellSize + m_cellPadding - 1);
 
 				painter.drawRect(textCoord.x() - 2,
 								 textCoord.y() - m_fontMetrics.ascent() - 2,
