@@ -14,8 +14,6 @@ public:
 	explicit PlainTextView(QWidget *parent = nullptr);
 	QString toPlainText() const;
 
-signals:
-
 public slots:
 	void setData(const QByteArray &data);
 	void insertData(const QByteArray &data);
