@@ -5,7 +5,7 @@
 #include <QByteArray>
 #include <QString>
 
-class QPlainTextEdit;
+class QTextBrowser;
 
 class PlainTextView : public QWidget
 {
@@ -23,7 +23,7 @@ public slots:
 	void setColorSpecialCharacters(bool colorSpecialCharacters);
 
 private:
-	QPlainTextEdit *m_edit;
+	QTextBrowser *m_edit;
 	unsigned char m_lastChar;
 	QColor m_defaultTextColor;
 	bool m_colorSpecialCharacters;

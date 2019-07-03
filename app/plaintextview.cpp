@@ -1,11 +1,13 @@
 #include "plaintextview.h"
-#include <QPlainTextEdit>
+#include <QTextBrowser>
+#include <QFontDatabase>
 #include <QHBoxLayout>
 #include <QScrollBar>
+#include <QToolTip>
 
 PlainTextView::PlainTextView(QWidget *parent)
 	: QWidget(parent)
-	, m_edit(new QPlainTextEdit)
+	, m_edit(new QTextBrowser)
 	, m_lastChar('\0')
 	, m_colorSpecialCharacters(false)
 {
@@ -13,12 +15,29 @@ PlainTextView::PlainTextView(QWidget *parent)
 	setLayout(layout);
 	layout->addWidget(m_edit);
 
-	m_edit->setReadOnly(true);
 	m_edit->setUndoRedoEnabled(false);
 	m_edit->setWordWrapMode(QTextOption::WrapMode::NoWrap);
 	m_edit->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+	m_edit->setOpenLinks(false);
+	m_edit->setOpenExternalLinks(false);
 
 	m_defaultTextColor = m_edit->currentCharFormat().foreground().color();
+
+
+	connect(m_edit, &QTextBrowser::anchorClicked, [this](QUrl link) {
+		QString s = link.toString();
+		if (s.size() <= 4)
+			return;
+		s.remove(s.size() - 4, 4);
+		unsigned char c = static_cast<unsigned char>(s.toInt());
+
+		QString charInfo = "Dec: " + QString::number(int(c)).rightJustified(3, ' ') + ", "
+						   "Hex: " + QString::number(int(c), 16).rightJustified(2, '0') + ", "
+						   "Oct: " + QString::number(int(c), 8).rightJustified(3, ' ') + ", "
+						   "Bin: " + QString::number(int(c), 2).rightJustified(8, '0');
+
+		QToolTip::showText(cursor().pos(), charInfo, this);
+	});
 }
 
 void PlainTextView::setData(const QByteArray &data)
@@ -54,53 +73,49 @@ void PlainTextView::insertData(const QByteArray &data)
 				tmp.append('\n');
 
 		const char *replace = nullptr;
-		if (c == '\r') replace = "<CR>";
-		else if (c == '\n') replace = "<LF>\n";
-		else if (c == '\0') replace = "<NUL>";
-		else if (c == '\x01') replace = "<SOH>";
-		else if (c == '\x02') replace = "<STX>";
-		else if (c == '\x03') replace = "<ETX>";
-		else if (c == '\x04') replace = "<EOT>";
-		else if (c == '\x05') replace = "<ENQ>";
-		else if (c == '\x06') replace = "<ACK>";
-		else if (c == '\x07') replace = "<BEL>";
-		else if (c == '\x08') replace = "<BS>";
-		else if (c == '\x0B') replace = "<VT>";
-		else if (c == '\x1B') replace = "<ESC>";
-		else if (c == '\x7F') replace = "<DEL>";
+		if (c == '\r') replace = "&lt;CR&gt;";
+		else if (c == '\n') replace = "&lt;LF&gt;";
+		else if (c == '\0') replace = "&lt;NUL&gt;";
+		else if (c == '\x01') replace = "&lt;SOH&gt;";
+		else if (c == '\x02') replace = "&lt;STX&gt;";
+		else if (c == '\x03') replace = "&lt;ETX&gt;";
+		else if (c == '\x04') replace = "&lt;EOT&gt;";
+		else if (c == '\x05') replace = "&lt;ENQ&gt;";
+		else if (c == '\x06') replace = "&lt;ACK&gt;";
+		else if (c == '\x07') replace = "&lt;BEL&gt;";
+		else if (c == '\x08') replace = "&lt;BS&gt;";
+		else if (c == '\x0B') replace = "&lt;VT&gt;";
+		else if (c == '\x1B') replace = "&lt;ESC&gt;";
+		else if (c == '\x7F') replace = "&lt;DEL&gt;";
 
-		if (replace || c > 0x7f) {
+		if (replace || c > 0x7f || c < 0x20) {
 			if (!tmp.isEmpty()) {
-				m_edit->insertPlainText(tmp);
+				m_edit->insertHtml(tmp.toHtmlEscaped());
 				tmp.clear();
 			}
 			if (replace) {
-				if (m_colorSpecialCharacters) {
-					tcf.setForeground(QBrush(Qt::blue));
-					m_edit->setCurrentCharFormat(tcf);
-				}
-				m_edit->insertPlainText(replace);
-				if (m_colorSpecialCharacters) {
-					tcf.setForeground(QBrush(m_defaultTextColor));
-					m_edit->setCurrentCharFormat(tcf);
-				}
-			} else if (c > 0x7f) {
+				if (m_colorSpecialCharacters)
+					tmp.append("<a href=\"" + QString::number(int(c)) + ".com\" style=\"color: blue\">");
+				tmp.append(replace);
+				if (m_colorSpecialCharacters)
+					tmp.append("</a>");
+				if (c == '\n')
+					tmp.append("<br>");
+				m_edit->insertHtml(tmp);
+				tmp.clear();
+			} else if (c > 0x7f || c < 0x20) {
 				static const char hex[16] = {'0', '1', '2', '3', '4', '5',
 											 '6', '7', '8', '9', 'A', 'B',
 											 'C', 'D', 'E', 'F'};
-				tmp.append('<');
+				if (m_colorSpecialCharacters)
+					tmp.append("<a href=\"" + QString::number(int(c)) + ".com\" style=\"color: red\">");
+				tmp.append("&lt;");
 				tmp.append(hex[(c >> 4) & 0x0f]);
 				tmp.append(hex[c & 0x0f]);
-				tmp.append('>');
-				if (m_colorSpecialCharacters) {
-					tcf.setForeground(QBrush(Qt::red));
-					m_edit->setCurrentCharFormat(tcf);
-				}
-				m_edit->insertPlainText(tmp);
-				if (m_colorSpecialCharacters) {
-					tcf.setForeground(QBrush(m_defaultTextColor));
-					m_edit->setCurrentCharFormat(tcf);
-				}
+				tmp.append("&gt;");
+				if (m_colorSpecialCharacters)
+					tmp.append("</a>");
+				m_edit->insertHtml(tmp);
 				tmp.clear();
 			}
 		} else {
@@ -111,7 +126,7 @@ void PlainTextView::insertData(const QByteArray &data)
 	}
 
 	if (!tmp.isEmpty())
-		m_edit->insertPlainText(tmp);
+		m_edit->insertHtml(tmp.toHtmlEscaped());
 
 	if (atBottom)
 		m_edit->verticalScrollBar()->setValue(m_edit->verticalScrollBar()->maximum());
