@@ -67,6 +67,8 @@ void HexView::clear()
 	int widgetHeight = rows * m_cellSize + (rows + 1) * m_cellPadding;
 	if (widgetHeight != height())
 		resize(width(), widgetHeight);
+
+	repaint();
 }
 
 void HexView::setData(const QByteArray &data)
