@@ -5,6 +5,7 @@
 
 class QLabel;
 class QComboBox;
+class QScrollArea;
 class HexView;
 class PlainTextView;
 class QPushButton;
@@ -70,6 +71,7 @@ private:
 	InputField *m_inputField;
 	PlainTextView *m_textView;
 	HexView *m_hexView;
+	QScrollArea *m_hexViewScrollArea;
 
 	SerialPort *m_port;
 

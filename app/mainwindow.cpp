@@ -40,6 +40,7 @@
 #include <QProgressBar>
 #include <QShortcut>
 #include <QScrollArea>
+#include <QScrollBar>
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -56,6 +57,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, m_inputField(new InputField)
 	, m_textView(new PlainTextView)
 	, m_hexView(new HexView)
+	, m_hexViewScrollArea(new QScrollArea)
 	, m_port(new SerialPort(this))
 	, m_continuousSendWindow(new ContinuousSendWindow(m_port, this))
 	, m_sendSequenceWindow(new SendSequenceWindow(m_port, this))
@@ -154,11 +156,9 @@ MainWindow::MainWindow(QWidget *parent)
 	QTabWidget *tabs = new QTabWidget;
 	tabs->addTab(m_textView, "Plain Text View");
 	{
-		QScrollArea *area = new QScrollArea;
-		area->setPalette(m_hexView->palette());
-		area->setHorizontalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOff);
-		area->setWidget(m_hexView);
-		tabs->addTab(area, "Hex View");
+		m_hexViewScrollArea->setPalette(m_hexView->palette());
+		m_hexViewScrollArea->setWidget(m_hexView);
+		tabs->addTab(m_hexViewScrollArea, "Hex View");
 	}
 
 	{
@@ -361,7 +361,16 @@ void MainWindow::displayData(const QByteArray &data)
 	m_totalBytesRead += data.size();
 	m_receivedData.append(data);
 
-	m_hexView->insertData(data);
+	{
+		int value = m_hexViewScrollArea->verticalScrollBar()->value();
+		bool atBottom = (value == m_hexViewScrollArea->verticalScrollBar()->maximum());
+		m_hexView->insertData(data);
+		if (atBottom)
+			m_hexViewScrollArea->verticalScrollBar()->setValue(m_hexViewScrollArea->verticalScrollBar()->maximum());
+		else
+			m_hexViewScrollArea->verticalScrollBar()->setValue(value);
+	}
+
 	m_textView->insertData(data);
 	if (m_byteReceiveTimesDialog)
 		m_byteReceiveTimesDialog->insertData(data);
