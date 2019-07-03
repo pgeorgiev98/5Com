@@ -17,7 +17,7 @@ static QColor selectedColor("#0000ff");
 static QColor selectedTextColor("#000000");
 
 #define cellX(x) (x * m_cellSize + (x + 1 + (x > 7)) * m_cellPadding)
-#define textX(x) (cellX(17) + x * m_characterWidth)
+#define textX(x) (cellX(17) + x * (m_characterWidth + 5))
 
 static const char hexTable[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
 								  '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
@@ -145,10 +145,10 @@ void HexView::paintEvent(QPaintEvent *event)
 								 m_characterWidth * 2 + m_cellPadding,
 								 m_cellSize + m_cellPadding);
 
-				painter.drawRect(textCoord.x(),
-								 textCoord.y() - m_fontMetrics.ascent(),
-								 m_characterWidth,
-								 m_fontMetrics.height());
+				painter.drawRect(textCoord.x() - 2,
+								 textCoord.y() - m_fontMetrics.ascent() - 2,
+								 m_characterWidth + 4,
+								 m_fontMetrics.height() + 4);
 			}
 
 			if (m_hoveredIndex == i)
@@ -322,8 +322,8 @@ int HexView::getHoverText(const QPoint &mousePos) const
 	x -= cellX(17);
 
 	int xi = -1, yi = -2;
-	if (x >= 0 && x < m_characterWidth * 16)
-		xi = x / m_characterWidth;
+	if (x >= 0 && x < (m_characterWidth + 5) * 16)
+		xi = x / (m_characterWidth + 5);
 	if (y >= 0 && y < m_data.size() * (m_cellPadding + m_cellSize))
 		yi = y / (m_cellPadding + m_cellSize);
 
