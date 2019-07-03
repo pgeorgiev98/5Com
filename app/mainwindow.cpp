@@ -726,7 +726,7 @@ void MainWindow::showAboutPage()
 	   "<p>You are currently using <b>version " VERSION "</b>.</p>"
 	   "<p>It is licensed under the <a href=\"https://opensource.org/licenses/MIT\">MIT License</a>.</p>"
 	   "<p>The source code can be found <a href=\"" SOURCE_CODE_URL "\">here</a>.<br/>"
-	   "and other releases can be found <a href=\"" RELEASES_URL "\">here</a>.</p>"));
+	   "All releases can be found <a href=\"" RELEASES_URL "\">here</a>.</p>"));
 
 }
 
