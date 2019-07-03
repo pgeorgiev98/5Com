@@ -67,6 +67,7 @@ void PlainTextView::insertData(const QByteArray &data)
 	m_edit->setCurrentCharFormat(tcf);
 
 	QString tmp;
+	QString chStr = ".";
 	for (const unsigned char c : data) {
 		if (m_lastChar == '\r')
 			if (c != '\n')
@@ -89,10 +90,6 @@ void PlainTextView::insertData(const QByteArray &data)
 		else if (c == '\x7F') replace = "&lt;DEL&gt;";
 
 		if (replace || c > 0x7f || c < 0x20) {
-			if (!tmp.isEmpty()) {
-				m_edit->insertHtml(tmp.toHtmlEscaped());
-				tmp.clear();
-			}
 			if (replace) {
 				if (m_colorSpecialCharacters)
 					tmp.append("<a href=\"" + QString::number(int(c)) + ".com\" style=\"color: blue\">");
@@ -101,8 +98,6 @@ void PlainTextView::insertData(const QByteArray &data)
 					tmp.append("</a>");
 				if (c == '\n')
 					tmp.append("<br>");
-				m_edit->insertHtml(tmp);
-				tmp.clear();
 			} else if (c > 0x7f || c < 0x20) {
 				static const char hex[16] = {'0', '1', '2', '3', '4', '5',
 											 '6', '7', '8', '9', 'A', 'B',
@@ -115,18 +110,17 @@ void PlainTextView::insertData(const QByteArray &data)
 				tmp.append("&gt;");
 				if (m_colorSpecialCharacters)
 					tmp.append("</a>");
-				m_edit->insertHtml(tmp);
-				tmp.clear();
 			}
 		} else {
-			tmp.append(c);
+			chStr[0] = c;
+			tmp.append(chStr.toHtmlEscaped());
 		}
 
 		m_lastChar = c;
 	}
 
 	if (!tmp.isEmpty())
-		m_edit->insertHtml(tmp.toHtmlEscaped());
+		m_edit->insertHtml(tmp);
 
 	if (atBottom)
 		m_edit->verticalScrollBar()->setValue(m_edit->verticalScrollBar()->maximum());
