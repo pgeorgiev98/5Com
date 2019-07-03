@@ -56,7 +56,22 @@ HexView::HexView(QWidget *parent)
 
 QString HexView::toPlainText() const
 {
-	return QString();
+	QString s;
+	if (m_data.isEmpty())
+		return s;
+
+	QString byte = "FF ";
+	int i = 0;
+	while (i < m_data.size()) {
+		for (int x = 0; i < m_data.size() && x < 16; ++x, ++i) {
+			unsigned char b = static_cast<unsigned char>(m_data[i]);
+			byte[0] = hexTable[(b >> 4) & 0xF];
+			byte[1] = hexTable[(b >> 0) & 0xF];
+			s.append(byte);
+		}
+		s[s.size() - 1] = '\n';
+	}
+	return s;
 }
 
 void HexView::clear()
