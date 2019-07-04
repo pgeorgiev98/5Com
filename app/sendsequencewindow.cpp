@@ -19,6 +19,7 @@
 #include <QCloseEvent>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QComboBox>
 
 SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 	: QDialog(parent)
@@ -31,6 +32,7 @@ SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 	, m_currentOperation(-1)
 	, m_timer(new QTimer(this))
 {
+	m_timer->setSingleShot(true);
 	m_operationsLayout->setAlignment(Qt::AlignTop);
 	m_sendIndefinitely->setChecked(false);
 	m_sequencesCount->setRange(1, INT_MAX);
@@ -99,8 +101,12 @@ SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 		QMenu menu(addNewButton);
 		QAction sendAction("Send");
 		QAction waitAction("Wait");
+		QAction changeDtr("Change DTR");
+		QAction changeRts("Change RTS");
 		menu.addAction(&sendAction);
 		menu.addAction(&waitAction);
+		menu.addAction(&changeDtr);
+		menu.addAction(&changeRts);
 		QPoint pos = addNewButton->pos();
 		pos.setX(pos.x() + addNewButton->width());
 		menu.popup(m_operationsScrollArea->viewport()->mapToGlobal(pos));
@@ -109,6 +115,10 @@ SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 			addOperation(OperationType::Send);
 		else if (action == &waitAction)
 			addOperation(OperationType::Wait);
+		else if (action == &changeDtr)
+			addOperation(OperationType::ChangeDTR);
+		else if (action == &changeRts)
+			addOperation(OperationType::ChangeRTS);
 	});
 	connect(clearOperationsButton, &QPushButton::clicked, this, &SendSequenceWindow::clearOperations);
 	connect(m_sendIndefinitely, &QCheckBox::stateChanged, m_sequencesCount, &QWidget::setDisabled);
@@ -173,6 +183,20 @@ void SendSequenceWindow::addOperation(SendSequenceWindow::OperationType type, in
 		m_operationsLayout->addWidget(input, row, 1, Qt::AlignLeft);
 		input->setFocus();
 		input->selectAll();
+		op.input = input;
+	} else if (type == OperationType::ChangeDTR) {
+		m_operationsLayout->addWidget(op.label = new QLabel("Change DTR: "), row, 0);
+		QComboBox *input = new QComboBox;
+		input->addItems({"True", "False", "Toggle"});
+		m_operationsLayout->addWidget(input, row, 1, Qt::AlignLeft);
+		input->setFocus();
+		op.input = input;
+	} else if (type == OperationType::ChangeRTS) {
+		m_operationsLayout->addWidget(op.label = new QLabel("Change RTS: "), row, 0);
+		QComboBox *input = new QComboBox;
+		input->addItems({"True", "False", "Toggle"});
+		m_operationsLayout->addWidget(input, row, 1, Qt::AlignLeft);
+		input->setFocus();
 		op.input = input;
 	}
 	QToolButton *actionButton = new QToolButton;
@@ -257,11 +281,29 @@ void SendSequenceWindow::executeNextOperation()
 	if (op.type == OperationType::Send) {
 		QLineEdit *input = static_cast<QLineEdit *>(m_operationsLayout->itemAtPosition(i, 1)->widget());
 		m_port->writeFormattedData(input->text());
-		QTimer::singleShot(0, this, &SendSequenceWindow::executeNextOperation);
 	} else if (op.type == OperationType::Wait) {
 		QSpinBox *input = static_cast<QSpinBox *>(m_operationsLayout->itemAtPosition(i, 1)->widget());
 		m_timer->start(input->value());
+	} else if (op.type == OperationType::ChangeDTR) {
+		QComboBox *input = static_cast<QComboBox *>(m_operationsLayout->itemAtPosition(i, 1)->widget());
+		if (input->currentIndex() == 0)
+			m_port->setDataTerminalReady(true);
+		else if (input->currentIndex() == 1)
+			m_port->setDataTerminalReady(false);
+		else
+			m_port->setDataTerminalReady(!m_port->isDataTerminalReady());
+	} else if (op.type == OperationType::ChangeRTS) {
+		QComboBox *input = static_cast<QComboBox *>(m_operationsLayout->itemAtPosition(i, 1)->widget());
+		if (input->currentIndex() == 0)
+			m_port->setRequestToSend(true);
+		else if (input->currentIndex() == 1)
+			m_port->setRequestToSend(false);
+		else
+			m_port->setRequestToSend(!m_port->isRequestToSend());
 	}
+
+	if (op.type != OperationType::Wait)
+		m_timer->start(0);
 }
 
 void SendSequenceWindow::reject()
@@ -291,13 +333,21 @@ void SendSequenceWindow::onActionButtonClicked()
 	QMenu addAfter("Add after this");
 	QAction addSendBefore("Send");
 	QAction addWaitBefore("Wait");
+	QAction addChangeDtrBefore("Change DTR");
+	QAction addChangeRtsBefore("Change RTS");
 	QAction addSendAfter("Send");
 	QAction addWaitAfter("Wait");
+	QAction addChangeDtrAfter("Change DTR");
+	QAction addChangeRtsAfter("Change RTS");
 
 	addBefore.addAction(&addSendBefore);
 	addBefore.addAction(&addWaitBefore);
+	addBefore.addAction(&addChangeDtrBefore);
+	addBefore.addAction(&addChangeRtsBefore);
 	addAfter.addAction(&addSendAfter);
 	addAfter.addAction(&addWaitAfter);
+	addAfter.addAction(&addChangeDtrAfter);
+	addAfter.addAction(&addChangeRtsAfter);
 
 	menu.addAction(&removeAction);
 	menu.addMenu(&addBefore);
@@ -308,17 +358,24 @@ void SendSequenceWindow::onActionButtonClicked()
 	pos.setY(pos.y() - m_operationsScrollArea->verticalScrollBar()->value());
 	menu.popup(QWidget::mapToGlobal(pos));
 	QAction *action = menu.exec();
-	if (action == &removeAction) {
+	if (action == &removeAction)
 		removeOperation(i, true);
-	} else if (action == &addSendBefore) {
+	else if (action == &addSendBefore)
 		addOperation(OperationType::Send, i);
-	} else if (action == &addWaitBefore) {
+	else if (action == &addWaitBefore)
 		addOperation(OperationType::Wait, i);
-	} else if (action == &addSendAfter) {
+	else if (action == &addChangeDtrBefore)
+		addOperation(OperationType::ChangeDTR, i);
+	else if (action == &addChangeRtsBefore)
+		addOperation(OperationType::ChangeRTS, i);
+	else if (action == &addSendAfter)
 		addOperation(OperationType::Send, i + 1);
-	} else if (action == &addWaitAfter) {
+	else if (action == &addWaitAfter)
 		addOperation(OperationType::Wait, i + 1);
-	}
+	else if (action == &addChangeDtrAfter)
+		addOperation(OperationType::ChangeDTR, i + 1);
+	else if (action == &addChangeRtsAfter)
+		addOperation(OperationType::ChangeRTS, i + 1);
 }
 
 void SendSequenceWindow::cancelSequence()

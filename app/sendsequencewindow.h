@@ -14,7 +14,7 @@ class QSpinBox;
 class SendSequenceWindow : public QDialog
 {
 	Q_OBJECT
-	enum class OperationType { Send, Wait };
+	enum class OperationType { Send, Wait, ChangeDTR, ChangeRTS };
 public:
 	explicit SendSequenceWindow(SerialPort *port, QWidget *parent = nullptr);
 

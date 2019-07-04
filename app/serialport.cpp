@@ -49,21 +49,29 @@ QSerialPort::PinoutSignals SerialPort::pinoutSignals() const
 
 bool SerialPort::isDataTerminalReady() const
 {
+	if (m_loopback)
+		return true;
 	return m_port->isDataTerminalReady();
 }
 
 bool SerialPort::isRequestToSend() const
 {
+	if (m_loopback)
+		return true;
 	return m_port->isRequestToSend();
 }
 
 bool SerialPort::setDataTerminalReady(bool dtr)
 {
+	if (m_loopback)
+		return true;
 	return m_port->setDataTerminalReady(dtr);
 }
 
 bool SerialPort::setRequestToSend(bool rts)
 {
+	if (m_loopback)
+		return true;
 	return m_port->setRequestToSend(rts);
 }
 
