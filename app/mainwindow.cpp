@@ -324,6 +324,10 @@ MainWindow::MainWindow(QWidget *parent)
 
 	connect(m_hexViewBytesPerLine, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged),
 			m_hexView, &HexView::setBytesPerLine);
+	connect(m_tabs, &QTabWidget::currentChanged, [this](int index) {
+		m_hexViewBytesPerLine->setVisible(index == 1);
+	});
+	m_hexViewBytesPerLine->setVisible(m_tabs->currentIndex() == 1);
 
 	refreshStatusBar();
 
