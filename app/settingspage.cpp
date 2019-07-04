@@ -7,6 +7,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QMessageBox>
 
 QHBoxLayout *labeledWidget(const QString &label, QWidget *widget)
 {
@@ -54,6 +55,11 @@ SettingsPage::SettingsPage(QWidget *parent)
 	layout->addWidget(m_rememberLastUsedPort);
 	layout->addLayout(labeledWidget("Number of bytes per line in HexView: ", m_hexViewBytesPerLine));
 
+	QPushButton *restoreDefaultsButton = new QPushButton("Restore defaults");
+	layout->addWidget(restoreDefaultsButton, 0, Qt::AlignRight);
+	connect(restoreDefaultsButton, &QPushButton::clicked, this, &SettingsPage::restoreDefaults);
+	layout->addSpacing(8);
+
 	{
 		QHBoxLayout *hbox = new QHBoxLayout;
 		QPushButton *cancel = new QPushButton("Cancel");
@@ -62,11 +68,11 @@ SettingsPage::SettingsPage(QWidget *parent)
 		apply->setAutoDefault(true);
 		apply->setDefault(true);
 		hbox->addStretch(1);
-		hbox->addWidget(apply);
+		hbox->addWidget(ok);
 		hbox->addStretch(1);
 		hbox->addWidget(cancel);
 		hbox->addStretch(1);
-		hbox->addWidget(ok);
+		hbox->addWidget(apply);
 		hbox->addStretch(1);
 		layout->addLayout(hbox);
 
@@ -109,4 +115,15 @@ void SettingsPage::save()
 	c.setHexViewBytesPerLine(m_hexViewBytesPerLine->value());
 
 	emit settingsChanged();
+}
+
+void SettingsPage::restoreDefaults()
+{
+	int b = QMessageBox::question(this, "Restore defaults",
+								  "Are you sure you want to restore the default settings?\n"
+								  "The default settings will be applied immediately.");
+	if (b == QMessageBox::Yes) {
+		Config().clear();
+		load();
+	}
 }

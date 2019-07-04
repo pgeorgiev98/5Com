@@ -18,6 +18,7 @@ signals:
 private slots:
 	void load();
 	void save();
+	void restoreDefaults();
 
 private:
 	QCheckBox *m_includePtsDirectory;
