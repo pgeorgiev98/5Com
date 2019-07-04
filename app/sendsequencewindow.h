@@ -10,6 +10,7 @@ class QGridLayout;
 class QScrollArea;
 class QCheckBox;
 class QSpinBox;
+class QMenu;
 
 class SendSequenceWindow : public QDialog
 {
@@ -48,6 +49,8 @@ private:
 	QPushButton *m_sendButton;
 	int m_currentOperation;
 	QTimer *m_timer;
+	QMenu *m_itemMenu;
+	int m_itemMenuIndex;
 };
 
 #endif // SENDSEQUENCEWINDOW_H

@@ -31,6 +31,7 @@ SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 	, m_sendButton(new QPushButton("Send"))
 	, m_currentOperation(-1)
 	, m_timer(new QTimer(this))
+	, m_itemMenu(new QMenu)
 {
 	m_timer->setSingleShot(true);
 	m_operationsLayout->setAlignment(Qt::AlignTop);
@@ -96,30 +97,77 @@ SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 		layout->addLayout(hbox);
 	}
 
-	connect(m_sendButton, &QPushButton::clicked, this, &SendSequenceWindow::onSendClicked);
-	connect(addNewButton, &QPushButton::clicked, [this, addNewButton]() {
-		QMenu menu(addNewButton);
-		QAction sendAction("Send");
-		QAction waitAction("Wait");
-		QAction changeDtr("Change DTR");
-		QAction changeRts("Change RTS");
-		menu.addAction(&sendAction);
-		menu.addAction(&waitAction);
-		menu.addAction(&changeDtr);
-		menu.addAction(&changeRts);
-		QPoint pos = addNewButton->pos();
-		pos.setX(pos.x() + addNewButton->width());
-		menu.popup(m_operationsScrollArea->viewport()->mapToGlobal(pos));
-		QAction *action = menu.exec();
-		if (action == &sendAction)
+	QMenu *menu = new QMenu(this);
+	QAction *sendAction = new QAction("Send");
+	QAction *waitAction = new QAction("Wait");
+	QAction *changeDtr = new QAction("Change DTR");
+	QAction *changeRts = new QAction("Change RTS");
+	menu->addAction(sendAction);
+	menu->addAction(waitAction);
+	menu->addAction(changeDtr);
+	menu->addAction(changeRts);
+	addNewButton->setMenu(menu);
+	connect(menu, &QMenu::triggered, [this, sendAction, waitAction, changeDtr, changeRts](QAction *action) {
+		if (action == sendAction)
 			addOperation(OperationType::Send);
-		else if (action == &waitAction)
+		else if (action == waitAction)
 			addOperation(OperationType::Wait);
-		else if (action == &changeDtr)
+		else if (action == changeDtr)
 			addOperation(OperationType::ChangeDTR);
-		else if (action == &changeRts)
+		else if (action == changeRts)
 			addOperation(OperationType::ChangeRTS);
 	});
+	connect(addNewButton, &QPushButton::clicked, [addNewButton]() {
+		addNewButton->showMenu();
+	});
+
+	QAction *removeAction = new QAction("Remove");
+	QMenu *addBefore = new QMenu("Add before this");
+	QMenu *addAfter = new QMenu("Add after this");
+	QAction *addSendBefore = new QAction("Send");
+	QAction *addWaitBefore = new QAction("Wait");
+	QAction *addChangeDtrBefore = new QAction("Change DTR");
+	QAction *addChangeRtsBefore = new QAction("Change RTS");
+	QAction *addSendAfter = new QAction("Send");
+	QAction *addWaitAfter = new QAction("Wait");
+	QAction *addChangeDtrAfter = new QAction("Change DTR");
+	QAction *addChangeRtsAfter = new QAction("Change RTS");
+
+	addBefore->addAction(addSendBefore);
+	addBefore->addAction(addWaitBefore);
+	addBefore->addAction(addChangeDtrBefore);
+	addBefore->addAction(addChangeRtsBefore);
+	addAfter->addAction(addSendAfter);
+	addAfter->addAction(addWaitAfter);
+	addAfter->addAction(addChangeDtrAfter);
+	addAfter->addAction(addChangeRtsAfter);
+
+	m_itemMenu->addAction(removeAction);
+	m_itemMenu->addMenu(addBefore);
+	m_itemMenu->addMenu(addAfter);
+	connect(m_itemMenu, &QMenu::triggered, [=](QAction *action) {
+		int i = m_itemMenuIndex;
+		if (action == removeAction)
+			removeOperation(i, true);
+		else if (action == addSendBefore)
+			addOperation(OperationType::Send, i);
+		else if (action == addWaitBefore)
+			addOperation(OperationType::Wait, i);
+		else if (action == addChangeDtrBefore)
+			addOperation(OperationType::ChangeDTR, i);
+		else if (action == addChangeRtsBefore)
+			addOperation(OperationType::ChangeRTS, i);
+		else if (action == addSendAfter)
+			addOperation(OperationType::Send, i + 1);
+		else if (action == addWaitAfter)
+			addOperation(OperationType::Wait, i + 1);
+		else if (action == addChangeDtrAfter)
+			addOperation(OperationType::ChangeDTR, i + 1);
+		else if (action == addChangeRtsAfter)
+			addOperation(OperationType::ChangeRTS, i + 1);
+	});
+
+	connect(m_sendButton, &QPushButton::clicked, this, &SendSequenceWindow::onSendClicked);
 	connect(clearOperationsButton, &QPushButton::clicked, this, &SendSequenceWindow::clearOperations);
 	connect(m_sendIndefinitely, &QCheckBox::stateChanged, m_sequencesCount, &QWidget::setDisabled);
 	m_sequencesCount->setDisabled(m_sendIndefinitely->isChecked());
@@ -203,6 +251,7 @@ void SendSequenceWindow::addOperation(SendSequenceWindow::OperationType type, in
 	}
 	QToolButton *actionButton = new QToolButton;
 	actionButton->setText("...");
+	actionButton->setMenu(m_itemMenu);
 	m_operationsLayout->addWidget(actionButton, row, 3);
 	op.actionButton = actionButton;
 	connect(actionButton, &QToolButton::clicked, this, &SendSequenceWindow::onActionButtonClicked);
@@ -328,56 +377,10 @@ void SendSequenceWindow::onActionButtonClicked()
 	for (i = 0; i < m_operations.size(); ++i)
 		if (m_operations[i].actionButton == s)
 			break;
+	m_itemMenuIndex = i;
 
-	QMenu menu(s);
-	QAction removeAction("Remove");
-	QMenu addBefore("Add before this");
-	QMenu addAfter("Add after this");
-	QAction addSendBefore("Send");
-	QAction addWaitBefore("Wait");
-	QAction addChangeDtrBefore("Change DTR");
-	QAction addChangeRtsBefore("Change RTS");
-	QAction addSendAfter("Send");
-	QAction addWaitAfter("Wait");
-	QAction addChangeDtrAfter("Change DTR");
-	QAction addChangeRtsAfter("Change RTS");
-
-	addBefore.addAction(&addSendBefore);
-	addBefore.addAction(&addWaitBefore);
-	addBefore.addAction(&addChangeDtrBefore);
-	addBefore.addAction(&addChangeRtsBefore);
-	addAfter.addAction(&addSendAfter);
-	addAfter.addAction(&addWaitAfter);
-	addAfter.addAction(&addChangeDtrAfter);
-	addAfter.addAction(&addChangeRtsAfter);
-
-	menu.addAction(&removeAction);
-	menu.addMenu(&addBefore);
-	menu.addMenu(&addAfter);
-
-	QPoint pos = s->pos();
-	pos.setX(pos.x() + s->width());
-	pos.setY(pos.y() - m_operationsScrollArea->verticalScrollBar()->value());
-	menu.popup(QWidget::mapToGlobal(pos));
-	QAction *action = menu.exec();
-	if (action == &removeAction)
-		removeOperation(i, true);
-	else if (action == &addSendBefore)
-		addOperation(OperationType::Send, i);
-	else if (action == &addWaitBefore)
-		addOperation(OperationType::Wait, i);
-	else if (action == &addChangeDtrBefore)
-		addOperation(OperationType::ChangeDTR, i);
-	else if (action == &addChangeRtsBefore)
-		addOperation(OperationType::ChangeRTS, i);
-	else if (action == &addSendAfter)
-		addOperation(OperationType::Send, i + 1);
-	else if (action == &addWaitAfter)
-		addOperation(OperationType::Wait, i + 1);
-	else if (action == &addChangeDtrAfter)
-		addOperation(OperationType::ChangeDTR, i + 1);
-	else if (action == &addChangeRtsAfter)
-		addOperation(OperationType::ChangeRTS, i + 1);
+	QToolButton *button = static_cast<QToolButton *>(sender());
+	button->showMenu();
 }
 
 void SendSequenceWindow::cancelSequence()
