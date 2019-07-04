@@ -16,6 +16,7 @@
 #include "sendsequencewindow.h"
 #include "inputfield.h"
 #include "checkforupdatesdialog.h"
+#include "keyboardshortcutswindow.h"
 
 #include <QComboBox>
 #include <QLineEdit>
@@ -69,6 +70,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, m_byteReceiveTimesDialog(nullptr)
 	, m_asciiTableDialog(new AsciiTable(this))
 	, m_escapeCodesDialog(new EscapeCodesDialog(this))
+	, m_keyboardShortcutsWindow(new KeyboardShortcutsWindow(this))
 	, m_settingsPage(new SettingsPage(this))
 {
 	Config c;
@@ -84,6 +86,8 @@ MainWindow::MainWindow(QWidget *parent)
 	}
 
 	statusBar()->addPermanentWidget(m_statusBarLabel);
+
+	// Keyboard shortcuts dialog
 
 	m_portSelect->addItem("Loopback");
 	for (qint32 baud : QSerialPortInfo::standardBaudRates())
@@ -455,23 +459,9 @@ void MainWindow::showEscapeCodes()
 
 void MainWindow::showKeyboardShortcuts()
 {
-	QDialog dialog(this);
-	QGridLayout *layout = new QGridLayout;
-	layout->setHorizontalSpacing(24);
-	QString m[] = {"Exit", QKeySequence(QKeySequence::Quit).toString(),
-				   "Write file to port", QKeySequence(QKeySequence::Quit).toString(),
-				   "Export", "Ctrl+E",
-				   "Clear screen", "Ctrl+Shift+L",
-				   "Focus input", "Ctrl+L",
-				   "Clear input", "Ctrl+W",
-				   "Open Plain Text View", "Alt+1",
-				   "Open Hex View", "Alt+2"};
-	for (unsigned int i = 0; i < sizeof(m) / sizeof(QString); i += 2) {
-		layout->addWidget(new QLabel(m[i  ]), i / 2, 0);
-		layout->addWidget(new QLabel(m[i+1]), i / 2, 1);
-	}
-	dialog.setLayout(layout);
-	dialog.exec();
+	m_keyboardShortcutsWindow->show();
+	m_keyboardShortcutsWindow->activateWindow();
+	m_keyboardShortcutsWindow->raise();
 }
 
 void MainWindow::sendFromFile()

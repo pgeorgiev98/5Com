@@ -15,6 +15,7 @@ class ByteReceiveTimesDialog;
 class ContinuousSendWindow;
 class SendSequenceWindow;
 class InputField;
+class KeyboardShortcutsWindow;
 class SettingsPage;
 
 class MainWindow : public QMainWindow
@@ -88,6 +89,7 @@ private:
 	ByteReceiveTimesDialog *m_byteReceiveTimesDialog;
 	QDialog *m_asciiTableDialog;
 	QDialog *m_escapeCodesDialog;
+	KeyboardShortcutsWindow *m_keyboardShortcutsWindow;
 	SettingsPage *m_settingsPage;
 };
 

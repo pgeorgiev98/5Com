@@ -12,6 +12,7 @@ SOURCES += \
     continuoussendwindow.cpp \
     exportdialog.cpp \
     inputfield.cpp \
+    keyboardshortcutswindow.cpp \
     line.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -33,6 +34,7 @@ HEADERS += \
     continuoussendwindow.h \
     exportdialog.h \
     inputfield.h \
+    keyboardshortcutswindow.h \
     line.h \
     mainwindow.h \
     hexview.h \
