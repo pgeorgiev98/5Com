@@ -309,11 +309,15 @@ MainWindow::MainWindow(QWidget *parent)
 	// Keyboard shortcuts
 	QShortcut *focusInputShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_L), this);
 	QShortcut *clearInputShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_W), m_inputField);
+	QShortcut *plainTextViewShortcut = new QShortcut(QKeySequence(Qt::ALT + Qt::Key_1), this);
+	QShortcut *hexViewShortcut = new QShortcut(QKeySequence(Qt::ALT + Qt::Key_2), this);
 	connect(focusInputShortcut, &QShortcut::activated, [this]() { m_inputField->setFocus(); });
 	connect(clearInputShortcut, &QShortcut::activated, [this]() {
 		if (m_inputField->hasFocus())
 			m_inputField->clearText();
 	});
+	connect(plainTextViewShortcut, &QShortcut::activated, [this]() { m_tabs->setCurrentIndex(0); });
+	connect(hexViewShortcut, &QShortcut::activated, [this]() { m_tabs->setCurrentIndex(1); });
 
 	m_textView->setColorSpecialCharacters(c.colorSpecialCharacters());
 	connect(m_settingsPage, &SettingsPage::settingsChanged, [this]() {
@@ -459,7 +463,9 @@ void MainWindow::showKeyboardShortcuts()
 				   "Export", "Ctrl+E",
 				   "Clear screen", "Ctrl+Shift+L",
 				   "Focus input", "Ctrl+L",
-				   "Clear input", "Ctrl+W"};
+				   "Clear input", "Ctrl+W",
+				   "Open Plain Text View", "Alt+1",
+				   "Open Hex View", "Alt+2"};
 	for (unsigned int i = 0; i < sizeof(m) / sizeof(QString); i += 2) {
 		layout->addWidget(new QLabel(m[i  ]), i / 2, 0);
 		layout->addWidget(new QLabel(m[i+1]), i / 2, 1);
