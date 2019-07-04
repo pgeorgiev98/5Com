@@ -128,6 +128,8 @@ SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 		m_sendButton->setEnabled(count > 0);
 	});
 	connect(m_timer, &QTimer::timeout, this, &SendSequenceWindow::executeNextOperation);
+	connect(m_port, &SerialPort::errorOccurred, this, &SendSequenceWindow::cancelSequence);
+	connect(m_port, &SerialPort::closed, this, &SendSequenceWindow::cancelSequence);
 }
 
 void SendSequenceWindow::onSendClicked()
