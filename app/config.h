@@ -37,6 +37,7 @@ public:
 	FIELD(bool, Bool, colorSpecialCharacters, setColorSpecialCharacters, "colorSpecialCharacters", true)
 	FIELD(bool, Bool, rememberLastUsedPort, setRememberLastUsedPort, "rememberLastUsedPort", true)
 	FIELD(QString, String, lastUsedPort, setLastUsedPort, "lastUsedPort", QString())
+	FIELD(int, Int, hexViewBytesPerLine, setHexViewBytesPerLine, "hexViewBytesPerLine", 16)
 
 	QSettings &settings() { return m_settings; }
 	QString path() const { return m_settings.fileName(); }

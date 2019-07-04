@@ -170,9 +170,10 @@ MainWindow::MainWindow(QWidget *parent)
 
 	m_hexViewBytesPerLine->setSuffix(" bytes per line");
 	m_hexViewBytesPerLine->setRange(1, 128);
-	m_hexViewBytesPerLine->setValue(16);
+	m_hexViewBytesPerLine->setValue(c.hexViewBytesPerLine());
 	m_hexViewBytesPerLine->adjustSize();
 	m_hexViewBytesPerLine->move(this->width() - m_hexViewBytesPerLine->width(), 0);
+	m_hexView->setBytesPerLine(m_hexViewBytesPerLine->value());
 
 	{
 		QGridLayout *portLayout = new QGridLayout;
@@ -325,9 +326,13 @@ MainWindow::MainWindow(QWidget *parent)
 
 	m_textView->setColorSpecialCharacters(c.colorSpecialCharacters());
 	connect(m_settingsPage, &SettingsPage::settingsChanged, [this]() {
+		Config c;
 		m_textView->clear();
-		m_textView->setColorSpecialCharacters(Config().colorSpecialCharacters());
+		m_textView->setColorSpecialCharacters(c.colorSpecialCharacters());
 		m_textView->insertData(m_receivedData);
+		int bytesPerLine = c.hexViewBytesPerLine();
+		if (bytesPerLine != m_hexViewBytesPerLine->value())
+			m_hexViewBytesPerLine->setValue(bytesPerLine);
 	});
 
 	connect(m_hexViewBytesPerLine, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged),
