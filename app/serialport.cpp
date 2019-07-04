@@ -22,6 +22,7 @@ SerialPort::SerialPort(QObject *parent)
 		}
 	});
 	connect(m_port, &QSerialPort::bytesWritten, this, &SerialPort::bytesWritten);
+	connect(m_port, &QSerialPort::readyRead, this, &SerialPort::readFromPort);
 }
 
 QString SerialPort::errorString() const
@@ -191,4 +192,11 @@ void SerialPort::writeFormattedData(const QString &data)
 		output.append(newChar);
 	}
 	writeRawData(output);
+}
+
+void SerialPort::readFromPort()
+{
+	QByteArray data = m_port->readAll();
+	if (!data.isEmpty())
+		emit dataRead(data);
 }

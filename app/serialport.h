@@ -39,6 +39,9 @@ public slots:
 	void writeRawData(const QByteArray &data);
 	void writeFormattedData(const QString &data);
 
+private slots:
+	void readFromPort();
+
 private:
 	bool m_loopback;
 	bool m_isOpen;
