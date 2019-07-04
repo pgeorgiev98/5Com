@@ -35,6 +35,7 @@ SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 {
 	m_timer->setSingleShot(true);
 	m_operationsLayout->setAlignment(Qt::AlignTop);
+	m_operationsLayout->setColumnStretch(2, 1);
 	m_sendIndefinitely->setChecked(false);
 	m_sequencesCount->setRange(1, INT_MAX);
 	m_sequencesCount->setValue(1);
@@ -213,18 +214,20 @@ void SendSequenceWindow::addOperation(SendSequenceWindow::OperationType type, in
 		m_operationsLayout->removeWidget(m_operations[i].input);
 		m_operationsLayout->removeWidget(m_operations[i].actionButton);
 		m_operationsLayout->addWidget(m_operations[i].label, i + 1, 0);
-		m_operationsLayout->addWidget(m_operations[i].input, i + 1, 1);
+		m_operationsLayout->addWidget(m_operations[i].input, i + 1, 1, 1, m_operations[i].inputSpan);
 		m_operationsLayout->addWidget(m_operations[i].actionButton, i + 1, 3);
 	}
 
 	Operation op;
 	op.type = type;
+	op.inputSpan = 1;
 	if (type == OperationType::Send) {
 		m_operationsLayout->addWidget(op.label = new QLabel("Send: "), row, 0);
 		QLineEdit *input = new QLineEdit;
-		m_operationsLayout->addWidget(input, row, 1);
+		m_operationsLayout->addWidget(input, row, 1, 1, 2);
 		input->setFocus();
 		op.input = input;
+		op.inputSpan = 2;
 	} else if (type == OperationType::Wait) {
 		m_operationsLayout->addWidget(op.label = new QLabel("Wait: "), row, 0);
 		QSpinBox *input = new QSpinBox;
@@ -285,7 +288,7 @@ void SendSequenceWindow::removeOperation(int i, bool adjustSize)
 		m_operationsLayout->removeWidget(m_operations[j + 1].input);
 		m_operationsLayout->removeWidget(m_operations[j + 1].actionButton);
 		m_operationsLayout->addWidget(m_operations[j + 1].label, j, 0);
-		m_operationsLayout->addWidget(m_operations[j + 1].input, j, 1);
+		m_operationsLayout->addWidget(m_operations[j + 1].input, j, 1, 1, m_operations[j + 1].inputSpan);
 		m_operationsLayout->addWidget(m_operations[j + 1].actionButton, j, 3);
 	}
 

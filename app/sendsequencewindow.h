@@ -39,6 +39,7 @@ private:
 	struct Operation {
 		QWidget *label, *input, *actionButton;
 		OperationType type;
+		int inputSpan;
 	};
 	QVector<Operation> m_operations;
 	SerialPort *m_port;
