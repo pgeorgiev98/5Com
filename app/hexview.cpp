@@ -247,12 +247,16 @@ void HexView::mousePressEvent(QMouseEvent *event)
 		QMenu menu(this);
 		QAction copyTextAction("Copy text");
 		QAction copyHexAction("Copy hex");
+		QAction selectAllAction("Select All");
 		menu.addAction(&copyTextAction);
 		menu.addAction(&copyHexAction);
+		menu.addSeparator();
+		menu.addAction(&selectAllAction);
 		menu.popup(event->globalPos());
 		bool copyEnabled = (selectionStart < selectionEnd);
 		copyTextAction.setEnabled(copyEnabled);
 		copyHexAction.setEnabled(copyEnabled);
+		selectAllAction.setEnabled(!m_data.isEmpty());
 		QAction *a = menu.exec();
 
 		QClipboard *clipboard = QGuiApplication::clipboard();
@@ -275,6 +279,12 @@ void HexView::mousePressEvent(QMouseEvent *event)
 			}
 			s.remove(s.size() - 1, 1);
 			clipboard->setText(s);
+		} else if (a == &selectAllAction) {
+			m_selectionStart = 0;
+			m_selectionEnd = m_data.size() - 1;
+			m_selection = Selection::Cells;
+			m_selecting = false;
+			repaint();
 		}
 		return;
 	}
