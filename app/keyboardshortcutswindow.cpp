@@ -15,7 +15,8 @@ KeyboardShortcutsWindow::KeyboardShortcutsWindow(QWidget *parent)
 				   "Focus input", "Ctrl+L",
 				   "Clear input", "Ctrl+W",
 				   "Open Plain Text View", "Alt+1",
-				   "Open Hex View", "Alt+2"};
+				   "Open Hex View", "Alt+2",
+				   "Input history search", "↑/↓"};
 	for (unsigned int i = 0; i < sizeof(m) / sizeof(QString); i += 2) {
 		layout->addWidget(new QLabel(m[i  ]), i / 2, 0);
 		layout->addWidget(new QLabel(m[i+1]), i / 2, 1);
