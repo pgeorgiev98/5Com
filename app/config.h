@@ -38,6 +38,8 @@ public:
 	FIELD(bool, Bool, rememberLastUsedPort, setRememberLastUsedPort, "rememberLastUsedPort", true)
 	FIELD(QString, String, lastUsedPort, setLastUsedPort, "lastUsedPort", QString())
 	FIELD(int, Int, hexViewBytesPerLine, setHexViewBytesPerLine, "hexViewBytesPerLine", 16)
+	FIELD(bool, Bool, saveInputHistory, setSaveInputHistory, "saveInputHistory", true)
+	FIELD(QStringList, StringList, inputHistory, setInputHistory, "inputHistory", QStringList())
 
 	QSettings &settings() { return m_settings; }
 	QString path() const { return m_settings.fileName(); }

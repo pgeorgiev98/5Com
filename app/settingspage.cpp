@@ -30,6 +30,7 @@ SettingsPage::SettingsPage(QWidget *parent)
 	, m_clearInputOnSend(new QCheckBox("Clear the input field on send"))
 	, m_colorSpecialCharacters(new QCheckBox("Color special characters in 'Plain Text View'"))
 	, m_rememberLastUsedPort(new QCheckBox("Remember last used port"))
+	, m_rememberInputHistory(new QCheckBox("Remember input history"))
 	, m_hexViewBytesPerLine(new QSpinBox)
 {
 	m_readBufferLimitKiB->setSuffix("KiB");
@@ -53,6 +54,7 @@ SettingsPage::SettingsPage(QWidget *parent)
 	layout->addWidget(m_clearInputOnSend);
 	layout->addWidget(m_colorSpecialCharacters);
 	layout->addWidget(m_rememberLastUsedPort);
+	layout->addWidget(m_rememberInputHistory);
 	layout->addLayout(labeledWidget("Number of bytes per line in HexView: ", m_hexViewBytesPerLine));
 
 	QPushButton *restoreDefaultsButton = new QPushButton("Restore defaults");
@@ -96,6 +98,7 @@ void SettingsPage::load()
 	m_clearInputOnSend->setChecked(c.clearInputOnSend());
 	m_colorSpecialCharacters->setChecked(c.colorSpecialCharacters());
 	m_rememberLastUsedPort->setChecked(c.rememberLastUsedPort());
+	m_rememberInputHistory->setChecked(c.saveInputHistory());
 	m_hexViewBytesPerLine->setValue(c.hexViewBytesPerLine());
 
 	emit settingsChanged();
@@ -112,6 +115,7 @@ void SettingsPage::save()
 	c.setClearInputOnSend(m_clearInputOnSend->isChecked());
 	c.setColorSpecialCharacters(m_colorSpecialCharacters->isChecked());
 	c.setRememberLastUsedPort(m_rememberLastUsedPort->isChecked());
+	c.setSaveInputHistory(m_rememberInputHistory->isChecked());
 	c.setHexViewBytesPerLine(m_hexViewBytesPerLine->value());
 
 	emit settingsChanged();

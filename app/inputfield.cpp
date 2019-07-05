@@ -9,6 +9,8 @@ InputField::InputField(QWidget *parent)
 	setDuplicatesEnabled(true);
 	setInsertPolicy(QComboBox::InsertAtTop);
 	setCompleter(nullptr);
+	addItems(Config().inputHistory());
+	clearEditText();
 }
 
 void InputField::onInputEntered()
@@ -32,6 +34,14 @@ void InputField::onInputEntered()
 	int historyLength = c.inputHistoryLength();
 	while (count() > historyLength)
 		removeItem(count() - 1);
+
+	// Save the history
+	if (c.saveInputHistory()) {
+		QStringList l;
+		for (int i = 0; i < count(); ++i)
+			l.append(itemText(i));
+		c.setInputHistory(l);
+	}
 
 	if (c.clearInputOnSend()) {
 		clearEditText();
