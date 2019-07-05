@@ -23,6 +23,7 @@ ContinuousSendWindow::ContinuousSendWindow(SerialPort *port, QWidget *parent)
 	, m_packetCount(new QSpinBox)
 	, m_packetsSendLabel(new QLabel)
 {
+	m_sendTimer->setSingleShot(true);
 	m_interval->setRange(0, 1000000000);
 	m_interval->setValue(200);
 	m_interval->setSuffix("ms");
@@ -88,8 +89,8 @@ void ContinuousSendWindow::startSending()
 	m_packetsSendLabel->setText("0 packets sent");
 	m_layout->setCurrentIndex(1);
 
+	m_sendTimer->setInterval(m_interval->value());
 	sendPacket();
-	m_sendTimer->start(m_interval->value());
 }
 
 void ContinuousSendWindow::stopSending()
@@ -105,4 +106,6 @@ void ContinuousSendWindow::sendPacket()
 	m_packetsSendLabel->setText(QString::number(m_packetsSent) + " packets sent");
 	if (!m_sendIndefinitely->isChecked() && m_packetsSent >= m_packetCount->value())
 		stopSending();
+	else
+		m_sendTimer->start();
 }
