@@ -71,7 +71,7 @@ void PlainTextView::insertData(const QByteArray &data)
 	for (const unsigned char c : data) {
 		if (m_lastChar == '\r')
 			if (c != '\n')
-				tmp.append('\n');
+				tmp.append("<br>");
 
 		const char *replace = nullptr;
 		if (c == '\r') replace = "&lt;CR&gt;";
