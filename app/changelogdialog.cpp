@@ -11,14 +11,14 @@ ChangelogDialog::ChangelogDialog(QWidget *parent)
 	QString changelog = changelogHtml();
 	QFont font = QFontDatabase::systemFont(QFontDatabase::SystemFont::FixedFont);
 	QFontMetrics fontMetrics(font);
-	int textWidth = int(fontMetrics.size(0, "The quick brown fox jumps over the lazy dog.").width() * 1.5);
+	int textWidth = fontMetrics.size(0, QString(" ").repeated(100)).width();
 
 	QTextBrowser *view = new QTextBrowser;
 	view->setReadOnly(true);
 	view->setHtml(changelog);
 	view->setWordWrapMode(QTextOption::WrapMode::NoWrap);
 	view->setMinimumWidth(textWidth);
-	view->setFixedHeight(parent->height());
+	view->setMinimumHeight(fontMetrics.height() * 30);
 	view->setFont(font);
 
 	QVBoxLayout *layout = new QVBoxLayout;
