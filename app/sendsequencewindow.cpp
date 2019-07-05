@@ -388,6 +388,9 @@ void SendSequenceWindow::onActionButtonClicked()
 
 void SendSequenceWindow::cancelSequence()
 {
+	if (m_currentOperation > 0 && m_currentOperation <= m_operations.count())
+		m_operationsLayout->itemAtPosition(m_currentOperation - 1, 0)->widget()->setStyleSheet("color: green");
+
 	m_timer->stop();
 	m_currentOperation = -1;
 	m_sendButton->setText("Send");
