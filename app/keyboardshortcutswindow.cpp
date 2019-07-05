@@ -9,7 +9,7 @@ KeyboardShortcutsWindow::KeyboardShortcutsWindow(QWidget *parent)
 	QGridLayout *layout = new QGridLayout;
 	layout->setHorizontalSpacing(24);
 	QString m[] = {"Exit", QKeySequence(QKeySequence::Quit).toString(),
-				   "Write file to port", QKeySequence(QKeySequence::Quit).toString(),
+				   "Write file to port", QKeySequence(QKeySequence::Open).toString(),
 				   "Export", "Ctrl+E",
 				   "Clear screen", "Ctrl+Shift+L",
 				   "Focus input", "Ctrl+L",
