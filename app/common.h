@@ -2,7 +2,7 @@
 #define COMMON_H
 
 #define APPLICATION_NAME "5Com"
-#define VERSION "0.2.0"
+#define VERSION "0.3.0"
 
 #define SOURCE_CODE_URL "https://github.com/pgeorgiev98/5Com"
 #define RELEASES_URL "https://github.com/pgeorgiev98/5Com/releases"
