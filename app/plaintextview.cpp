@@ -1,145 +1,186 @@
 #include "plaintextview.h"
-#include <QTextBrowser>
+
+#include <QPainter>
 #include <QFontDatabase>
-#include <QHBoxLayout>
-#include <QScrollBar>
-#include <QToolTip>
+#include <QFontMetrics>
+#include <QPaintEvent>
+
+static QColor backgroundColor("#ffffff");
+static QColor textColor("#000000");
+static QColor standardHexCodeColor(Qt::blue);
+static QColor nonStandardHexCodeColor(Qt::red);
+static QColor hoverTextColor("#ff0000");
+static QColor selectedColor("#0000ff");
+static QColor selectedTextColor("#000000");
 
 PlainTextView::PlainTextView(QWidget *parent)
 	: QWidget(parent)
-	, m_edit(new QTextBrowser)
-	, m_lastChar('\0')
-	, m_colorSpecialCharacters(false)
+	, m_font(QFontDatabase::systemFont(QFontDatabase::SystemFont::FixedFont))
+	, m_fm(m_font)
+	, m_rows({Row()})
 {
-	QHBoxLayout *layout = new QHBoxLayout;
-	setLayout(layout);
-	layout->addWidget(m_edit);
+	QPalette pal = palette();
+	backgroundColor = pal.base().color();
+	textColor = pal.text().color();
+	hoverTextColor = pal.link().color();
+	selectedColor = pal.highlight().color();
+	selectedTextColor = pal.highlightedText().color();
 
-	m_edit->setUndoRedoEnabled(false);
-	m_edit->setWordWrapMode(QTextOption::WrapMode::NoWrap);
-	m_edit->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
-	m_edit->setOpenLinks(false);
-	m_edit->setOpenExternalLinks(false);
-
-	m_defaultTextColor = m_edit->currentCharFormat().foreground().color();
-
-
-	connect(m_edit, &QTextBrowser::anchorClicked, [this](QUrl link) {
-		QString s = link.toString();
-		if (s.size() <= 4)
-			return;
-		s.remove(s.size() - 4, 4);
-		unsigned char c = static_cast<unsigned char>(s.toInt());
-
-		QString charInfo = "Dec: " + QString::number(int(c)).rightJustified(3, ' ') + ", "
-						   "Hex: " + QString::number(int(c), 16).rightJustified(2, '0') + ", "
-						   "Oct: " + QString::number(int(c), 8).rightJustified(3, ' ') + ", "
-						   "Bin: " + QString::number(int(c), 2).rightJustified(8, '0');
-
-		QToolTip::showText(cursor().pos(), charInfo, this);
-	});
-}
-
-void PlainTextView::setData(const QByteArray &data)
-{
-	int scrollValue = m_edit->verticalScrollBar()->value();
-	bool atBottom = scrollValue == m_edit->verticalScrollBar()->maximum();
-
-	clear();
-	insertData(data);
-
-	if (atBottom)
-		m_edit->verticalScrollBar()->setValue(m_edit->verticalScrollBar()->maximum());
-	else
-		m_edit->verticalScrollBar()->setValue(scrollValue);
-}
-
-void PlainTextView::insertData(const QByteArray &data)
-{
-	int scrollValue = m_edit->verticalScrollBar()->value();
-	bool atBottom = scrollValue == m_edit->verticalScrollBar()->maximum();
-
-	QTextCursor cursor = m_edit->textCursor();
-	cursor.movePosition(QTextCursor::End);
-	m_edit->setTextCursor(cursor);
-	QTextCharFormat tcf = m_edit->currentCharFormat();
-	tcf.setForeground(QBrush(m_defaultTextColor));
-	m_edit->setCurrentCharFormat(tcf);
-
-	QString tmp;
-	QString chStr = ".";
-	for (const unsigned char c : data) {
-		if (m_lastChar == '\r')
-			if (c != '\n')
-				tmp.append("<br>");
-
-		const char *replace = nullptr;
-		if (c == '\r') replace = "&lt;CR&gt;";
-		else if (c == '\n') replace = "&lt;LF&gt;";
-		else if (c == '\0') replace = "&lt;NUL&gt;";
-		else if (c == '\x01') replace = "&lt;SOH&gt;";
-		else if (c == '\x02') replace = "&lt;STX&gt;";
-		else if (c == '\x03') replace = "&lt;ETX&gt;";
-		else if (c == '\x04') replace = "&lt;EOT&gt;";
-		else if (c == '\x05') replace = "&lt;ENQ&gt;";
-		else if (c == '\x06') replace = "&lt;ACK&gt;";
-		else if (c == '\x07') replace = "&lt;BEL&gt;";
-		else if (c == '\x08') replace = "&lt;BS&gt;";
-		else if (c == '\x0B') replace = "&lt;VT&gt;";
-		else if (c == '\x1B') replace = "&lt;ESC&gt;";
-		else if (c == '\x7F') replace = "&lt;DEL&gt;";
-
-		if (replace || c > 0x7f || c < 0x20) {
-			if (replace) {
-				if (m_colorSpecialCharacters)
-					tmp.append("<a href=\"" + QString::number(int(c)) + ".com\" style=\"color: blue\">");
-				tmp.append(replace);
-				if (m_colorSpecialCharacters)
-					tmp.append("</a>");
-				if (c == '\n')
-					tmp.append("<br>");
-			} else if (c > 0x7f || c < 0x20) {
-				static const char hex[16] = {'0', '1', '2', '3', '4', '5',
-											 '6', '7', '8', '9', 'A', 'B',
-											 'C', 'D', 'E', 'F'};
-				if (m_colorSpecialCharacters)
-					tmp.append("<a href=\"" + QString::number(int(c)) + ".com\" style=\"color: red\">");
-				tmp.append("&lt;");
-				tmp.append(hex[(c >> 4) & 0x0f]);
-				tmp.append(hex[c & 0x0f]);
-				tmp.append("&gt;");
-				if (m_colorSpecialCharacters)
-					tmp.append("</a>");
-			}
-		} else {
-			chStr[0] = c;
-			tmp.append(chStr.toHtmlEscaped());
-		}
-
-		m_lastChar = c;
-	}
-
-	if (!tmp.isEmpty())
-		m_edit->insertHtml(tmp);
-
-	if (atBottom)
-		m_edit->verticalScrollBar()->setValue(m_edit->verticalScrollBar()->maximum());
-	else
-		m_edit->verticalScrollBar()->setValue(scrollValue);
-}
-
-void PlainTextView::clear()
-{
-	m_edit->clear();
-	m_lastChar = '\0';
-}
-
-void PlainTextView::setColorSpecialCharacters(bool colorSpecialCharaters)
-{
-	m_colorSpecialCharacters = colorSpecialCharaters;
+	pal.setColor(QPalette::Background, backgroundColor);
+	setAutoFillBackground(true);
+	setPalette(pal);
+	setMinimumWidth(80);
+	setMinimumHeight(80);
+	setMouseTracking(true);
 }
 
 QString PlainTextView::toPlainText() const
 {
-	return m_edit->toPlainText();
+	// TODO
+	return m_data;
 }
+
+
+void PlainTextView::setData(const QByteArray &data)
+{
+	clear();
+	insertData(data);
+}
+
+void PlainTextView::insertData(const QByteArray &data)
+{
+	int start = m_data.size();
+	m_data.append(data);
+
+	int lastType = m_rows.last().elements.isEmpty() ? -1 : m_rows.last().elements.last().type;
+	for (int i = start; i < m_data.size(); ++i) {
+		unsigned char b = static_cast<unsigned char>(m_data[i]);
+
+		const auto &info = byteInfos[b];
+		if (info.type != 0 || info.type != lastType) {
+			m_rows.last().elements.append({Element::Type(info.type), info.str});
+			lastType = info.type;
+		} else {
+			m_rows.last().elements.last().str.append(info.str);
+		}
+
+		if (b == '\n')
+			m_rows.append(Row());
+	}
+
+	repaint();
+}
+
+void PlainTextView::clear()
+{
+	m_data.clear();
+	m_rows.clear();
+	repaint();
+}
+
+void PlainTextView::setColorSpecialCharacters(bool colorSpecialCharacters)
+{
+	Q_UNUSED(colorSpecialCharacters)
+}
+
+
+void PlainTextView::paintEvent(QPaintEvent *event)
+{
+	QPainter painter(this);
+	painter.setFont(m_font);
+
+	const int rowHeight = m_fm.height();
+	const int padding = m_fm.averageCharWidth();
+
+	QRect rect = event->rect();
+	const int startRow = qBound(0, (rect.y() - m_fm.ascent() - padding) / rowHeight - 2, m_rows.size() - 1);
+	const int endRow = qBound(0, (rect.y() + rect.height() - m_fm.ascent() - padding) / rowHeight + 2, m_rows.size());
+
+	static QColor colors[3] = {
+		textColor,
+		standardHexCodeColor,
+		nonStandardHexCodeColor,
+	};
+
+	int y = m_fm.ascent() + padding;
+	for (int rowIndex = startRow; rowIndex < endRow; ++rowIndex) {
+		const Row &row = m_rows[rowIndex];
+		int x = padding;
+		for (const Element &element : row.elements) {
+			painter.setPen(colors[element.type]);
+			painter.drawText(x, y, element.str);
+			x += m_fm.horizontalAdvance(element.str) + 1;
+		}
+
+		y += rowHeight;
+	}
+}
+
+
+const PlainTextView::Element PlainTextView::byteInfos[256] = {
+	{1, "<NUL>"}, {1, "<SOH>"}, {1, "<STX>"}, {1, "<ETX>"},
+	{1, "<EOT>"}, {1, "<ENQ>"}, {1, "<ACK>"}, {1, "<BEL>"},
+	{1, "<BS>"}, {1, "<TAB>"}, {1, "<LF>"}, {1, "<VT>"},
+	{2, "<0C>"}, {1, "<CR>"}, {2, "<0E>"}, {2, "<0F>"},
+	{2, "<10>"}, {2, "<11>"}, {2, "<12>"}, {2, "<13>"},
+	{2, "<14>"}, {2, "<15>"}, {2, "<16>"}, {2, "<17>"},
+	{2, "<18>"}, {2, "<19>"}, {2, "<1A>"}, {1, "<ESC>"},
+	{2, "<1C>"}, {2, "<1D>"}, {2, "<1E>"}, {2, "<1F>"},
+	{0, " "}, {0, "!"}, {0, "\""}, {0, "#"},
+	{0, "$"}, {0, "%"}, {0, "&"}, {0, "'"},
+	{0, "<"}, {0, ">"}, {0, "*"}, {0, "+"},
+	{0, ","}, {0, "-"}, {0, "."}, {0, "/"},
+	{0, "0"}, {0, "1"}, {0, "2"}, {0, "3"},
+	{0, "4"}, {0, "5"}, {0, "6"}, {0, "7"},
+	{0, "8"}, {0, "9"}, {0, ":"}, {0, ";"},
+	{0, "<"}, {0, "="}, {0, ">"}, {0, "?"},
+	{0, "@"}, {0, "A"}, {0, "B"}, {0, "C"},
+	{0, "D"}, {0, "E"}, {0, "F"}, {0, "G"},
+	{0, "H"}, {0, "I"}, {0, "J"}, {0, "K"},
+	{0, "L"}, {0, "M"}, {0, "N"}, {0, "O"},
+	{0, "P"}, {0, "Q"}, {0, "R"}, {0, "S"},
+	{0, "T"}, {0, "U"}, {0, "V"}, {0, "W"},
+	{0, "X"}, {0, "Y"}, {0, "Z"}, {0, "<"},
+	{0, "\\"}, {0, ">"}, {0, "^"}, {0, "_"},
+	{0, "`"}, {0, "a"}, {0, "b"}, {0, "c"},
+	{0, "d"}, {0, "e"}, {0, "f"}, {0, "g"},
+	{0, "h"}, {0, "i"}, {0, "j"}, {0, "k"},
+	{0, "l"}, {0, "m"}, {0, "n"}, {0, "o"},
+	{0, "p"}, {0, "q"}, {0, "r"}, {0, "s"},
+	{0, "t"}, {0, "u"}, {0, "v"}, {0, "w"},
+	{0, "x"}, {0, "y"}, {0, "z"}, {0, "{"},
+	{0, "|"}, {0, "}"}, {0, "~"},
+	{1, "<DEL>"}, {2, "<80>"}, {2, "<81>"}, {2, "<82>"},
+	{2, "<83>"}, {2, "<84>"}, {2, "<85>"}, {2, "<86>"},
+	{2, "<87>"}, {2, "<88>"}, {2, "<89>"}, {2, "<8A>"},
+	{2, "<8B>"}, {2, "<8C>"}, {2, "<8D>"}, {2, "<8E>"},
+	{2, "<8F>"}, {2, "<90>"}, {2, "<91>"}, {2, "<92>"},
+	{2, "<93>"}, {2, "<94>"}, {2, "<95>"}, {2, "<96>"},
+	{2, "<97>"}, {2, "<98>"}, {2, "<99>"}, {2, "<9A>"},
+	{2, "<9B>"}, {2, "<9C>"}, {2, "<9D>"}, {2, "<9E>"},
+	{2, "<9F>"}, {2, "<A0>"}, {2, "<A1>"}, {2, "<A2>"},
+	{2, "<A3>"}, {2, "<A4>"}, {2, "<A5>"}, {2, "<A6>"},
+	{2, "<A7>"}, {2, "<A8>"}, {2, "<A9>"}, {2, "<AA>"},
+	{2, "<AB>"}, {2, "<AC>"}, {2, "<AD>"}, {2, "<AE>"},
+	{2, "<AF>"}, {2, "<B0>"}, {2, "<B1>"}, {2, "<B2>"},
+	{2, "<B3>"}, {2, "<B4>"}, {2, "<B5>"}, {2, "<B6>"},
+	{2, "<B7>"}, {2, "<B8>"}, {2, "<B9>"}, {2, "<BA>"},
+	{2, "<BB>"}, {2, "<BC>"}, {2, "<BD>"}, {2, "<BE>"},
+	{2, "<BF>"}, {2, "<C0>"}, {2, "<C1>"}, {2, "<C2>"},
+	{2, "<C3>"}, {2, "<C4>"}, {2, "<C5>"}, {2, "<C6>"},
+	{2, "<C7>"}, {2, "<C8>"}, {2, "<C9>"}, {2, "<CA>"},
+	{2, "<CB>"}, {2, "<CC>"}, {2, "<CD>"}, {2, "<CE>"},
+	{2, "<CF>"}, {2, "<D0>"}, {2, "<D1>"}, {2, "<D2>"},
+	{2, "<D3>"}, {2, "<D4>"}, {2, "<D5>"}, {2, "<D6>"},
+	{2, "<D7>"}, {2, "<D8>"}, {2, "<D9>"}, {2, "<DA>"},
+	{2, "<DB>"}, {2, "<DC>"}, {2, "<DD>"}, {2, "<DE>"},
+	{2, "<DF>"}, {2, "<E0>"}, {2, "<E1>"}, {2, "<E2>"},
+	{2, "<E3>"}, {2, "<E4>"}, {2, "<E5>"}, {2, "<E6>"},
+	{2, "<E7>"}, {2, "<E8>"}, {2, "<E9>"}, {2, "<EA>"},
+	{2, "<EB>"}, {2, "<EC>"}, {2, "<ED>"}, {2, "<EE>"},
+	{2, "<EF>"}, {2, "<F0>"}, {2, "<F1>"}, {2, "<F2>"},
+	{2, "<F3>"}, {2, "<F4>"}, {2, "<F5>"}, {2, "<F6>"},
+	{2, "<F7>"}, {2, "<F8>"}, {2, "<F9>"}, {2, "<FA>"},
+	{2, "<FB>"}, {2, "<FC>"}, {2, "<FD>"}, {2, "<FE>"},
+	{2, "<FF>"}
+};

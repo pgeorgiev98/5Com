@@ -4,8 +4,8 @@
 #include <QWidget>
 #include <QByteArray>
 #include <QString>
-
-class QTextBrowser;
+#include <QFont>
+#include <QFontMetrics>
 
 class PlainTextView : public QWidget
 {
@@ -20,11 +20,35 @@ public slots:
 	void clear();
 	void setColorSpecialCharacters(bool colorSpecialCharacters);
 
+protected:
+	void paintEvent(QPaintEvent *event) override;
+
 private:
-	QTextBrowser *m_edit;
-	unsigned char m_lastChar;
-	QColor m_defaultTextColor;
-	bool m_colorSpecialCharacters;
+	QFont m_font;
+	QFontMetrics m_fm;
+	QByteArray m_data;
+
+	struct Element
+	{
+		enum Type
+		{
+			PlainText = 0,
+			StandardHexCode = 1,
+			NonStandardHexCode = 2,
+		};
+
+		int type;
+		QString str;
+	};
+
+	static const Element byteInfos[256];
+
+	struct Row
+	{
+		QVector<Element> elements;
+	};
+
+	QVector<Row> m_rows;
 };
 
 #endif // PLAINTEXTVIEW_H
