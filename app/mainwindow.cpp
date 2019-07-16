@@ -63,6 +63,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, m_textView(new PlainTextView)
 	, m_hexView(new HexView)
 	, m_hexViewScrollArea(new QScrollArea)
+	, m_plainTextViewScrollArea(new QScrollArea)
 	, m_port(new SerialPort(this))
 	, m_continuousSendWindow(new ContinuousSendWindow(m_port, this))
 	, m_sendSequenceWindow(new SendSequenceWindow(m_port, this))
@@ -161,7 +162,11 @@ MainWindow::MainWindow(QWidget *parent)
 	central->setLayout(layout);
 	setCentralWidget(central);
 
-	m_tabs->addTab(m_textView, "Plain Text View");
+	{
+		m_plainTextViewScrollArea->setPalette(m_textView->palette());
+		m_plainTextViewScrollArea->setWidget(m_textView);
+		m_tabs->addTab(m_plainTextViewScrollArea, "Plain Text View");
+	}
 	{
 		m_hexViewScrollArea->setPalette(m_hexView->palette());
 		m_hexViewScrollArea->setWidget(m_hexView);
@@ -396,16 +401,27 @@ void MainWindow::displayData(const QByteArray &data)
 	m_receivedData.append(data);
 
 	{
-		int value = m_hexViewScrollArea->verticalScrollBar()->value();
-		bool atBottom = (value == m_hexViewScrollArea->verticalScrollBar()->maximum());
-		m_hexView->insertData(data);
+		auto scrollBar = m_plainTextViewScrollArea->verticalScrollBar();
+		int value = scrollBar->value();
+		bool atBottom = (value == scrollBar->maximum());
+		m_textView->insertData(data);
 		if (atBottom)
-			m_hexViewScrollArea->verticalScrollBar()->setValue(m_hexViewScrollArea->verticalScrollBar()->maximum());
+			scrollBar->setValue(scrollBar->maximum());
 		else
-			m_hexViewScrollArea->verticalScrollBar()->setValue(value);
+			scrollBar->setValue(value);
 	}
 
-	m_textView->insertData(data);
+	{
+		auto scrollBar = m_hexViewScrollArea->verticalScrollBar();
+		int value = scrollBar->value();
+		bool atBottom = (value == scrollBar->maximum());
+		m_hexView->insertData(data);
+		if (atBottom)
+			scrollBar->setValue(scrollBar->maximum());
+		else
+			scrollBar->setValue(value);
+	}
+
 	if (m_byteReceiveTimesDialog)
 		m_byteReceiveTimesDialog->insertData(data);
 

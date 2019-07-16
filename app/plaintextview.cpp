@@ -17,6 +17,9 @@ PlainTextView::PlainTextView(QWidget *parent)
 	: QWidget(parent)
 	, m_font(QFontDatabase::systemFont(QFontDatabase::SystemFont::FixedFont))
 	, m_fm(m_font)
+	, m_width(80)
+	, m_height(80)
+	, m_padding(m_fm.averageCharWidth())
 	, m_rows({Row()})
 {
 	QPalette pal = palette();
@@ -29,8 +32,8 @@ PlainTextView::PlainTextView(QWidget *parent)
 	pal.setColor(QPalette::Background, backgroundColor);
 	setAutoFillBackground(true);
 	setPalette(pal);
-	setMinimumWidth(80);
-	setMinimumHeight(80);
+	setMinimumWidth(m_width);
+	setMinimumHeight(m_height);
 	setMouseTracking(true);
 }
 
@@ -43,15 +46,19 @@ QString PlainTextView::toPlainText() const
 
 void PlainTextView::setData(const QByteArray &data)
 {
+	m_width = minimumWidth();
+	m_height = minimumHeight();
 	clear();
 	insertData(data);
 }
 
 void PlainTextView::insertData(const QByteArray &data)
 {
-	int start = m_data.size();
+	const int start = m_data.size();
+	const int oldRowsCount = m_rows.size();
 	m_data.append(data);
 
+	int maxX = m_width;
 	int lastType = m_rows.last().elements.isEmpty() ? -1 : m_rows.last().elements.last().type;
 	for (int i = start; i < m_data.size(); ++i) {
 		unsigned char b = static_cast<unsigned char>(m_data[i]);
@@ -68,6 +75,20 @@ void PlainTextView::insertData(const QByteArray &data)
 			m_rows.append(Row());
 	}
 
+	for (int i = oldRowsCount - 1; i < m_rows.size(); ++i) {
+		const Row &row = m_rows[i];
+		int x = 2 * m_padding;
+		for (const Element &element : row.elements)
+			x += m_fm.horizontalAdvance(element.str) + 1;
+		if (x > maxX)
+			maxX = x;
+	}
+
+	if (maxX != m_width)
+		m_width = maxX;
+
+	m_height = (m_rows.size() + 1) * m_fm.height();
+	resize(m_width, m_height);
 	repaint();
 }
 
@@ -90,11 +111,10 @@ void PlainTextView::paintEvent(QPaintEvent *event)
 	painter.setFont(m_font);
 
 	const int rowHeight = m_fm.height();
-	const int padding = m_fm.averageCharWidth();
 
 	QRect rect = event->rect();
-	const int startRow = qBound(0, (rect.y() - m_fm.ascent() - padding) / rowHeight - 2, m_rows.size() - 1);
-	const int endRow = qBound(0, (rect.y() + rect.height() - m_fm.ascent() - padding) / rowHeight + 2, m_rows.size());
+	const int startRow = qBound(0, (rect.y() - m_fm.ascent() - m_padding) / rowHeight - 2, m_rows.size() - 1);
+	const int endRow = qBound(0, (rect.y() + rect.height() - m_fm.ascent() - m_padding) / rowHeight + 2, m_rows.size());
 
 	static QColor colors[3] = {
 		textColor,
@@ -102,17 +122,15 @@ void PlainTextView::paintEvent(QPaintEvent *event)
 		nonStandardHexCodeColor,
 	};
 
-	int y = m_fm.ascent() + padding;
 	for (int rowIndex = startRow; rowIndex < endRow; ++rowIndex) {
 		const Row &row = m_rows[rowIndex];
-		int x = padding;
+		int x = m_padding;
+		int y = m_fm.ascent() + m_padding + rowIndex * rowHeight;
 		for (const Element &element : row.elements) {
 			painter.setPen(colors[element.type]);
 			painter.drawText(x, y, element.str);
 			x += m_fm.horizontalAdvance(element.str) + 1;
 		}
-
-		y += rowHeight;
 	}
 }
 

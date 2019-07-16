@@ -27,6 +27,8 @@ private:
 	QFont m_font;
 	QFontMetrics m_fm;
 	QByteArray m_data;
+	int m_width, m_height;
+	int m_padding;
 
 	struct Element
 	{

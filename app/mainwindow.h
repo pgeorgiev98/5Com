@@ -80,6 +80,7 @@ private:
 	PlainTextView *m_textView;
 	HexView *m_hexView;
 	QScrollArea *m_hexViewScrollArea;
+	QScrollArea *m_plainTextViewScrollArea;
 
 	SerialPort *m_port;
 
