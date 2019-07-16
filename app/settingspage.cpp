@@ -29,7 +29,7 @@ SettingsPage::SettingsPage(QWidget *parent)
 	, m_inputHistoryLength(new QSpinBox)
 	, m_clearInputOnSend(new QCheckBox("Clear the input field on send"))
 	, m_colorSpecialCharacters(new QCheckBox("Color special characters in 'Plain Text View'"))
-	, m_rememberLastUsedPort(new QCheckBox("Remember last used port"))
+	, m_rememberLastUsedPort(new QCheckBox("Remember last used port and its settings"))
 	, m_rememberInputHistory(new QCheckBox("Remember input history"))
 	, m_hexViewBytesPerLine(new QSpinBox)
 {
