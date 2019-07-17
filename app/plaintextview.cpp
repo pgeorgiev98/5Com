@@ -4,13 +4,15 @@
 #include <QFontDatabase>
 #include <QFontMetrics>
 #include <QPaintEvent>
+#include <QMouseEvent>
+#include <QToolTip>
 
 static QColor backgroundColor("#ffffff");
 static QColor textColor("#000000");
 static QColor standardHexCodeColor(Qt::blue);
 static QColor nonStandardHexCodeColor(Qt::red);
 static QColor hoverTextColor("#ff0000");
-static QColor selectedColor("#0000ff");
+static QColor selectionColor("#0000ff");
 static QColor selectedTextColor("#000000");
 
 PlainTextView::PlainTextView(QWidget *parent)
@@ -26,7 +28,7 @@ PlainTextView::PlainTextView(QWidget *parent)
 	backgroundColor = pal.base().color();
 	textColor = pal.text().color();
 	hoverTextColor = pal.link().color();
-	selectedColor = pal.highlight().color();
+	selectionColor = pal.highlight().color();
 	selectedTextColor = pal.highlightedText().color();
 
 	pal.setColor(QPalette::Background, backgroundColor);
@@ -108,7 +110,9 @@ void PlainTextView::setColorSpecialCharacters(bool colorSpecialCharacters)
 void PlainTextView::paintEvent(QPaintEvent *event)
 {
 	QPainter painter(this);
-	painter.setFont(m_font);
+
+	QFont underlinedFont = m_font;
+	underlinedFont.setUnderline(true);
 
 	const int rowHeight = m_fm.height();
 
@@ -126,12 +130,140 @@ void PlainTextView::paintEvent(QPaintEvent *event)
 		const Row &row = m_rows[rowIndex];
 		int x = m_padding;
 		int y = m_fm.ascent() + m_padding + rowIndex * rowHeight;
-		for (const Element &element : row.elements) {
+		for (int elementIndex = 0; elementIndex < row.elements.size(); ++elementIndex) {
+			const Element &element = row.elements[elementIndex];
+			int width = m_fm.horizontalAdvance(element.str);
+			QRect rect(x, y - m_fm.ascent(), width, rowHeight);
+
+			ElementId elId(rowIndex, elementIndex, 0);
+			if (elId.row >= m_selection.first.row && elId.row <= m_selection.second.row &&
+				(elId.row > m_selection.first.row || elId.element >= m_selection.first.element) &&
+				(elId.row < m_selection.second.row || elId.element <= m_selection.second.element)) {
+				int firstIndex = 0, secondIndex = element.str.size();
+				if (element.type == Element::Type::PlainText) {
+					firstIndex = m_selection.first.row == rowIndex && m_selection.first.element == elementIndex ? m_selection.first.index : 0;
+					secondIndex = m_selection.second.row == rowIndex && m_selection.second.element == elementIndex ? m_selection.second.index : element.str.size();
+				}
+
+				QRect selection;
+
+				selection.setX(x + m_fm.horizontalAdvance(element.str.left(firstIndex)) - 1);
+				selection.setY(y - m_fm.ascent());
+
+				selection.setWidth(m_fm.horizontalAdvance(element.str.left(secondIndex).right(secondIndex - firstIndex)) + 2);
+				selection.setHeight(rowHeight);
+
+				painter.fillRect(selection, selectionColor);
+			}
+
+			painter.setFont(rect.contains(m_mousePos) && element.type != Element::Type::PlainText ? underlinedFont : m_font);
 			painter.setPen(colors[element.type]);
 			painter.drawText(x, y, element.str);
-			x += m_fm.horizontalAdvance(element.str) + 1;
+			x += width + 1;
 		}
 	}
+}
+
+void PlainTextView::mouseMoveEvent(QMouseEvent *event)
+{
+	QPoint pos = event->pos();
+	m_mousePos = pos;
+
+	if (m_mousePressPos.has_value()) {
+		if ((m_mousePressPos.value() - pos).manhattanLength() > 3) {
+			m_selection = getSelectedElements();
+			repaint();
+		}
+	}
+}
+
+void PlainTextView::mousePressEvent(QMouseEvent *event)
+{
+	if (event->button() == Qt::LeftButton) {
+		QPoint pos = event->pos();
+		m_mousePressPos = pos;
+		m_mousePos = pos;
+		m_pressedElement = getElementAtPos(pos);
+		m_selection = std::pair<ElementId, ElementId>();
+		repaint();
+	}
+}
+
+void PlainTextView::mouseReleaseEvent(QMouseEvent *event)
+{
+	if (event->button() == Qt::LeftButton) {
+		QPoint pos = event->pos();
+		m_mousePos = pos;
+
+		auto elIdOp = getElementAtPos(pos);
+		if (elIdOp.has_value()) {
+			ElementId elId = elIdOp.value();
+			if (m_pressedElement.has_value()) {
+				const auto &el = m_pressedElement.value();
+				if (el.row == elId.row && el.element == elId.element) {
+					const Element &element = m_rows[elId.row].elements[elId.element];
+					if (element.type != Element::Type::PlainText) {
+						QToolTip::showText(cursor().pos(), element.str, this);
+					}
+				}
+			}
+		}
+
+		m_mousePressPos.reset();
+	}
+}
+
+void PlainTextView::leaveEvent(QEvent *)
+{
+	m_mousePos = QPoint();
+	repaint();
+}
+
+std::optional<PlainTextView::ElementId> PlainTextView::getElementAtPos(QPoint pos)
+{
+	int row = (pos.y() - m_padding) / m_fm.height();
+	if (row < 0 || row >= m_rows.size())
+		return std::optional<ElementId>();
+
+	const Row &r = m_rows[row];
+
+	int x = m_padding;
+	for (int e = 0; e < r.elements.size(); ++e) {
+		const Element &element = r.elements[e];
+		int width = m_fm.horizontalAdvance(element.str);
+		if (pos.x() >= x && pos.x() <= x + width) {
+			int index;
+			index = (pos.x() - x) / m_fm.averageCharWidth();
+			return ElementId(row, e, index);
+		} else if (x + width > pos.x()) {
+			break;
+		}
+		x += width + 1;
+	}
+	return std::optional<ElementId>();
+}
+
+std::pair<PlainTextView::ElementId, PlainTextView::ElementId> PlainTextView::getSelectedElements()
+{
+	ElementId begin(0, 0, 0), end(INT_MAX, INT_MAX, 0);
+
+	int beginRow = (m_mousePressPos.value().y() - m_padding) / m_fm.height();
+	begin.row = beginRow;
+
+	int endRow = (m_mousePos.y() - m_padding) / m_fm.height();
+	end.row = endRow;
+
+	if (m_pressedElement.has_value())
+		begin = m_pressedElement.value();
+
+	auto endElementOp = getElementAtPos(m_mousePos);
+	if (endElementOp.has_value())
+		end = endElementOp.value();
+
+	if (begin > end)
+		std::swap(begin, end);
+
+	return std::pair<ElementId, ElementId>(begin, end);
 }
 
 

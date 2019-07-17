@@ -7,6 +7,8 @@
 #include <QFont>
 #include <QFontMetrics>
 
+#include <optional>
+
 class PlainTextView : public QWidget
 {
 	Q_OBJECT
@@ -22,13 +24,39 @@ public slots:
 
 protected:
 	void paintEvent(QPaintEvent *event) override;
+	void mouseMoveEvent(QMouseEvent *event) override;
+	void mousePressEvent(QMouseEvent *event) override;
+	void mouseReleaseEvent(QMouseEvent *event) override;
+	void leaveEvent(QEvent *event) override;
 
 private:
-	QFont m_font;
-	QFontMetrics m_fm;
-	QByteArray m_data;
-	int m_width, m_height;
-	int m_padding;
+	struct ElementId
+	{
+		int row, element, index;
+		ElementId() : row(-1), element(-1), index(0) {}
+		ElementId(int row, int element, int index)
+			: row(row), element(element), index(index) {}
+		bool operator==(const ElementId &other) const
+		{
+			return row == other.row && element == other.element && index == other.index;
+		}
+		bool operator>(const ElementId &other) const
+		{
+			return row > other.row || (row == other.row && element > other.element) || (row == other.row && element == other.element && index > other.index);
+		}
+		bool operator<(const ElementId &other) const
+		{
+			return row < other.row || (row == other.row && element < other.element) || (row == other.row && element == other.element && index < other.index);
+		}
+		bool operator>=(const ElementId &other) const
+		{
+			return *this > other || *this == other;
+		}
+		bool operator<=(const ElementId &other) const
+		{
+			return *this < other || *this == other;
+		}
+	};
 
 	struct Element
 	{
@@ -43,14 +71,27 @@ private:
 		QString str;
 	};
 
-	static const Element byteInfos[256];
-
 	struct Row
 	{
 		QVector<Element> elements;
 	};
 
+	QFont m_font;
+	QFontMetrics m_fm;
+	QByteArray m_data;
+	int m_width, m_height;
+	int m_padding;
+	QPoint m_mousePos;
+	std::optional<QPoint> m_mousePressPos;
+	std::optional<ElementId> m_pressedElement;
+	std::pair<ElementId, ElementId> m_selection;
+
 	QVector<Row> m_rows;
+
+	static const Element byteInfos[256];
+
+	std::optional<ElementId> getElementAtPos(QPoint pos);
+	std::pair<ElementId, ElementId> getSelectedElements();
 };
 
 #endif // PLAINTEXTVIEW_H

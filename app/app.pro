@@ -5,7 +5,7 @@ TEMPLATE = app
 
 DEFINES += QT_DEPRECATED_WARNINGS
 
-CONFIG += c++11 static
+CONFIG += c++17 static
 
 SOURCES += \
     checkforupdatesdialog.cpp \
