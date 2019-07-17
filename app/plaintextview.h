@@ -67,8 +67,16 @@ private:
 			NonStandardHexCode = 2,
 		};
 
+		int rawStartIndex;
 		int type;
 		QString str;
+	};
+
+	struct ByteInfo
+	{
+		int type;
+		QString str;
+		QString name;
 	};
 
 	struct Row
@@ -88,7 +96,7 @@ private:
 
 	QVector<Row> m_rows;
 
-	static const Element byteInfos[256];
+	static const ByteInfo byteInfos[256];
 
 	std::optional<ElementId> getElementAtPos(QPoint pos);
 	std::pair<ElementId, ElementId> getSelectedElements();
