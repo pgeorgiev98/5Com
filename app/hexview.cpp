@@ -47,7 +47,7 @@ HexView::HexView(QWidget *parent)
 	selectedColor = pal.highlight().color();
 	selectedTextColor = pal.highlightedText().color();
 
-	pal.setColor(QPalette::Background, backgroundColor);
+	pal.setColor(QPalette::Window, backgroundColor);
 	setAutoFillBackground(true);
 	setPalette(pal);
 	setFixedWidth(textX(m_bytesPerLine) + m_cellPadding);

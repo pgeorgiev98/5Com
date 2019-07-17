@@ -31,7 +31,7 @@ PlainTextView::PlainTextView(QWidget *parent)
 	selectionColor = pal.highlight().color();
 	selectedTextColor = pal.highlightedText().color();
 
-	pal.setColor(QPalette::Background, backgroundColor);
+	pal.setColor(QPalette::Window, backgroundColor);
 	setAutoFillBackground(true);
 	setPalette(pal);
 	setMinimumWidth(m_width);
