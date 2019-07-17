@@ -97,7 +97,7 @@ void PlainTextView::insertData(const QByteArray &data)
 void PlainTextView::clear()
 {
 	m_data.clear();
-	m_rows.clear();
+	m_rows = {Row()};
 	repaint();
 }
 
