@@ -156,11 +156,14 @@ void PlainTextView::paintEvent(QPaintEvent *event)
 
 				QRect selection;
 
-				selection.setX(x + textWidth(m_fm, element.str.left(firstIndex)) - 1);
+				selection.setX(x + textWidth(m_fm, element.str.left(firstIndex)));
 				selection.setY(y - m_fm.ascent());
 
-				selection.setWidth(textWidth(m_fm, element.str.left(secondIndex).right(secondIndex - firstIndex)) + 2);
+				selection.setWidth(textWidth(m_fm, element.str.left(secondIndex).right(secondIndex - firstIndex)));
 				selection.setHeight(rowHeight);
+
+				if (secondIndex == element.str.size())
+					selection.setWidth(selection.width() + 1);
 
 				painter.fillRect(selection, selectionColor);
 			}
