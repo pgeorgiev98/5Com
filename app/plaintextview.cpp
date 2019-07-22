@@ -15,6 +15,15 @@ static QColor hoverTextColor("#ff0000");
 static QColor selectionColor("#0000ff");
 static QColor selectedTextColor("#000000");
 
+inline int textWidth(const QFontMetrics &fm, const QString &text)
+{
+#if QT_VERSION >= 0x050B00
+	return fm.horizontalAdvance(text);
+#else
+	return fm.width(text);
+#endif
+}
+
 PlainTextView::PlainTextView(QWidget *parent)
 	: QWidget(parent)
 	, m_font(QFontDatabase::systemFont(QFontDatabase::SystemFont::FixedFont))
@@ -81,7 +90,7 @@ void PlainTextView::insertData(const QByteArray &data)
 		const Row &row = m_rows[i];
 		int x = 2 * m_padding;
 		for (const Element &element : row.elements)
-			x += m_fm.horizontalAdvance(element.str) + 1;
+			x += textWidth(m_fm, element.str) + 1;
 		if (x > maxX)
 			maxX = x;
 	}
@@ -132,7 +141,7 @@ void PlainTextView::paintEvent(QPaintEvent *event)
 		int y = m_fm.ascent() + m_padding + rowIndex * rowHeight;
 		for (int elementIndex = 0; elementIndex < row.elements.size(); ++elementIndex) {
 			const Element &element = row.elements[elementIndex];
-			int width = m_fm.horizontalAdvance(element.str);
+			int width = textWidth(m_fm, element.str);
 			QRect rect(x, y - m_fm.ascent(), width, rowHeight);
 
 			ElementId elId(rowIndex, elementIndex, 0);
@@ -147,10 +156,10 @@ void PlainTextView::paintEvent(QPaintEvent *event)
 
 				QRect selection;
 
-				selection.setX(x + m_fm.horizontalAdvance(element.str.left(firstIndex)) - 1);
+				selection.setX(x + textWidth(m_fm, element.str.left(firstIndex)) - 1);
 				selection.setY(y - m_fm.ascent());
 
-				selection.setWidth(m_fm.horizontalAdvance(element.str.left(secondIndex).right(secondIndex - firstIndex)) + 2);
+				selection.setWidth(textWidth(m_fm, element.str.left(secondIndex).right(secondIndex - firstIndex)) + 2);
 				selection.setHeight(rowHeight);
 
 				painter.fillRect(selection, selectionColor);
@@ -238,7 +247,7 @@ std::optional<PlainTextView::ElementId> PlainTextView::getElementAtPos(QPoint po
 	int x = m_padding;
 	for (int e = 0; e < r.elements.size(); ++e) {
 		const Element &element = r.elements[e];
-		int width = m_fm.horizontalAdvance(element.str);
+		int width = textWidth(m_fm, element.str);
 		if (pos.x() >= x && pos.x() <= x + width) {
 			int index;
 			index = (pos.x() - x) / m_fm.averageCharWidth();
