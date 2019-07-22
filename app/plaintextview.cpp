@@ -204,7 +204,7 @@ void PlainTextView::mouseReleaseEvent(QMouseEvent *event)
 						int b = int(static_cast<unsigned char>(m_data[element.rawStartIndex]));
 						QString byteInfo = QString("Dec: %1, Hex: %2, Oct: %3, Bin: %4")
 								.arg(QString::number(b).rightJustified(3, ' '))
-								.arg(QString::number(b, 16).rightJustified(2, '0'))
+								.arg(QString::number(b, 16).rightJustified(2, '0').toUpper())
 								.arg(QString::number(b, 8).rightJustified(3, ' '))
 								.arg(QString::number(b, 2).rightJustified(8, '0'));
 						QString text;
