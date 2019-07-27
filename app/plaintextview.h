@@ -23,6 +23,7 @@ public slots:
 	void setColorSpecialCharacters(bool colorSpecialCharacters);
 	void copySelection();
 	void selectAll();
+	void selectNone();
 
 protected:
 	void paintEvent(QPaintEvent *event) override;

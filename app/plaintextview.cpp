@@ -171,6 +171,12 @@ void PlainTextView::selectAll()
 	repaint();
 }
 
+void PlainTextView::selectNone()
+{
+	m_selection.first = m_selection.second = ElementId();
+	repaint();
+}
+
 
 void PlainTextView::paintEvent(QPaintEvent *event)
 {
@@ -271,12 +277,15 @@ void PlainTextView::mousePressEvent(QMouseEvent *event)
 
 		QAction copyAction("&Copy formatted");
 		QAction selectAllAction("Select All");
+		QAction selectNoneAction("Select None");
 
 		menu.addAction(&copyAction);
 		menu.addAction(&selectAllAction);
+		menu.addAction(&selectNoneAction);
 
 		copyAction.setDisabled(m_selection.first == m_selection.second);
 		selectAllAction.setDisabled(m_data.isEmpty());
+		selectNoneAction.setDisabled(m_selection.first == m_selection.second);
 
 		QAction *a = menu.exec();
 
@@ -284,6 +293,8 @@ void PlainTextView::mousePressEvent(QMouseEvent *event)
 			copySelection();
 		} else if (a == &selectAllAction) {
 			selectAll();
+		} else if (a == &selectNoneAction) {
+			selectNone();
 		}
 	}
 }
