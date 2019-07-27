@@ -21,6 +21,8 @@ public slots:
 	void insertData(const QByteArray &data);
 	void clear();
 	void setColorSpecialCharacters(bool colorSpecialCharacters);
+	void copySelection();
+	void selectAll();
 
 protected:
 	void paintEvent(QPaintEvent *event) override;

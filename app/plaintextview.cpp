@@ -8,6 +8,7 @@
 #include <QMenu>
 #include <QAction>
 #include <QClipboard>
+#include <QShortcut>
 #include <QGuiApplication>
 
 static QColor backgroundColor("#ffffff");
@@ -49,6 +50,12 @@ PlainTextView::PlainTextView(QWidget *parent)
 	setMinimumWidth(m_width);
 	setMinimumHeight(m_height);
 	setMouseTracking(true);
+
+	QShortcut *copyShortcut = new QShortcut(QKeySequence::Copy, this);
+	QShortcut *selectAllShortcut = new QShortcut(QKeySequence::SelectAll, this);
+
+	connect(copyShortcut, &QShortcut::activated, this, &PlainTextView::copySelection);
+	connect(selectAllShortcut, &QShortcut::activated, this, &PlainTextView::selectAll);
 }
 
 QString PlainTextView::toPlainText() const
@@ -116,6 +123,52 @@ void PlainTextView::clear()
 void PlainTextView::setColorSpecialCharacters(bool colorSpecialCharacters)
 {
 	Q_UNUSED(colorSpecialCharacters)
+}
+
+void PlainTextView::copySelection()
+{
+	if (m_selection.first == m_selection.second)
+		return;
+
+	QString str;
+	for (int rowIndex = m_selection.first.row; rowIndex <= m_selection.second.row; ++rowIndex) {
+		const Row &row = m_rows[rowIndex];
+		int startElement = (rowIndex == m_selection.first.row ? m_selection.first.element : 0);
+		int endElement = (rowIndex == m_selection.second.row ? m_selection.second.element + 1: row.elements.size());
+		for (int elementIndex = startElement; elementIndex < endElement; ++elementIndex) {
+			const Element &element = row.elements[elementIndex];
+			int startIndex = (rowIndex == m_selection.first.row && elementIndex == m_selection.first.element ?
+								  m_selection.first.index : 0);
+			int endIndex = (rowIndex == m_selection.second.row && elementIndex == m_selection.second.element ?
+								m_selection.second.index : element.str.size());
+			if (startIndex != 0 || endIndex != element.str.size())
+				str.append(element.str.mid(startIndex, endIndex - startIndex));
+			else
+				str.append(element.str);
+		}
+		if (rowIndex < m_selection.second.row)
+			str.append('\n');
+	}
+
+	QClipboard *clipboard = QGuiApplication::clipboard();
+	clipboard->setText(str);
+
+	repaint();
+}
+
+void PlainTextView::selectAll()
+{
+	if (m_data.isEmpty())
+		return;
+
+	int row = m_rows.size() - 1;
+	int element = m_rows.last().elements.size() - 1;
+	int index = m_rows.isEmpty() || m_rows.last().elements.isEmpty() ? 0 : m_rows.last().elements.last().str.size();
+
+	m_selection.first = ElementId(0, 0, 0);
+	m_selection.second = ElementId(row, element, index);
+
+	repaint();
 }
 
 
@@ -228,35 +281,9 @@ void PlainTextView::mousePressEvent(QMouseEvent *event)
 		QAction *a = menu.exec();
 
 		if (a == &copyAction) {
-			QString str;
-			for (int rowIndex = m_selection.first.row; rowIndex <= m_selection.second.row; ++rowIndex) {
-				const Row &row = m_rows[rowIndex];
-				int startElement = (rowIndex == m_selection.first.row ? m_selection.first.element : 0);
-				int endElement = (rowIndex == m_selection.second.row ? m_selection.second.element + 1: row.elements.size());
-				for (int elementIndex = startElement; elementIndex < endElement; ++elementIndex) {
-					const Element &element = row.elements[elementIndex];
-					int startIndex = (rowIndex == m_selection.first.row && elementIndex == m_selection.first.element ?
-										  m_selection.first.index : 0);
-					int endIndex = (rowIndex == m_selection.second.row && elementIndex == m_selection.second.element ?
-										m_selection.second.index : element.str.size());
-					if (startIndex != 0 || endIndex != element.str.size())
-						str.append(element.str.mid(startIndex, endIndex - startIndex));
-					else
-						str.append(element.str);
-				}
-				if (rowIndex < m_selection.second.row)
-					str.append('\n');
-			}
-
-			QClipboard *clipboard = QGuiApplication::clipboard();
-			clipboard->setText(str);
+			copySelection();
 		} else if (a == &selectAllAction) {
-			int row = m_rows.size() - 1;
-			int element = m_rows.last().elements.size() - 1;
-			int index = m_rows.isEmpty() || m_rows.last().elements.isEmpty() ? 0 : m_rows.last().elements.last().str.size();
-
-			m_selection.first = ElementId(0, 0, 0);
-			m_selection.second = ElementId(row, element, index);
+			selectAll();
 		}
 	}
 }
