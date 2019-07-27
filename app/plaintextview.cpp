@@ -181,8 +181,24 @@ void PlainTextView::mouseMoveEvent(QMouseEvent *event)
 	QPoint pos = event->pos();
 	m_mousePos = pos;
 
-	if (m_mousePressPos.has_value() && (m_mousePressPos.value() - pos).manhattanLength() > 3)
+	auto cursorShape = Qt::CursorShape::ArrowCursor;
+
+	if (m_mousePressPos.has_value() && (m_mousePressPos.value() - pos).manhattanLength() > 3) {
 		m_selection = getSelectedElements();
+		cursorShape = Qt::CursorShape::IBeamCursor;
+	} else {
+		auto elementId = getElementAtPos(pos);
+		if (elementId.has_value()) {
+			const Row &row = m_rows[elementId->row];
+			const Element &element = row.elements[elementId->element];
+			if (element.type == Element::Type::PlainText)
+				cursorShape = Qt::CursorShape::IBeamCursor;
+			else
+				cursorShape = Qt::CursorShape::PointingHandCursor;
+		}
+	}
+
+	setCursor(cursorShape);
 
 	repaint();
 }
