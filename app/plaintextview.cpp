@@ -60,8 +60,16 @@ PlainTextView::PlainTextView(QWidget *parent)
 
 QString PlainTextView::toPlainText() const
 {
-	// TODO
-	return m_data;
+	QString text;
+	for (const auto &row : m_rows) {
+		if (row.elements.isEmpty())
+			continue;
+
+		for (const auto &el : row.elements)
+			text.append(el.str);
+		text.append('\n');
+	}
+	return text;
 }
 
 
