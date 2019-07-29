@@ -344,6 +344,7 @@ void PlainTextView::mouseReleaseEvent(QMouseEvent *event)
 void PlainTextView::leaveEvent(QEvent *)
 {
 	m_mousePos = QPoint();
+	setCursor(Qt::CursorShape::ArrowCursor);
 	repaint();
 }
 
