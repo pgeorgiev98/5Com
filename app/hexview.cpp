@@ -75,6 +75,14 @@ QString HexView::toPlainText() const
 	return s;
 }
 
+QPoint HexView::getByteCoordinates(int index) const
+{
+	QPoint p;
+	p.setX(cellX(index % 16));
+	p.setY((index / 16) * (m_cellSize + m_cellPadding) + m_cellSize - m_fontMetrics.ascent());
+	return p;
+}
+
 void HexView::clear()
 {
 	m_data.clear();
@@ -114,6 +122,15 @@ void HexView::setBytesPerLine(int bytesPerLine)
 	int widgetHeight = rows * m_cellSize + (rows + 1) * m_cellPadding;
 	if (widgetHeight != height())
 		resize(width(), widgetHeight);
+	repaint();
+}
+
+void HexView::highlight(ByteSelection selection)
+{
+	m_selection = Selection::Cells;
+	m_selectionStart = selection.begin;
+	m_selectionEnd = selection.begin + selection.count - 1;
+
 	repaint();
 }
 

@@ -72,6 +72,24 @@ QString PlainTextView::toPlainText() const
 	return text;
 }
 
+std::optional<ByteSelection> PlainTextView::selection() const
+{
+	const Element &beginEl = m_rows[m_selection.first.row]
+			.elements[m_selection.first.element];
+	const Element &endEl = m_rows[m_selection.second.row]
+			.elements[m_selection.second.element];
+
+	int beginIndex = beginEl.rawStartIndex +
+			(beginEl.type == Element::Type::PlainText ?
+				 m_selection.first.index :
+				 !!m_selection.first.index);
+	int endIndex = endEl.rawStartIndex +
+			(endEl.type == Element::Type::PlainText ?
+				 m_selection.second.index :
+				 !!m_selection.second.index);
+
+	return ByteSelection(beginIndex, endIndex - beginIndex);
+}
 
 void PlainTextView::setData(const QByteArray &data)
 {
@@ -286,14 +304,17 @@ void PlainTextView::mousePressEvent(QMouseEvent *event)
 		QAction copyAction("&Copy formatted");
 		QAction selectAllAction("Select All");
 		QAction selectNoneAction("Select None");
+		QAction highlightInHexViewAction("Highlight in Hex View");
 
 		menu.addAction(&copyAction);
 		menu.addAction(&selectAllAction);
 		menu.addAction(&selectNoneAction);
+		menu.addAction(&highlightInHexViewAction);
 
 		copyAction.setDisabled(m_selection.first == m_selection.second);
 		selectAllAction.setDisabled(m_data.isEmpty());
 		selectNoneAction.setDisabled(m_selection.first == m_selection.second);
+		highlightInHexViewAction.setDisabled(m_selection.first == m_selection.second);
 
 		QAction *a = menu.exec();
 
@@ -303,6 +324,8 @@ void PlainTextView::mousePressEvent(QMouseEvent *event)
 			selectAll();
 		} else if (a == &selectNoneAction) {
 			selectNone();
+		} else if (a == &highlightInHexViewAction) {
+			emit highlightInHexView(selection().value());
 		}
 	}
 }

@@ -7,6 +7,8 @@
 #include <QFont>
 #include <QFontMetrics>
 
+#include "byteselection.h"
+
 class HexView : public QWidget
 {
 	Q_OBJECT
@@ -14,12 +16,14 @@ public:
 	explicit HexView(QWidget *parent = nullptr);
 
 	QString toPlainText() const;
+	QPoint getByteCoordinates(int index) const;
 
 public slots:
 	void clear();
 	void setData(const QByteArray &data);
 	void insertData(const QByteArray &data);
 	void setBytesPerLine(int bytesPerLine);
+	void highlight(ByteSelection selection);
 
 protected:
 	void paintEvent(QPaintEvent *) override;

@@ -29,6 +29,7 @@ SOURCES += \
     settingspage.cpp
 
 HEADERS += \
+    byteselection.h \
     checkforupdatesdialog.h \
     config.h \
     continuoussendwindow.h \

@@ -9,12 +9,15 @@
 
 #include <optional>
 
+#include "byteselection.h"
+
 class PlainTextView : public QWidget
 {
 	Q_OBJECT
 public:
 	explicit PlainTextView(QWidget *parent = nullptr);
 	QString toPlainText() const;
+	std::optional<ByteSelection> selection() const;
 
 public slots:
 	void setData(const QByteArray &data);
@@ -24,6 +27,9 @@ public slots:
 	void copySelection();
 	void selectAll();
 	void selectNone();
+
+signals:
+	void highlightInHexView(ByteSelection selection);
 
 protected:
 	void paintEvent(QPaintEvent *event) override;
