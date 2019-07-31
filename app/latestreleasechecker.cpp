@@ -10,8 +10,6 @@
 #include <QJsonArray>
 #include <QJsonParseError>
 
-#include <QDebug>
-
 LatestReleaseChecker::LatestReleaseChecker(QObject *parent)
 	: QObject(parent)
 	, m_manager(new QNetworkAccessManager(this))

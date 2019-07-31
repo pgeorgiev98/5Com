@@ -43,8 +43,6 @@
 #include <QScrollArea>
 #include <QScrollBar>
 
-#include <QDebug>
-
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, m_totalBytesRead(0)
