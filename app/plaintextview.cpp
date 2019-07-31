@@ -155,11 +155,6 @@ void PlainTextView::clear()
 	repaint();
 }
 
-void PlainTextView::setColorSpecialCharacters(bool colorSpecialCharacters)
-{
-	Q_UNUSED(colorSpecialCharacters)
-}
-
 void PlainTextView::copySelection()
 {
 	if (!m_selection.has_value())

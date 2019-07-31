@@ -28,7 +28,6 @@ SettingsPage::SettingsPage(QWidget *parent)
 	, m_readBufferLimitKiB(new QSpinBox)
 	, m_inputHistoryLength(new QSpinBox)
 	, m_clearInputOnSend(new QCheckBox("Clear the input field on send"))
-	, m_colorSpecialCharacters(new QCheckBox("Color special characters in 'Plain Text View'"))
 	, m_rememberLastUsedPort(new QCheckBox("Remember last used port and its settings"))
 	, m_rememberInputHistory(new QCheckBox("Remember input history"))
 	, m_hexViewBytesPerLine(new QSpinBox)
@@ -52,7 +51,6 @@ SettingsPage::SettingsPage(QWidget *parent)
 	layout->addLayout(labeledWidget("Read buffer limit: ", m_readBufferLimitKiB));
 	layout->addLayout(labeledWidget("Input history length: ", m_inputHistoryLength));
 	layout->addWidget(m_clearInputOnSend);
-	layout->addWidget(m_colorSpecialCharacters);
 	layout->addWidget(m_rememberLastUsedPort);
 	layout->addWidget(m_rememberInputHistory);
 	layout->addLayout(labeledWidget("Number of bytes per line in HexView: ", m_hexViewBytesPerLine));
@@ -96,7 +94,6 @@ void SettingsPage::load()
 	m_readBufferLimitKiB->setValue(c.readBufferLimitKiB());
 	m_inputHistoryLength->setValue(c.inputHistoryLength());
 	m_clearInputOnSend->setChecked(c.clearInputOnSend());
-	m_colorSpecialCharacters->setChecked(c.colorSpecialCharacters());
 	m_rememberLastUsedPort->setChecked(c.rememberLastUsedPort());
 	m_rememberInputHistory->setChecked(c.saveInputHistory());
 	m_hexViewBytesPerLine->setValue(c.hexViewBytesPerLine());
@@ -113,7 +110,6 @@ void SettingsPage::save()
 	c.setReadBufferLimitKiB(m_readBufferLimitKiB->value());
 	c.setInputHistoryLength(m_inputHistoryLength->value());
 	c.setClearInputOnSend(m_clearInputOnSend->isChecked());
-	c.setColorSpecialCharacters(m_colorSpecialCharacters->isChecked());
 	c.setRememberLastUsedPort(m_rememberLastUsedPort->isChecked());
 	c.setSaveInputHistory(m_rememberInputHistory->isChecked());
 	c.setHexViewBytesPerLine(m_hexViewBytesPerLine->value());

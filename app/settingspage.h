@@ -26,7 +26,6 @@ private:
 	QSpinBox *m_readBufferLimitKiB;
 	QSpinBox *m_inputHistoryLength;
 	QCheckBox *m_clearInputOnSend;
-	QCheckBox *m_colorSpecialCharacters;
 	QCheckBox *m_rememberLastUsedPort;
 	QCheckBox *m_rememberInputHistory;
 	QSpinBox *m_hexViewBytesPerLine;

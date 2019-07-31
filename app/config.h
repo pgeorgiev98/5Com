@@ -34,7 +34,6 @@ public:
 	FIELD(QString, String, exportSeparator, setExportSeparator, "exportSeparator", ",")
 	FIELD(int, Int, inputHistoryLength, setInputHistoryLength, "inputHistoryLength", 10)
 	FIELD(bool, Bool, clearInputOnSend, setClearInputOnSend, "clearInputOnSend", false)
-	FIELD(bool, Bool, colorSpecialCharacters, setColorSpecialCharacters, "colorSpecialCharacters", true)
 	FIELD(bool, Bool, rememberLastUsedPort, setRememberLastUsedPort, "rememberLastUsedPort", true)
 	FIELD(QString, String, lastUsedPort, setLastUsedPort, "lastUsedPort", QString())
 	FIELD(QString, String, lastUsedPortBaudRate, setLastUsedPortBaudRate, "lastUsedPortBaudRate", "9600")

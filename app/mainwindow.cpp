@@ -332,11 +332,9 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(plainTextViewShortcut, &QShortcut::activated, [this]() { m_tabs->setCurrentIndex(0); });
 	connect(hexViewShortcut, &QShortcut::activated, [this]() { m_tabs->setCurrentIndex(1); });
 
-	m_textView->setColorSpecialCharacters(c.colorSpecialCharacters());
 	connect(m_settingsPage, &SettingsPage::settingsChanged, [this]() {
 		Config c;
 		m_textView->clear();
-		m_textView->setColorSpecialCharacters(c.colorSpecialCharacters());
 		m_textView->insertData(m_receivedData);
 		int bytesPerLine = c.hexViewBytesPerLine();
 		if (bytesPerLine != m_hexViewBytesPerLine->value())
