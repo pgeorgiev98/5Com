@@ -27,6 +27,7 @@ public slots:
 	void copySelection();
 	void selectAll();
 	void selectNone();
+	void highlight(ByteSelection selection);
 
 signals:
 	void highlightInHexView(ByteSelection selection);
@@ -100,15 +101,15 @@ private:
 	int m_padding;
 	QPoint m_mousePos;
 	std::optional<QPoint> m_mousePressPos;
-	std::optional<ElementId> m_pressedElement;
-	std::pair<ElementId, ElementId> m_selection;
+	int m_pressedByteIndex;
+	std::optional<ByteSelection> m_selection;
 
 	QVector<Row> m_rows;
 
 	static const ByteInfo byteInfos[256];
 
-	std::optional<ElementId> getElementAtPos(QPoint pos);
-	std::pair<ElementId, ElementId> getSelectedElements();
+	int getByteIndexAtPos(QPoint pos, bool selecting = false) const;
+	std::optional<ByteSelection> getSelectedBytes() const;
 };
 
 #endif // PLAINTEXTVIEW_H

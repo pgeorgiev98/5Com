@@ -17,6 +17,7 @@ public:
 
 	QString toPlainText() const;
 	QPoint getByteCoordinates(int index) const;
+	std::optional<ByteSelection> selection() const;
 
 public slots:
 	void clear();
@@ -24,6 +25,9 @@ public slots:
 	void insertData(const QByteArray &data);
 	void setBytesPerLine(int bytesPerLine);
 	void highlight(ByteSelection selection);
+
+signals:
+	void highlightInTextView(ByteSelection selection);
 
 protected:
 	void paintEvent(QPaintEvent *) override;

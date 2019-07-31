@@ -83,6 +83,16 @@ QPoint HexView::getByteCoordinates(int index) const
 	return p;
 }
 
+std::optional<ByteSelection> HexView::selection() const
+{
+	if (m_selection == Selection::None)
+		return std::optional<ByteSelection>();
+	int s = m_selectionStart, e = m_selectionEnd;
+	if (s > e)
+		qSwap(s, e);
+	return ByteSelection(s, e - s + 1);
+}
+
 void HexView::clear()
 {
 	m_data.clear();
@@ -265,18 +275,23 @@ void HexView::mousePressEvent(QMouseEvent *event)
 		QAction copyTextAction("Copy text");
 		QAction copyHexAction("Copy hex");
 		QAction selectAllAction("Select All");
+		QAction highlightInTextViewAction("Highlight in Text View");
+
 		menu.addAction(&copyTextAction);
 		menu.addAction(&copyHexAction);
 		menu.addSeparator();
 		menu.addAction(&selectAllAction);
-		menu.popup(event->globalPos());
-		bool copyEnabled = (selectionStart < selectionEnd);
-		copyTextAction.setEnabled(copyEnabled);
-		copyHexAction.setEnabled(copyEnabled);
-		selectAllAction.setEnabled(!m_data.isEmpty());
-		QAction *a = menu.exec();
+		menu.addAction(&highlightInTextViewAction);
 
-		QClipboard *clipboard = QGuiApplication::clipboard();
+		menu.popup(event->globalPos());
+
+		bool hasSelection = (selectionStart < selectionEnd);
+		copyTextAction.setEnabled(hasSelection);
+		copyHexAction.setEnabled(hasSelection);
+		selectAllAction.setEnabled(!m_data.isEmpty());
+		highlightInTextViewAction.setEnabled(hasSelection);
+
+		QAction *a = menu.exec();
 
 		if (a == &copyTextAction) {
 			QString s;
@@ -284,6 +299,7 @@ void HexView::mousePressEvent(QMouseEvent *event)
 				char b = m_data[i];
 				s.append((b >= 32 && b <= 126) ? b : '.');
 			}
+			QClipboard *clipboard = QGuiApplication::clipboard();
 			clipboard->setText(s);
 		} else if (a == &copyHexAction) {
 			QString cell = "00 ";
@@ -295,6 +311,7 @@ void HexView::mousePressEvent(QMouseEvent *event)
 				s.append(cell);
 			}
 			s.remove(s.size() - 1, 1);
+			QClipboard *clipboard = QGuiApplication::clipboard();
 			clipboard->setText(s);
 		} else if (a == &selectAllAction) {
 			m_selectionStart = 0;
@@ -302,6 +319,8 @@ void HexView::mousePressEvent(QMouseEvent *event)
 			m_selection = Selection::Cells;
 			m_selecting = false;
 			repaint();
+		} else if (a == &highlightInTextViewAction) {
+			emit highlightInTextView(ByteSelection(m_selectionStart, m_selectionEnd - m_selectionStart + 1));
 		}
 		return;
 	}

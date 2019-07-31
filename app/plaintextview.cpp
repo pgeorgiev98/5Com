@@ -74,21 +74,7 @@ QString PlainTextView::toPlainText() const
 
 std::optional<ByteSelection> PlainTextView::selection() const
 {
-	const Element &beginEl = m_rows[m_selection.first.row]
-			.elements[m_selection.first.element];
-	const Element &endEl = m_rows[m_selection.second.row]
-			.elements[m_selection.second.element];
-
-	int beginIndex = beginEl.rawStartIndex +
-			(beginEl.type == Element::Type::PlainText ?
-				 m_selection.first.index :
-				 !!m_selection.first.index);
-	int endIndex = endEl.rawStartIndex +
-			(endEl.type == Element::Type::PlainText ?
-				 m_selection.second.index :
-				 !!m_selection.second.index);
-
-	return ByteSelection(beginIndex, endIndex - beginIndex);
+	return m_selection;
 }
 
 void PlainTextView::setData(const QByteArray &data)
@@ -153,53 +139,39 @@ void PlainTextView::setColorSpecialCharacters(bool colorSpecialCharacters)
 
 void PlainTextView::copySelection()
 {
-	if (m_selection.first == m_selection.second)
+	if (!m_selection.has_value())
 		return;
 
-	QString str;
-	for (int rowIndex = m_selection.first.row; rowIndex <= m_selection.second.row; ++rowIndex) {
-		const Row &row = m_rows[rowIndex];
-		int startElement = (rowIndex == m_selection.first.row ? m_selection.first.element : 0);
-		int endElement = (rowIndex == m_selection.second.row ? m_selection.second.element + 1: row.elements.size());
-		for (int elementIndex = startElement; elementIndex < endElement; ++elementIndex) {
-			const Element &element = row.elements[elementIndex];
-			int startIndex = (rowIndex == m_selection.first.row && elementIndex == m_selection.first.element ?
-								  m_selection.first.index : 0);
-			int endIndex = (rowIndex == m_selection.second.row && elementIndex == m_selection.second.element ?
-								m_selection.second.index : element.str.size());
-			if (startIndex != 0 || endIndex != element.str.size())
-				str.append(element.str.mid(startIndex, endIndex - startIndex));
-			else
-				str.append(element.str);
-		}
-		if (rowIndex < m_selection.second.row)
-			str.append('\n');
+	QString text;
+	for (int i = m_selection->begin; i < m_selection->begin + m_selection->count; ++i) {
+		unsigned char b = static_cast<unsigned char>(m_data[i]);
+		text.append(byteInfos[b].str);
+		if (b == '\n')
+			text.append('\n');
 	}
-
 	QClipboard *clipboard = QGuiApplication::clipboard();
-	clipboard->setText(str);
-
-	repaint();
+	clipboard->setText(text);
 }
 
 void PlainTextView::selectAll()
 {
 	if (m_data.isEmpty())
-		return;
-
-	int row = m_rows.size() - 1;
-	int element = m_rows.last().elements.size() - 1;
-	int index = m_rows.isEmpty() || m_rows.last().elements.isEmpty() ? 0 : m_rows.last().elements.last().str.size();
-
-	m_selection.first = ElementId(0, 0, 0);
-	m_selection.second = ElementId(row, element, index);
+		m_selection.reset();
+	else
+		m_selection = ByteSelection(0, m_data.size());
 
 	repaint();
 }
 
 void PlainTextView::selectNone()
 {
-	m_selection.first = m_selection.second = ElementId();
+	m_selection.reset();
+	repaint();
+}
+
+void PlainTextView::highlight(ByteSelection selection)
+{
+	m_selection = selection;
 	repaint();
 }
 
@@ -223,6 +195,8 @@ void PlainTextView::paintEvent(QPaintEvent *event)
 		nonStandardHexCodeColor,
 	};
 
+	ByteSelection selection = m_selection.value_or(ByteSelection(0, 0));
+
 	for (int rowIndex = startRow; rowIndex < endRow; ++rowIndex) {
 		const Row &row = m_rows[rowIndex];
 		qreal x = m_padding;
@@ -232,22 +206,23 @@ void PlainTextView::paintEvent(QPaintEvent *event)
 			qreal width = textWidth(m_fm, element.str);
 			QRectF rect(x, y - m_fm.ascent(), width, rowHeight);
 
-			ElementId elId(rowIndex, elementIndex, 0);
-			if (elId.row >= m_selection.first.row && elId.row <= m_selection.second.row &&
-				(elId.row > m_selection.first.row || elId.element >= m_selection.first.element) &&
-				(elId.row < m_selection.second.row || elId.element <= m_selection.second.element)) {
-				int firstIndex = m_selection.first.row == rowIndex && m_selection.first.element == elementIndex ? m_selection.first.index : 0;
-				int secondIndex = m_selection.second.row == rowIndex && m_selection.second.element == elementIndex ? m_selection.second.index : element.str.size();
+			int elementBytesCount = element.type == Element::PlainText ? element.str.size() : 1;
+			if (element.rawStartIndex < selection.begin + selection.count &&
+					element.rawStartIndex + elementBytesCount > selection.begin) {
+				int firstIndex = qMax(0, selection.begin - element.rawStartIndex);
+				int selectionLength = element.type == Element::Type::PlainText ?
+							qMin(selection.begin + selection.count - element.rawStartIndex - firstIndex, element.str.size() - firstIndex) :
+							element.str.size();
 
 				QRectF selection;
 
 				selection.setX(x + textWidth(m_fm, element.str.left(firstIndex)));
 				selection.setY(y - m_fm.ascent());
 
-				selection.setWidth(textWidth(m_fm, element.str.left(secondIndex).right(secondIndex - firstIndex)));
+				selection.setWidth(textWidth(m_fm, element.str.mid(firstIndex, selectionLength)));
 				selection.setHeight(rowHeight);
 
-				if (secondIndex == element.str.size())
+				if (firstIndex + selectionLength == element.str.size())
 					selection.setWidth(selection.width() + 1);
 
 				painter.fillRect(selection, selectionColor);
@@ -269,14 +244,13 @@ void PlainTextView::mouseMoveEvent(QMouseEvent *event)
 	auto cursorShape = Qt::CursorShape::ArrowCursor;
 
 	if (m_mousePressPos.has_value() && (m_mousePressPos.value() - pos).manhattanLength() > 3) {
-		m_selection = getSelectedElements();
+		m_selection = getSelectedBytes();
 		cursorShape = Qt::CursorShape::IBeamCursor;
 	} else {
-		auto elementId = getElementAtPos(pos);
-		if (elementId.has_value()) {
-			const Row &row = m_rows[elementId->row];
-			const Element &element = row.elements[elementId->element];
-			if (element.type == Element::Type::PlainText)
+		int byteIndex = getByteIndexAtPos(pos);
+		if (byteIndex != -1) {
+			unsigned char byte = static_cast<unsigned char>(m_data[byteIndex]);
+			if (byteInfos[byte].type == Element::Type::PlainText)
 				cursorShape = Qt::CursorShape::IBeamCursor;
 			else
 				cursorShape = Qt::CursorShape::PointingHandCursor;
@@ -294,8 +268,8 @@ void PlainTextView::mousePressEvent(QMouseEvent *event)
 		QPoint pos = event->pos();
 		m_mousePressPos = pos;
 		m_mousePos = pos;
-		m_pressedElement = getElementAtPos(pos);
-		m_selection = std::pair<ElementId, ElementId>();
+		m_pressedByteIndex = getByteIndexAtPos(pos);
+		m_selection.reset();
 		repaint();
 	} else if (event->button() == Qt::RightButton) {
 		QMenu menu(this);
@@ -311,10 +285,10 @@ void PlainTextView::mousePressEvent(QMouseEvent *event)
 		menu.addAction(&selectNoneAction);
 		menu.addAction(&highlightInHexViewAction);
 
-		copyAction.setDisabled(m_selection.first == m_selection.second);
+		copyAction.setEnabled(m_selection.has_value());
 		selectAllAction.setDisabled(m_data.isEmpty());
-		selectNoneAction.setDisabled(m_selection.first == m_selection.second);
-		highlightInHexViewAction.setDisabled(m_selection.first == m_selection.second);
+		selectNoneAction.setEnabled(m_selection.has_value());
+		highlightInHexViewAction.setEnabled(m_selection.has_value());
 
 		QAction *a = menu.exec();
 
@@ -336,28 +310,19 @@ void PlainTextView::mouseReleaseEvent(QMouseEvent *event)
 		QPoint pos = event->pos();
 		m_mousePos = pos;
 
-		auto elIdOp = getElementAtPos(pos);
-		if (elIdOp.has_value()) {
-			ElementId elId = elIdOp.value();
-			if (m_pressedElement.has_value()) {
-				const auto &el = m_pressedElement.value();
-				if (el.row == elId.row && el.element == elId.element) {
-					const Element &element = m_rows[elId.row].elements[elId.element];
-					if (element.type != Element::Type::PlainText) {
-						int b = int(static_cast<unsigned char>(m_data[element.rawStartIndex]));
-						QString byteInfo = QString("Dec: %1, Hex: %2, Oct: %3, Bin: %4")
-								.arg(QString::number(b).rightJustified(3, ' '))
-								.arg(QString::number(b, 16).rightJustified(2, '0').toUpper())
-								.arg(QString::number(b, 8).rightJustified(3, ' '))
-								.arg(QString::number(b, 2).rightJustified(8, '0'));
-						QString text;
-						if (!byteInfos[b].name.isEmpty())
-							text = QString("%1 - %2\n\n").arg(byteInfos[b].str).arg(byteInfos[b].name);
-						text += byteInfo;
-						QToolTip::showText(cursor().pos(), text, this);
-					}
-				}
-			}
+		int byteIndex = getByteIndexAtPos(pos);
+		if (byteIndex != -1 && byteIndex == m_pressedByteIndex) {
+			int b = int(static_cast<unsigned char>(m_data[byteIndex]));
+			QString byteInfo = QString("Dec: %1, Hex: %2, Oct: %3, Bin: %4")
+					.arg(QString::number(b).rightJustified(3, ' '))
+					.arg(QString::number(b, 16).rightJustified(2, '0').toUpper())
+					.arg(QString::number(b, 8).rightJustified(3, ' '))
+					.arg(QString::number(b, 2).rightJustified(8, '0'));
+			QString text;
+			if (!byteInfos[b].name.isEmpty())
+				text = QString("%1 - %2\n\n").arg(byteInfos[b].str).arg(byteInfos[b].name);
+			text += byteInfo;
+			QToolTip::showText(cursor().pos(), text, this);
 		}
 
 		m_mousePressPos.reset();
@@ -371,66 +336,85 @@ void PlainTextView::leaveEvent(QEvent *)
 	repaint();
 }
 
-std::optional<PlainTextView::ElementId> PlainTextView::getElementAtPos(QPoint pos)
+int PlainTextView::getByteIndexAtPos(QPoint pos, bool selecting) const
 {
 	int row = int((pos.y() - m_padding) / m_fm.height());
-	if (row < 0 || row >= m_rows.size())
-		return std::optional<ElementId>();
+	if (selecting) {
+		if (row < 0)
+			return 0;
+		else if (row >= m_rows.size())
+			return m_data.size();
+	} else if (row < 0 || row >= m_rows.size()) {
+		return -1;
+	}
 
 	const Row &r = m_rows[row];
 
 	qreal x = m_padding;
 	for (int e = 0; e < r.elements.size(); ++e) {
 		const Element &element = r.elements[e];
-		qreal width = textWidth(m_fm, element.str);
-		if (pos.x() >= x && pos.x() <= x + width) {
+		qreal width = textWidth(m_fm, element.str) + 1.0;
+		if (pos.x() < x) {
+			return element.rawStartIndex;
+		} else if (pos.x() >= x && pos.x() <= x + width) {
 			int index;
-			index = qRound((pos.x() - x) / m_fm.averageCharWidth());
-			return ElementId(row, e, index);
+			if (element.type != Element::Type::PlainText) {
+				if (selecting)
+					index = qRound((pos.x() - x) / textWidth(m_fm, element.str));
+				else
+					return element.rawStartIndex;
+			} else {
+				index = qRound((pos.x() - x) / m_fm.averageCharWidth());
+			}
+			return element.rawStartIndex + index;
 		} else if (x + width > pos.x()) {
 			break;
 		}
-		x += width + 1;
+		x += width;
 	}
-	return std::optional<ElementId>();
+
+	if (selecting) {
+		if (r.elements.isEmpty()) {
+			if (row == 0)
+				return 0;
+			else {
+				const Element &element = m_rows[row - 1].elements.last();
+				int len = element.type == Element::Type::PlainText ?
+							element.str.size() : 1;
+				return element.rawStartIndex + len;
+			}
+		} else {
+			const Element &element = r.elements.last();
+			int len = element.type == Element::Type::PlainText ?
+						element.str.size() : 1;
+			return element.rawStartIndex + len;
+		}
+	} else {
+		return -1;
+	}
 }
 
 
-std::pair<PlainTextView::ElementId, PlainTextView::ElementId> PlainTextView::getSelectedElements()
+std::optional<ByteSelection> PlainTextView::getSelectedBytes() const
 {
-	ElementId begin(0, 0, 0);
-	ElementId end(m_rows.size() - 1,
-				  m_rows.last().elements.size() - 1,
-				  m_rows.last().elements.isEmpty() ? 0 : m_rows.last().elements.last().str.size());
+	int begin = 0;
+	int end = m_data.size();
 
-	int beginRow = qBound(0, int((m_mousePressPos.value().y() - m_padding) / m_fm.height()), m_rows.size() - 1);
-	begin.row = beginRow;
+	if (m_pressedByteIndex != -1)
+		begin = m_pressedByteIndex;
 
-	int endRow = qBound(0, int((m_mousePos.y() - m_padding) / m_fm.height()), m_rows.size() - 1);
-	end.row = endRow;
+	end = getByteIndexAtPos(m_mousePos, true);
 
-	if (m_pressedElement.has_value())
-		begin = m_pressedElement.value();
-
-	auto endElementOp = getElementAtPos(m_mousePos);
-	if (endElementOp.has_value())
-		end = endElementOp.value();
+	if (end == -1)
+		return std::optional<ByteSelection>();
 
 	if (begin > end)
 		std::swap(begin, end);
 
-	const Row &br = m_rows[begin.row];
-	const Row &er = m_rows[end.row];
+	if (begin == end)
+		return std::optional<ByteSelection>();
 
-	if (begin.element != -1 &&
-			br.elements[begin.element].type != Element::Type::PlainText)
-		begin.index = 0;
-
-	if (end.element != -1 &&
-			er.elements[end.element].type != Element::Type::PlainText)
-		end.index = er.elements[end.element].str.size();
-
-	return std::pair<ElementId, ElementId>(begin, end);
+	return ByteSelection(begin, end - begin);
 }
 
 

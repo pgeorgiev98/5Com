@@ -359,8 +359,19 @@ MainWindow::MainWindow(QWidget *parent)
 		m_hexView->highlight(selection);
 	});
 
+	connect(m_hexView, &HexView::highlightInTextView, [this](ByteSelection selection) {
+		m_tabs->setCurrentIndex(0);
+		// TODO: Adjust scroll area to make selection visble
+		m_textView->highlight(selection);
+	});
+
 	connect(m_tabs, &QTabWidget::currentChanged, [this](int tab) {
 		if (tab == 0) {
+			auto selection = m_hexView->selection();
+			if (selection.has_value()) {
+				// TODO: Adjust scroll area to make selection visble
+				m_textView->highlight(selection.value());
+			}
 		} else if (tab == 1) {
 			auto selection = m_textView->selection();
 			if (selection.has_value()) {
