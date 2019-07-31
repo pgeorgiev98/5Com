@@ -375,6 +375,8 @@ MainWindow::MainWindow(QWidget *parent)
 				m_plainTextViewScrollArea->verticalScrollBar()->setValue(p.y());
 				m_plainTextViewScrollArea->horizontalScrollBar()->setValue(p.x());
 				m_textView->highlight(selection.value());
+			} else {
+				m_textView->selectNone();
 			}
 		} else if (tab == 1) {
 			auto selection = m_textView->selection();
@@ -382,6 +384,8 @@ MainWindow::MainWindow(QWidget *parent)
 				QPoint p = m_hexView->getByteCoordinates(selection->begin);
 				m_hexViewScrollArea->verticalScrollBar()->setValue(p.y());
 				m_hexView->highlight(selection.value());
+			} else {
+				m_hexView->selectNone();
 			}
 		}
 	});

@@ -144,6 +144,16 @@ void HexView::highlight(ByteSelection selection)
 	repaint();
 }
 
+void HexView::selectNone()
+{
+	m_selectionStart = 0;
+	m_selectionEnd = 0;
+	m_selection = Selection::None;
+	m_selecting = false;
+
+	repaint();
+}
+
 void HexView::paintEvent(QPaintEvent *event)
 {
 	QPainter painter(this);
@@ -275,12 +285,15 @@ void HexView::mousePressEvent(QMouseEvent *event)
 		QAction copyTextAction("Copy text");
 		QAction copyHexAction("Copy hex");
 		QAction selectAllAction("Select All");
+		QAction selectNoneAction("Select None");
 		QAction highlightInTextViewAction("Highlight in Text View");
 
 		menu.addAction(&copyTextAction);
 		menu.addAction(&copyHexAction);
 		menu.addSeparator();
 		menu.addAction(&selectAllAction);
+		menu.addAction(&selectNoneAction);
+		menu.addSeparator();
 		menu.addAction(&highlightInTextViewAction);
 
 		menu.popup(event->globalPos());
@@ -289,6 +302,7 @@ void HexView::mousePressEvent(QMouseEvent *event)
 		copyTextAction.setEnabled(hasSelection);
 		copyHexAction.setEnabled(hasSelection);
 		selectAllAction.setEnabled(!m_data.isEmpty());
+		selectNoneAction.setEnabled(hasSelection);
 		highlightInTextViewAction.setEnabled(hasSelection);
 
 		QAction *a = menu.exec();
@@ -319,6 +333,8 @@ void HexView::mousePressEvent(QMouseEvent *event)
 			m_selection = Selection::Cells;
 			m_selecting = false;
 			repaint();
+		} else if (a == &selectNoneAction) {
+			selectNone();
 		} else if (a == &highlightInTextViewAction) {
 			emit highlightInTextView(ByteSelection(m_selectionStart, m_selectionEnd - m_selectionStart + 1));
 		}

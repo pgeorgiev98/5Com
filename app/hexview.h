@@ -25,6 +25,7 @@ public slots:
 	void insertData(const QByteArray &data);
 	void setBytesPerLine(int bytesPerLine);
 	void highlight(ByteSelection selection);
+	void selectNone();
 
 signals:
 	void highlightInTextView(ByteSelection selection);
