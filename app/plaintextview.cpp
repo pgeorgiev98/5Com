@@ -72,6 +72,29 @@ QString PlainTextView::toPlainText() const
 	return text;
 }
 
+QPoint PlainTextView::getByteCoordinates(int index) const
+{
+	const int rowHeight = qRound(m_fm.height());
+	qreal x = m_padding;
+	int y = int(m_padding);
+
+	for (const Row &r : m_rows) {
+		for (const Element &el : r.elements) {
+			int elementByteCount =
+					el.type == Element::PlainText ? el.str.size() : 1;
+			if (index >= el.rawStartIndex &&
+					index < el.rawStartIndex + elementByteCount)
+				return QPoint(int(x + m_fm.averageCharWidth() * (index - el.rawStartIndex)), y);
+
+			x += textWidth(m_fm, el.str) + 1;
+		}
+		x = m_padding;
+		y += rowHeight;
+	}
+
+	return QPoint(0, 0);
+}
+
 std::optional<ByteSelection> PlainTextView::selection() const
 {
 	return m_selection;

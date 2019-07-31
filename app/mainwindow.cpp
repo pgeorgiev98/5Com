@@ -361,7 +361,9 @@ MainWindow::MainWindow(QWidget *parent)
 
 	connect(m_hexView, &HexView::highlightInTextView, [this](ByteSelection selection) {
 		m_tabs->setCurrentIndex(0);
-		// TODO: Adjust scroll area to make selection visble
+		QPoint p = m_textView->getByteCoordinates(selection.begin);
+		m_plainTextViewScrollArea->verticalScrollBar()->setValue(p.y());
+		m_plainTextViewScrollArea->horizontalScrollBar()->setValue(p.x());
 		m_textView->highlight(selection);
 	});
 
@@ -369,7 +371,9 @@ MainWindow::MainWindow(QWidget *parent)
 		if (tab == 0) {
 			auto selection = m_hexView->selection();
 			if (selection.has_value()) {
-				// TODO: Adjust scroll area to make selection visble
+				QPoint p = m_textView->getByteCoordinates(selection->begin);
+				m_plainTextViewScrollArea->verticalScrollBar()->setValue(p.y());
+				m_plainTextViewScrollArea->horizontalScrollBar()->setValue(p.x());
 				m_textView->highlight(selection.value());
 			}
 		} else if (tab == 1) {

@@ -17,6 +17,7 @@ class PlainTextView : public QWidget
 public:
 	explicit PlainTextView(QWidget *parent = nullptr);
 	QString toPlainText() const;
+	QPoint getByteCoordinates(int index) const;
 	std::optional<ByteSelection> selection() const;
 
 public slots:
