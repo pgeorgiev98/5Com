@@ -41,5 +41,6 @@ An open-source serial port access application for Linux and Windows written in C
 
 After compiling you can install it by running
 
+	cd app
 	sudo make install
 
