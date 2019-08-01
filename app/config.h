@@ -46,7 +46,7 @@ public:
 
 	QSettings &settings() { return m_settings; }
 	QString path() const { return m_settings.fileName(); }
-	void clear() { m_settings.clear(); };
+	void clear() { m_settings.clear(); }
 private:
 	QSettings m_settings;
 };
