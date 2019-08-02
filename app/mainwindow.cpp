@@ -175,7 +175,9 @@ MainWindow::MainWindow(QWidget *parent)
 	m_hexViewBytesPerLine->setRange(1, 128);
 	m_hexViewBytesPerLine->setValue(c.hexViewBytesPerLine());
 	m_hexViewBytesPerLine->adjustSize();
-	m_hexViewBytesPerLine->move(this->width() - m_hexViewBytesPerLine->width(), 0);
+	QTimer::singleShot(0, [this]() {
+		m_hexViewBytesPerLine->move(m_tabs->width() - m_hexViewBytesPerLine->width(), 0);
+	});
 	m_hexView->setBytesPerLine(m_hexViewBytesPerLine->value());
 
 	{
