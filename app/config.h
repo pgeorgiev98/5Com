@@ -4,6 +4,7 @@
 #include <QVariant>
 #include <QSettings>
 #include <QStringList>
+#include <QSize>
 
 #ifdef Q_OS_WIN
 #define BUILDING_FOR_WINDOWS true
@@ -47,6 +48,8 @@ public:
 	FIELD(bool, Bool, useSystemFixedFont, setUseSystemFixedFont, "useSystemFixedFont", !BUILDING_FOR_WINDOWS)
 	FIELD(QString, String, fixedFontName, setFixedFontName, "fixedFontName", QString())
 	FIELD(int, Int, fixedFontSize, setFixedFontSize, "fixedFontSize", -1)
+	FIELD(QSize, Size, mainWindowSize, setMainWindowSize, "mainWindowSize", QSize(640, 480))
+	FIELD(bool, Bool, saveMainWindowSize, setSaveMainWindowSize, "saveMainWindowSize", true)
 
 	QSettings &settings() { return m_settings; }
 	QString path() const { return m_settings.fileName(); }

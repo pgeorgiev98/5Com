@@ -73,7 +73,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, m_settingsPage(new SettingsPage(this))
 {
 	Config c;
-	setMinimumSize(640, 480);
+	resize(c.mainWindowSize());
 	setWindowIcon(QIcon(":/icon.ico"));
 
 	bool checkForUpdates = c.checkForUpdatesOnStartup();
@@ -341,6 +341,10 @@ MainWindow::MainWindow(QWidget *parent)
 		int bytesPerLine = c.hexViewBytesPerLine();
 		if (bytesPerLine != m_hexViewBytesPerLine->value())
 			m_hexViewBytesPerLine->setValue(bytesPerLine);
+		if (!c.saveMainWindowSize()) {
+			QSize size = c.mainWindowSize();
+			resize(size);
+		}
 		QFont font = getFixedFont();
 		m_textView->setFont(font);
 		m_hexView->setFont(font);
@@ -856,4 +860,11 @@ void MainWindow::trimData()
 void MainWindow::resizeEvent(QResizeEvent *)
 {
 	m_hexViewBytesPerLine->move(m_tabs->width() - m_hexViewBytesPerLine->width(), 0);
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+	Config c;
+	if (c.saveMainWindowSize())
+		c.setMainWindowSize(size());
 }

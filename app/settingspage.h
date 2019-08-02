@@ -31,6 +31,9 @@ private:
 	QCheckBox *m_rememberLastUsedPort;
 	QCheckBox *m_rememberInputHistory;
 	QSpinBox *m_hexViewBytesPerLine;
+	QCheckBox *m_saveMainWindowSize;
+	QSpinBox *m_mainWindowWidth;
+	QSpinBox *m_mainWindowHeight;
 	QRadioButton *m_useBuiltInFixedFont;
 	QRadioButton *m_useSystemFixedFont;
 	QRadioButton *m_useOtherFixedFont;

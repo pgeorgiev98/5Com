@@ -56,7 +56,8 @@ public slots:
 	void trimData();
 
 protected:
-	void resizeEvent(QResizeEvent *);
+	void resizeEvent(QResizeEvent *) override;
+	void closeEvent(QCloseEvent *event) override;
 
 private:
 	qint64 m_totalBytesRead;

@@ -36,6 +36,9 @@ SettingsPage::SettingsPage(QWidget *parent)
 	, m_rememberLastUsedPort(new QCheckBox("Remember last used port and its settings"))
 	, m_rememberInputHistory(new QCheckBox("Remember input history"))
 	, m_hexViewBytesPerLine(new QSpinBox)
+	, m_saveMainWindowSize(new QCheckBox("Remember the main window size"))
+	, m_mainWindowWidth(new QSpinBox)
+	, m_mainWindowHeight(new QSpinBox)
 	, m_useBuiltInFixedFont(new QRadioButton("Use built in fixed font (DejaVu Sans Mono)"))
 	, m_useSystemFixedFont(new QRadioButton("Use the system fixed font"))
 	, m_useOtherFixedFont(new QRadioButton("Specify fixed font to use"))
@@ -47,9 +50,24 @@ SettingsPage::SettingsPage(QWidget *parent)
 	m_readBufferLimitKiB->setRange(1, std::numeric_limits<int>::max());
 	m_inputHistoryLength->setRange(1, 10000);
 	m_hexViewBytesPerLine->setRange(1, 128);
+	m_mainWindowWidth->setRange(0, 20000);
+	m_mainWindowWidth->setButtonSymbols(QSpinBox::ButtonSymbols::NoButtons);
+	m_mainWindowHeight->setRange(0, 20000);
+	m_mainWindowHeight->setButtonSymbols(QSpinBox::ButtonSymbols::NoButtons);
 	m_fixedFontName->setPlaceholderText("Not specified");
 	m_fixedFontName->setReadOnly(true);
 	m_fixedFontSize->setRange(1, 200);
+
+	QWidget *mainWindowSizeWidget = new QWidget;
+	{
+		QHBoxLayout *layout = new QHBoxLayout;
+		mainWindowSizeWidget->setLayout(layout);
+		layout->addWidget(new QLabel("Main window size: "));
+		layout->addWidget(m_mainWindowWidth);
+		layout->addWidget(new QLabel("x"));
+		layout->addWidget(m_mainWindowHeight);
+		layout->addStretch(1);
+	}
 
 	QVBoxLayout *layout = new QVBoxLayout;
 	setLayout(layout);
@@ -68,6 +86,8 @@ SettingsPage::SettingsPage(QWidget *parent)
 	layout->addWidget(m_rememberLastUsedPort);
 	layout->addWidget(m_rememberInputHistory);
 	layout->addLayout(labeledWidget("Number of bytes per line in HexView: ", m_hexViewBytesPerLine));
+	layout->addWidget(m_saveMainWindowSize);
+	layout->addWidget(mainWindowSizeWidget);
 	layout->addWidget(m_useBuiltInFixedFont);
 
 	{
@@ -136,6 +156,9 @@ SettingsPage::SettingsPage(QWidget *parent)
 			m_fixedFontName->setText(QString());
 	});
 
+	connect(m_saveMainWindowSize, &QCheckBox::stateChanged, mainWindowSizeWidget, &QWidget::setDisabled);
+	mainWindowSizeWidget->setDisabled(m_saveMainWindowSize->isChecked());
+
 	load();
 }
 
@@ -151,6 +174,9 @@ void SettingsPage::load()
 	m_rememberLastUsedPort->setChecked(c.rememberLastUsedPort());
 	m_rememberInputHistory->setChecked(c.saveInputHistory());
 	m_hexViewBytesPerLine->setValue(c.hexViewBytesPerLine());
+	m_saveMainWindowSize->setChecked(c.saveMainWindowSize());
+	m_mainWindowWidth->setValue(c.mainWindowSize().width());
+	m_mainWindowHeight->setValue(c.mainWindowSize().height());
 	m_useBuiltInFixedFont->setChecked(c.useBuildInFixedFont());
 	m_useSystemFixedFont->setChecked(c.useSystemFixedFont());
 	m_useOtherFixedFont->setChecked(!m_useBuiltInFixedFont->isChecked() && !m_useSystemFixedFont->isChecked());
@@ -183,6 +209,8 @@ bool SettingsPage::save()
 	c.setRememberLastUsedPort(m_rememberLastUsedPort->isChecked());
 	c.setSaveInputHistory(m_rememberInputHistory->isChecked());
 	c.setHexViewBytesPerLine(m_hexViewBytesPerLine->value());
+	c.setSaveMainWindowSize(m_saveMainWindowSize->isChecked());
+	c.setMainWindowSize(QSize(m_mainWindowWidth->value(), m_mainWindowHeight->value()));
 	c.setUseBuildInFixedFont(m_useBuiltInFixedFont->isChecked());
 	c.setUseSystemFixedFont(m_useSystemFixedFont->isChecked());
 	c.setFixedFontName(m_fixedFontName->text());
