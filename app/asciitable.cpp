@@ -1,7 +1,7 @@
 #include "asciitable.h"
+#include "common.h"
 #include <QLabel>
 #include <QHBoxLayout>
-#include <QFontDatabase>
 
 AsciiTable::AsciiTable(QWidget *parent)
 	: QDialog(parent)
@@ -12,7 +12,7 @@ AsciiTable::AsciiTable(QWidget *parent)
 	QLabel *label = new QLabel;
 	layout->addWidget(label);
 
-	label->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+	label->setFont(getFixedFont());
 	label->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
 	QString text = "\

@@ -19,6 +19,7 @@ public:
 	explicit ByteReceiveTimesDialog(int height, QWidget *parent = nullptr);
 	int bytesCount() const;
 	const QVector<Byte> &bytes() const;
+	void setFont(QFont font);
 
 public slots:
 	void removeFromBegining(int bytesCount);

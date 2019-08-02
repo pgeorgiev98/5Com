@@ -339,6 +339,11 @@ MainWindow::MainWindow(QWidget *parent)
 		int bytesPerLine = c.hexViewBytesPerLine();
 		if (bytesPerLine != m_hexViewBytesPerLine->value())
 			m_hexViewBytesPerLine->setValue(bytesPerLine);
+		QFont font = getFixedFont();
+		m_textView->setFont(font);
+		m_hexView->setFont(font);
+		if (m_byteReceiveTimesDialog)
+			m_byteReceiveTimesDialog->setFont(font);
 	});
 
 	connect(m_hexViewBytesPerLine, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged),

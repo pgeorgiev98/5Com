@@ -1,15 +1,15 @@
 #include "changelogdialog.h"
+#include "common.h"
 #include <QFile>
 #include <QTextBrowser>
 #include <QVBoxLayout>
-#include <QFontDatabase>
 #include <QRegularExpression>
 
 ChangelogDialog::ChangelogDialog(QWidget *parent)
 	: QDialog(parent)
 {
 	QString changelog = changelogHtml();
-	QFont font = QFontDatabase::systemFont(QFontDatabase::SystemFont::FixedFont);
+	QFont font = getFixedFont();
 	QFontMetrics fontMetrics(font);
 	int textWidth = fontMetrics.size(0, QString(" ").repeated(100)).width();
 

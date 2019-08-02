@@ -1,7 +1,7 @@
 #include "plaintextview.h"
+#include "common.h"
 
 #include <QPainter>
-#include <QFontDatabase>
 #include <QPaintEvent>
 #include <QMouseEvent>
 #include <QToolTip>
@@ -30,7 +30,7 @@ inline qreal textWidth(const QFontMetricsF &fm, const QString &text)
 
 PlainTextView::PlainTextView(QWidget *parent)
 	: QWidget(parent)
-	, m_font(QFontDatabase::systemFont(QFontDatabase::SystemFont::FixedFont))
+	, m_font(getFixedFont())
 	, m_fm(m_font)
 	, m_width(80)
 	, m_height(80)
@@ -111,10 +111,8 @@ void PlainTextView::setData(const QByteArray &data)
 void PlainTextView::insertData(const QByteArray &data)
 {
 	const int start = m_data.size();
-	const int oldRowsCount = m_rows.size();
 	m_data.append(data);
 
-	qreal maxX = m_width;
 	int lastType = m_rows.last().elements.isEmpty() ? -1 : m_rows.last().elements.last().type;
 	for (int i = start; i < m_data.size(); ++i) {
 		unsigned char b = static_cast<unsigned char>(m_data[i]);
@@ -131,7 +129,14 @@ void PlainTextView::insertData(const QByteArray &data)
 			m_rows.append(Row());
 	}
 
-	for (int i = oldRowsCount - 1; i < m_rows.size(); ++i) {
+
+	recalculateSize();
+}
+
+void PlainTextView::recalculateSize()
+{
+	qreal maxX = m_width;
+	for (int i = 0; i < m_rows.size(); ++i) {
 		const Row &row = m_rows[i];
 		qreal x = 2 * m_padding;
 		for (const Element &element : row.elements)
@@ -191,6 +196,14 @@ void PlainTextView::highlight(ByteSelection selection)
 {
 	m_selection = selection;
 	repaint();
+}
+
+void PlainTextView::setFont(QFont font)
+{
+	m_font = font;
+	m_fm = QFontMetricsF(m_font);
+	m_padding = qRound(m_fm.averageCharWidth());
+	recalculateSize();
 }
 
 

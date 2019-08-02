@@ -43,6 +43,10 @@ public:
 	FIELD(int, Int, hexViewBytesPerLine, setHexViewBytesPerLine, "hexViewBytesPerLine", 16)
 	FIELD(bool, Bool, saveInputHistory, setSaveInputHistory, "saveInputHistory", true)
 	FIELD(QStringList, StringList, inputHistory, setInputHistory, "inputHistory", QStringList())
+	FIELD(bool, Bool, useBuildInFixedFont, setUseBuildInFixedFont, "useBuildInFixedFont", BUILDING_FOR_WINDOWS)
+	FIELD(bool, Bool, useSystemFixedFont, setUseSystemFixedFont, "useSystemFixedFont", !BUILDING_FOR_WINDOWS)
+	FIELD(QString, String, fixedFontName, setFixedFontName, "fixedFontName", QString())
+	FIELD(int, Int, fixedFontSize, setFixedFontSize, "fixedFontSize", -1)
 
 	QSettings &settings() { return m_settings; }
 	QString path() const { return m_settings.fileName(); }

@@ -1,7 +1,7 @@
 #include "hexview.h"
+#include "common.h"
+
 #include <QPainter>
-#include <QFontDatabase>
-#include <QFont>
 #include <QPaintEvent>
 #include <QMouseEvent>
 #include <QtGlobal>
@@ -24,7 +24,7 @@ static const char hexTable[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
 
 HexView::HexView(QWidget *parent)
 	: QWidget(parent)
-	, m_font(QFontDatabase::systemFont(QFontDatabase::SystemFont::FixedFont))
+	, m_font(getFixedFont())
 	, m_fontMetrics(m_font)
 #if QT_VERSION >= 0x050B00
 	, m_characterWidth(m_fontMetrics.horizontalAdvance(' '))
@@ -150,6 +150,18 @@ void HexView::selectNone()
 	m_selectionEnd = 0;
 	m_selection = Selection::None;
 	m_selecting = false;
+
+	repaint();
+}
+
+void HexView::setFont(QFont font)
+{
+	m_font = font;
+	m_fontMetrics = QFontMetrics(m_font);
+	m_characterWidth = m_fontMetrics.averageCharWidth();
+	m_cellSize = m_fontMetrics.height();
+	m_cellPadding = m_characterWidth;
+	setFixedWidth(textX(m_bytesPerLine) + m_cellPadding);
 
 	repaint();
 }

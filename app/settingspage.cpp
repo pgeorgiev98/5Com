@@ -1,12 +1,17 @@
 #include "settingspage.h"
 #include "line.h"
 #include "config.h"
+#include "common.h"
 
 #include <QVBoxLayout>
 #include <QCheckBox>
 #include <QLabel>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QGroupBox>
+#include <QRadioButton>
+#include <QLineEdit>
+#include <QFontDialog>
 #include <QMessageBox>
 
 QHBoxLayout *labeledWidget(const QString &label, QWidget *widget)
@@ -31,11 +36,20 @@ SettingsPage::SettingsPage(QWidget *parent)
 	, m_rememberLastUsedPort(new QCheckBox("Remember last used port and its settings"))
 	, m_rememberInputHistory(new QCheckBox("Remember input history"))
 	, m_hexViewBytesPerLine(new QSpinBox)
+	, m_useBuiltInFixedFont(new QRadioButton("Use built in fixed font (DejaVu Sans Mono)"))
+	, m_useSystemFixedFont(new QRadioButton("Use the system fixed font"))
+	, m_useOtherFixedFont(new QRadioButton("Specify fixed font to use"))
+	, m_fixedFontName(new QLineEdit)
+	, m_fixedFontSize(new QSpinBox)
+	, m_fixedFontInputWidget(new QWidget)
 {
 	m_readBufferLimitKiB->setSuffix("KiB");
 	m_readBufferLimitKiB->setRange(1, std::numeric_limits<int>::max());
 	m_inputHistoryLength->setRange(1, 10000);
 	m_hexViewBytesPerLine->setRange(1, 128);
+	m_fixedFontName->setPlaceholderText("Not specified");
+	m_fixedFontName->setReadOnly(true);
+	m_fixedFontSize->setRange(1, 200);
 
 	QVBoxLayout *layout = new QVBoxLayout;
 	setLayout(layout);
@@ -54,6 +68,38 @@ SettingsPage::SettingsPage(QWidget *parent)
 	layout->addWidget(m_rememberLastUsedPort);
 	layout->addWidget(m_rememberInputHistory);
 	layout->addLayout(labeledWidget("Number of bytes per line in HexView: ", m_hexViewBytesPerLine));
+	layout->addWidget(m_useBuiltInFixedFont);
+
+	{
+		QGroupBox *fontSettings = new QGroupBox("Fixed font");
+		QVBoxLayout *vbox = new QVBoxLayout;
+		fontSettings->setLayout(vbox);
+		vbox->addWidget(m_useBuiltInFixedFont);
+		vbox->addWidget(m_useSystemFixedFont);
+		vbox->addWidget(m_useOtherFixedFont);
+
+		QPushButton *fontSelectButton = new QPushButton("Select");
+		QHBoxLayout *hbox = new QHBoxLayout;
+		m_fixedFontInputWidget->setLayout(hbox);
+		hbox->addWidget(new QLabel("Fixed font: "));
+		hbox->addWidget(m_fixedFontName);
+		hbox->addWidget(fontSelectButton);
+
+		vbox->addWidget(m_fixedFontInputWidget);
+		vbox->addLayout(labeledWidget("Font size: ", m_fixedFontSize));
+
+		layout->addWidget(fontSettings);
+
+		connect(fontSelectButton, &QPushButton::clicked, [this]() {
+			bool ok;
+			QFont font = QFontDialog::getFont(&ok, getFixedFont(), this, "Select fixed font",
+											  QFontDialog::MonospacedFonts);
+			if (ok) {
+				m_fixedFontName->setText(font.family());
+				m_fixedFontSize->setValue(font.pointSize());
+			}
+		});
+	}
 
 	QPushButton *restoreDefaultsButton = new QPushButton("Restore defaults");
 	layout->addWidget(restoreDefaultsButton, 0, Qt::AlignRight);
@@ -78,9 +124,17 @@ SettingsPage::SettingsPage(QWidget *parent)
 
 		connect(cancel, &QPushButton::clicked, this, &QDialog::reject);
 		connect(apply, &QPushButton::clicked, this, &SettingsPage::save);
-		connect(ok, &QPushButton::clicked, this, &SettingsPage::save);
-		connect(ok, &QPushButton::clicked, this, &SettingsPage::accept);
+		connect(ok, &QPushButton::clicked, [this]() {
+			if (save())
+				accept();
+		});
 	}
+
+	connect(m_useOtherFixedFont, &QRadioButton::toggled, [this](bool checked) {
+		m_fixedFontInputWidget->setEnabled(checked);
+		if (!checked)
+			m_fixedFontName->setText(QString());
+	});
 
 	load();
 }
@@ -97,12 +151,28 @@ void SettingsPage::load()
 	m_rememberLastUsedPort->setChecked(c.rememberLastUsedPort());
 	m_rememberInputHistory->setChecked(c.saveInputHistory());
 	m_hexViewBytesPerLine->setValue(c.hexViewBytesPerLine());
+	m_useBuiltInFixedFont->setChecked(c.useBuildInFixedFont());
+	m_useSystemFixedFont->setChecked(c.useSystemFixedFont());
+	m_useOtherFixedFont->setChecked(!m_useBuiltInFixedFont->isChecked() && !m_useSystemFixedFont->isChecked());
+	if (m_useBuiltInFixedFont->isChecked() || m_useSystemFixedFont->isChecked()) {
+		m_fixedFontName->setText(QString());
+		m_fixedFontInputWidget->setEnabled(false);
+	} else {
+		m_fixedFontName->setText(c.fixedFontName());
+		m_fixedFontInputWidget->setEnabled(true);
+	}
+	m_fixedFontSize->setValue(c.fixedFontSize());
 
 	emit settingsChanged();
 }
 
-void SettingsPage::save()
+bool SettingsPage::save()
 {
+	if (m_useOtherFixedFont->isChecked() && m_fixedFontName->text().isEmpty()) {
+		QMessageBox::information(this, "Settings", "Please select a fixed font");
+		return false;
+	}
+
 	Config c;
 	if (m_includePtsDirectory)
 		c.setIncludePtsDirectory(m_includePtsDirectory->isChecked());
@@ -113,8 +183,14 @@ void SettingsPage::save()
 	c.setRememberLastUsedPort(m_rememberLastUsedPort->isChecked());
 	c.setSaveInputHistory(m_rememberInputHistory->isChecked());
 	c.setHexViewBytesPerLine(m_hexViewBytesPerLine->value());
+	c.setUseBuildInFixedFont(m_useBuiltInFixedFont->isChecked());
+	c.setUseSystemFixedFont(m_useSystemFixedFont->isChecked());
+	c.setFixedFontName(m_fixedFontName->text());
+	c.setFixedFontSize(m_fixedFontSize->value());
 
 	emit settingsChanged();
+
+	return true;
 }
 
 void SettingsPage::restoreDefaults()

@@ -9,6 +9,7 @@ CONFIG += c++17 static
 
 SOURCES += \
     checkforupdatesdialog.cpp \
+    common.cpp \
     continuoussendwindow.cpp \
     exportdialog.cpp \
     inputfield.cpp \

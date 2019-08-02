@@ -26,6 +26,7 @@ public slots:
 	void setBytesPerLine(int bytesPerLine);
 	void highlight(ByteSelection selection);
 	void selectNone();
+	void setFont(QFont font);
 
 signals:
 	void highlightInTextView(ByteSelection selection);

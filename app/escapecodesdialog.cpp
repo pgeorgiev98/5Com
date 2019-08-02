@@ -1,7 +1,7 @@
 #include "escapecodesdialog.h"
+#include "common.h"
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QFontDatabase>
 
 EscapeCodesDialog::EscapeCodesDialog(QWidget *parent)
 	: QDialog(parent)
@@ -17,7 +17,7 @@ Escape codes:\n\n\
 	QHBoxLayout *layout = new QHBoxLayout;
 	QLabel *label = new QLabel;
 	label->setText(text);
-	label->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+	label->setFont(getFixedFont());
 	label->setWordWrap(true);
 	label->setTextFormat(Qt::TextFormat::PlainText);
 	layout->addWidget(label);

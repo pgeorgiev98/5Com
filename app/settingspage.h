@@ -5,6 +5,8 @@
 
 class QCheckBox;
 class QSpinBox;
+class QRadioButton;
+class QLineEdit;
 
 class SettingsPage : public QDialog
 {
@@ -17,7 +19,7 @@ signals:
 
 private slots:
 	void load();
-	void save();
+	bool save();
 	void restoreDefaults();
 
 private:
@@ -29,6 +31,12 @@ private:
 	QCheckBox *m_rememberLastUsedPort;
 	QCheckBox *m_rememberInputHistory;
 	QSpinBox *m_hexViewBytesPerLine;
+	QRadioButton *m_useBuiltInFixedFont;
+	QRadioButton *m_useSystemFixedFont;
+	QRadioButton *m_useOtherFixedFont;
+	QLineEdit *m_fixedFontName;
+	QSpinBox *m_fixedFontSize;
+	QWidget *m_fixedFontInputWidget;
 };
 
 #endif // SETTINGSPAGE_H

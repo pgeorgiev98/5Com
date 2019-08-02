@@ -28,6 +28,7 @@ public slots:
 	void selectAll();
 	void selectNone();
 	void highlight(ByteSelection selection);
+	void setFont(QFont font);
 
 signals:
 	void highlightInHexView(ByteSelection selection);
@@ -110,6 +111,7 @@ private:
 
 	int getByteIndexAtPos(QPoint pos, bool selecting = false) const;
 	std::optional<ByteSelection> getSelectedBytes() const;
+	void recalculateSize();
 };
 
 #endif // PLAINTEXTVIEW_H
