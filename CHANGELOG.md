@@ -1,3 +1,11 @@
+* Fri Aug 02 2019 - Petko Georgiev <petko.vas.georgiev@gmail.com> - v0.4.0
+    - Text View was fully rewritten which will greatly improve performance
+    - Fixed bug where not all port settings were saved
+    - Tied the selections in Text View and Hex View together
+    - Added an option to change the used monospace font
+    - Bundled DejaVu Sans Mono as the default monospace font
+    - Added an option to customize the main window size on startup
+
 * Fri Jul 05 2019 - Petko Georgiev <petko.vas.georgiev@gmail.com> - v0.3.0
     - Added settings window
     - Added read buffer limit to prevent high memory usage and crashes
