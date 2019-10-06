@@ -47,6 +47,9 @@ void InputField::onInputEntered()
 		clearEditText();
 		m_searching = false;
 	}
+
+	setCurrentIndex(-1);
+	setCurrentText(input);
 }
 
 void InputField::clearText()
