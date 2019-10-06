@@ -129,9 +129,10 @@ void AutoUpdateDialog::saveFile(QNetworkReply *reply)
 								   "5Com was updated. You must restart the program to use the newer version.",
 								   "Restart later", "Restart now");
 	if (b == 1) {
-		QProcess process;
-		process.startDetached(appInfo.filePath());
-		QCoreApplication::exit(0);
+		if (!QProcess::startDetached("\"" + appInfo.filePath() + "\""))
+			QMessageBox::critical(this, "", "Failed to launch new application", "Cancel");
+		else
+			QCoreApplication::exit(0);
 	}
 
 	accept();
