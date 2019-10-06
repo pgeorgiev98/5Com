@@ -1,3 +1,7 @@
+* Sun Oct 06 2019 - Petko Georgiev <petko.vas.georgiev@gmail.com> - v0.4.1
+    - Fix a bug with the input field history
+    - Fix a bug with restarting the app after an auto-update [Windows]
+
 * Fri Aug 02 2019 - Petko Georgiev <petko.vas.georgiev@gmail.com> - v0.4.0
     - Text View was fully rewritten which will greatly improve performance
     - Fixed bug where not all port settings were saved
