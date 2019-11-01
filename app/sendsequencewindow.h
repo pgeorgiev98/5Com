@@ -31,6 +31,10 @@ private slots:
 	void executeNextOperation();
 	void onActionButtonClicked();
 	void cancelSequence();
+	void saveSequence();
+	void loadSequence();
+	void loadSequence(const QString &filePath);
+	void addRecent(const QString &path);
 
 protected:
 	void reject() override;
@@ -52,6 +56,7 @@ private:
 	QTimer *m_timer;
 	QMenu *m_itemMenu;
 	int m_itemMenuIndex;
+	QMenu *m_recents;
 };
 
 #endif // SENDSEQUENCEWINDOW_H

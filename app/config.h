@@ -50,6 +50,7 @@ public:
 	FIELD(int, Int, fixedFontSize, setFixedFontSize, "fixedFontSize", -1)
 	FIELD(QSize, Size, mainWindowSize, setMainWindowSize, "mainWindowSize", QSize(640, 480))
 	FIELD(bool, Bool, saveMainWindowSize, setSaveMainWindowSize, "saveMainWindowSize", true)
+	FIELD(QStringList, StringList, recentSequences, setRecentSequences, "recentSequences", QStringList())
 
 	QSettings &settings() { return m_settings; }
 	QString path() const { return m_settings.fileName(); }

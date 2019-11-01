@@ -1,6 +1,7 @@
 #include "sendsequencewindow.h"
 #include "serialport.h"
 #include "line.h"
+#include "config.h"
 
 #include <QGridLayout>
 #include <QVBoxLayout>
@@ -20,6 +21,10 @@
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QComboBox>
+#include <QFileDialog>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 
 SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 	: QDialog(parent)
@@ -72,7 +77,46 @@ SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 	layout->addWidget(new QLabel("Send sequence"), 0, Qt::AlignHCenter);
 	layout->addWidget(new Line(Line::Horizontal));
 	layout->addWidget(m_operationsScrollArea);
-	layout->addSpacing(16);
+
+	{
+		QFrame *loadSaveOptions = new QFrame;
+		loadSaveOptions->setFrameShape(QFrame::Shape::Panel);
+		QHBoxLayout *l = new QHBoxLayout;
+		loadSaveOptions->setLayout(l);
+
+		QToolButton *load = new QToolButton;
+		load->setText("Load");
+		load->setPopupMode(QToolButton::ToolButtonPopupMode::MenuButtonPopup);
+		QPushButton *save = new QPushButton("Save");
+
+		m_recents = new QMenu;
+		load->setMenu(m_recents);
+		Config c;
+		QStringList recentsList;
+		for (const QString &path : c.recentSequences()) {
+			if (QFile(path).exists()) {
+				recentsList.append(path);
+				m_recents->addAction(path);
+			}
+		}
+		if (recentsList.size() != c.recentSequences().size())
+			c.setRecentSequences(recentsList);
+
+		l->addStretch(1);
+		l->addWidget(load);
+		l->addStretch(1);
+		l->addWidget(save);
+		l->addStretch(1);
+
+		layout->addWidget(loadSaveOptions);
+
+		connect(save, &QPushButton::clicked, this, &SendSequenceWindow::saveSequence);
+		connect(load, &QPushButton::clicked, this, static_cast<void(SendSequenceWindow::*)()>(&SendSequenceWindow::loadSequence));
+		connect(m_recents, &QMenu::triggered, [this](QAction *action) {
+			loadSequence(action->text());
+		});
+	}
+
 	{
 		QFrame *sendSettings = new QFrame;
 		sendSettings->setFrameShape(QFrame::Shape::Panel);
@@ -394,4 +438,144 @@ void SendSequenceWindow::cancelSequence()
 	m_timer->stop();
 	m_currentOperation = -1;
 	m_sendButton->setText("Send");
+}
+
+static const char *operationStrings[] = {
+	"Send", "Wait", "ChangeDTR", "ChangeRTS",
+};
+
+static const char *pinOptionStrings[] = {
+	"1", "0", "toggle",
+};
+
+void SendSequenceWindow::saveSequence()
+{
+	static const QString extension = ".seq";
+	QString filePath = QFileDialog::getSaveFileName(this, "Save sequence", "", "*" + extension);
+	if (filePath.isEmpty())
+		return;
+	if (!filePath.endsWith(extension))
+		filePath.append(extension);
+
+	QFile file(filePath);
+	if (!file.open(QIODevice::WriteOnly)) {
+		QMessageBox::critical(this, "Save sequence", QString("Failed to open file %1: %2").arg(filePath).arg(file.errorString()));
+		return;
+	}
+
+	QJsonArray rootObj;
+	for (const auto &op : m_operations) {
+		QJsonObject obj;
+		auto type = op.type;
+		obj.insert("type", operationStrings[int(type)]);
+		switch(type) {
+		case OperationType::Send:
+			obj.insert("value", static_cast<QLineEdit *>(op.input)->text());
+			break;
+		case OperationType::Wait:
+			obj.insert("value", static_cast<QSpinBox *>(op.input)->value());
+			break;
+		case OperationType::ChangeDTR:
+		case OperationType::ChangeRTS:
+			obj.insert("value", pinOptionStrings[static_cast<QComboBox *>(op.input)->currentIndex()]);
+			break;
+		}
+		rootObj.append(obj);
+	}
+	QJsonDocument document(rootObj);
+	if (file.write(document.toJson()) == -1) {
+		QMessageBox::critical(this, "Save sequence", QString("Failed to write to file %1: %2").arg(filePath).arg(file.errorString()));
+		return;
+	}
+
+	addRecent(filePath);
+}
+
+void SendSequenceWindow::loadSequence()
+{
+	QString path = QFileDialog::getOpenFileName(this, "Load sequence", "", "*.seq");
+	if (path.isEmpty())
+		return;
+
+	loadSequence(path);
+}
+
+void SendSequenceWindow::loadSequence(const QString &filePath)
+{
+	QFile file(filePath);
+	if (!file.open(QIODevice::ReadOnly)) {
+		QMessageBox::critical(this, "Load sequence", QString("Failed to load file %1: %2").arg(filePath).arg(file.errorString()));
+		return;
+	}
+
+	QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+	QJsonArray arr = doc.array();
+	struct ParseError {};
+
+
+	auto operationFromString = [](const QString &str) -> OperationType
+	{
+		for (unsigned int i = 0; i < sizeof(operationStrings) / sizeof(operationStrings[0]); ++i)
+			if (operationStrings[i] == str)
+				return OperationType(i);
+		throw ParseError();
+	};
+
+	auto pinOptionFromString = [](const QString &str) -> int
+	{
+		for (unsigned int i = 0; i < sizeof(pinOptionStrings) / sizeof(pinOptionStrings[0]); ++i)
+			if (pinOptionStrings[i] == str)
+				return i;
+		throw ParseError();
+	};
+
+	clearOperations();
+	try {
+		for (QJsonValueRef v : arr) {
+			if (!v.isObject())
+				throw ParseError();
+			QJsonObject obj = v.toObject();
+			if (!obj.contains("type") || !obj.contains("value"))
+				throw ParseError();
+			OperationType type = operationFromString(obj["type"].toString());
+			addOperation(type);
+			QWidget *input = m_operations.last().input;
+			auto value = obj["value"];
+			switch(type) {
+			case OperationType::Send:
+				if (!value.isString())
+					throw ParseError();
+				static_cast<QLineEdit *>(input)->setText(value.toString());
+				break;
+			case OperationType::Wait:
+				if (!value.isDouble())
+					throw ParseError();
+				static_cast<QSpinBox *>(input)->setValue(value.toInt());
+				break;
+			case OperationType::ChangeDTR:
+			case OperationType::ChangeRTS:
+				if (!value.isString())
+					throw ParseError();
+				static_cast<QComboBox *>(input)->setCurrentIndex(pinOptionFromString(value.toString()));
+				break;
+			}
+		}
+	} catch(ParseError e) {
+		QMessageBox::critical(this, "Load sequence", QString("Failed to load sequence from file %1: Invalid format").arg(filePath));
+		clearOperations();
+		return;
+	}
+
+	addRecent(filePath);
+}
+
+void SendSequenceWindow::addRecent(const QString &path)
+{
+	Config c;
+	QStringList list = c.recentSequences();
+	if (list.contains(path))
+		return;
+	m_recents->addAction(path);
+	list.append(path);
+	c.setRecentSequences(list);
 }
