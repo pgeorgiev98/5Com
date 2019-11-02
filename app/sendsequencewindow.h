@@ -57,6 +57,7 @@ private:
 	QMenu *m_itemMenu;
 	int m_itemMenuIndex;
 	QMenu *m_recents;
+	QString m_sequencesDirectory;
 };
 
 #endif // SENDSEQUENCEWINDOW_H

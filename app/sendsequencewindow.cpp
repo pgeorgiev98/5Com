@@ -2,6 +2,7 @@
 #include "serialport.h"
 #include "line.h"
 #include "config.h"
+#include "common.h"
 
 #include <QGridLayout>
 #include <QVBoxLayout>
@@ -25,6 +26,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QStandardPaths>
 
 SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 	: QDialog(parent)
@@ -44,6 +46,11 @@ SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 	m_sendIndefinitely->setChecked(false);
 	m_sequencesCount->setRange(1, INT_MAX);
 	m_sequencesCount->setValue(1);
+
+	m_sequencesDirectory = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) + "/sequences";
+	if (!QDir(m_sequencesDirectory).exists())
+		if (!QDir().mkpath(m_sequencesDirectory))
+			m_sequencesDirectory = "";
 
 	QToolButton *addNewButton = new QToolButton;
 	QToolButton *clearOperationsButton = new QToolButton;
@@ -451,7 +458,7 @@ static const char *pinOptionStrings[] = {
 void SendSequenceWindow::saveSequence()
 {
 	static const QString extension = ".seq";
-	QString filePath = QFileDialog::getSaveFileName(this, "Save sequence", "", "*" + extension);
+	QString filePath = QFileDialog::getSaveFileName(this, "Save sequence", m_sequencesDirectory, "*" + extension);
 	if (filePath.isEmpty())
 		return;
 	if (!filePath.endsWith(extension))
@@ -493,7 +500,7 @@ void SendSequenceWindow::saveSequence()
 
 void SendSequenceWindow::loadSequence()
 {
-	QString path = QFileDialog::getOpenFileName(this, "Load sequence", "", "*.seq");
+	QString path = QFileDialog::getOpenFileName(this, "Load sequence", m_sequencesDirectory, "*.seq");
 	if (path.isEmpty())
 		return;
 
