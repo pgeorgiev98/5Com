@@ -163,6 +163,7 @@ MainWindow::MainWindow(QWidget *parent)
 	{
 		m_plainTextViewScrollArea->setPalette(m_textView->palette());
 		m_plainTextViewScrollArea->setWidget(m_textView);
+		m_plainTextViewScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 		m_tabs->addTab(m_plainTextViewScrollArea, "Plain Text View");
 	}
 	{
