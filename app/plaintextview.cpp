@@ -19,6 +19,9 @@ static QColor hoverTextColor("#ff0000");
 static QColor selectionColor("#0000ff");
 static QColor selectedTextColor("#000000");
 
+#define MINIMUM_WIDTH 80
+#define MINIMUM_HEIGHT 80
+
 inline qreal textWidth(const QFontMetricsF &fm, const QString &text)
 {
 #if QT_VERSION >= 0x050B00
@@ -32,8 +35,8 @@ PlainTextView::PlainTextView(QWidget *parent)
 	: QWidget(parent)
 	, m_font(getFixedFont())
 	, m_fm(m_font)
-	, m_width(80)
-	, m_height(80)
+	, m_width(MINIMUM_WIDTH)
+	, m_height(MINIMUM_HEIGHT)
 	, m_padding(qRound(m_fm.averageCharWidth()))
 	, m_rows({Row()})
 {
@@ -129,13 +132,12 @@ void PlainTextView::insertData(const QByteArray &data)
 			m_rows.append(Row());
 	}
 
-
 	recalculateSize();
 }
 
 void PlainTextView::recalculateSize()
 {
-	qreal maxX = m_width;
+	qreal maxX = MINIMUM_WIDTH;
 	for (int i = 0; i < m_rows.size(); ++i) {
 		const Row &row = m_rows[i];
 		qreal x = 2 * m_padding;
@@ -145,10 +147,8 @@ void PlainTextView::recalculateSize()
 			maxX = x;
 	}
 
-	if (qRound(maxX) != m_width)
-		m_width = qRound(maxX);
-
-	m_height = qRound((m_rows.size() + 1) * m_fm.height());
+	m_width = qRound(maxX);
+	m_height = qMax(MINIMUM_HEIGHT, qRound((m_rows.size() + 1) * m_fm.height()));
 	resize(m_width, m_height);
 	repaint();
 }
@@ -157,6 +157,7 @@ void PlainTextView::clear()
 {
 	m_data.clear();
 	m_rows = {Row()};
+	recalculateSize();
 	repaint();
 }
 
