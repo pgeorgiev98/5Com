@@ -94,7 +94,8 @@ SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 		QToolButton *load = new QToolButton;
 		load->setText("Load");
 		load->setPopupMode(QToolButton::ToolButtonPopupMode::MenuButtonPopup);
-		QPushButton *save = new QPushButton("Save");
+		QToolButton *save = new QToolButton;
+		save->setText("Save");
 
 		m_recents = new QMenu;
 		load->setMenu(m_recents);
