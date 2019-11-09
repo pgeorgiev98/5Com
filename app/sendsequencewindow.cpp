@@ -458,12 +458,22 @@ static const char *pinOptionStrings[] = {
 
 void SendSequenceWindow::saveSequence()
 {
-	static const QString extension = ".seq";
-	QString filePath = QFileDialog::getSaveFileName(this, "Save sequence", m_sequencesDirectory, "*" + extension);
+	QFileDialog dialog(this);
+	dialog.setFileMode(QFileDialog::AnyFile);
+	dialog.setAcceptMode(QFileDialog::AcceptSave);
+	dialog.setDirectory(m_sequencesDirectory);
+	const QString seqNameFilter = "Sequence files (*.seq)";
+	dialog.setNameFilters({seqNameFilter, "All files (*)"});
+
+	if (!dialog.exec())
+		return;
+
+	QString filePath = dialog.selectedFiles().first();
 	if (filePath.isEmpty())
 		return;
-	if (!filePath.endsWith(extension))
-		filePath.append(extension);
+
+	if (dialog.selectedNameFilter() == seqNameFilter && !filePath.endsWith(".seq"))
+		filePath.append(".seq");
 
 	QFile file(filePath);
 	if (!file.open(QIODevice::WriteOnly)) {
@@ -501,7 +511,7 @@ void SendSequenceWindow::saveSequence()
 
 void SendSequenceWindow::loadSequence()
 {
-	QString path = QFileDialog::getOpenFileName(this, "Load sequence", m_sequencesDirectory, "*.seq");
+	QString path = QFileDialog::getOpenFileName(this, "Load sequence", m_sequencesDirectory, "Sequence files (*.seq);;All Files (*)");
 	if (path.isEmpty())
 		return;
 
