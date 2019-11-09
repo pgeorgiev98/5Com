@@ -97,7 +97,8 @@ void CheckForUpdatesDialog::onFailedToGetLatestRelease(const QString &errorStrin
 void CheckForUpdatesDialog::onLatestReleaseFound(const LatestReleaseChecker::Release &release)
 {
 	m_latestRelease = release;
-	if (release.isNewerThan(VERSION)) {
+	bool isNewer = release.isNewerThan(VERSION);
+	if (isNewer) {
 		m_latestReleaseLabel->setText(QString(
 										"Latest release is version <b>%1</b>.<br/>"
 										"You can manually download it from <a href=\"%2\">here</a>%3")
@@ -117,5 +118,5 @@ void CheckForUpdatesDialog::onLatestReleaseFound(const LatestReleaseChecker::Rel
 	}
 	m_messageLayout->setCurrentIndex(1);
 	if (m_updateButton)
-		m_updateButton->setEnabled(!release.windowsDownloadUrl.isEmpty());
+		m_updateButton->setEnabled(isNewer && !release.windowsDownloadUrl.isEmpty());
 }
