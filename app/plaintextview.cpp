@@ -116,6 +116,8 @@ void PlainTextView::insertData(const QByteArray &data)
 	const int start = m_data.size();
 	m_data.append(data);
 
+	int oldRowCount = m_rows.size();
+
 	int lastType = m_rows.last().elements.isEmpty() ? -1 : m_rows.last().elements.last().type;
 	for (int i = start; i < m_data.size(); ++i) {
 		unsigned char b = static_cast<unsigned char>(m_data[i]);
@@ -132,13 +134,13 @@ void PlainTextView::insertData(const QByteArray &data)
 			m_rows.append(Row());
 	}
 
-	recalculateSize();
+	recalculateSize(oldRowCount - 1, width());
 }
 
-void PlainTextView::recalculateSize()
+void PlainTextView::recalculateSize(int startRow, int minimumWidth)
 {
-	qreal maxX = MINIMUM_WIDTH;
-	for (int i = 0; i < m_rows.size(); ++i) {
+	qreal maxX = minimumWidth;
+	for (int i = startRow; i < m_rows.size(); ++i) {
 		const Row &row = m_rows[i];
 		qreal x = 2 * m_padding;
 		for (const Element &element : row.elements)
@@ -157,7 +159,7 @@ void PlainTextView::clear()
 {
 	m_data.clear();
 	m_rows = {Row()};
-	recalculateSize();
+	recalculateSize(0, MINIMUM_WIDTH);
 	repaint();
 }
 
@@ -204,7 +206,7 @@ void PlainTextView::setFont(QFont font)
 	m_font = font;
 	m_fm = QFontMetricsF(m_font);
 	m_padding = qRound(m_fm.averageCharWidth());
-	recalculateSize();
+	recalculateSize(0, MINIMUM_WIDTH);
 }
 
 

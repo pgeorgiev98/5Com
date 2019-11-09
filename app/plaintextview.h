@@ -111,7 +111,7 @@ private:
 
 	int getByteIndexAtPos(QPoint pos, bool selecting = false) const;
 	std::optional<ByteSelection> getSelectedBytes() const;
-	void recalculateSize();
+	void recalculateSize(int startRow, int minimumWidth);
 };
 
 #endif // PLAINTEXTVIEW_H
