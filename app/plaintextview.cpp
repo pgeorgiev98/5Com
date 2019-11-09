@@ -235,36 +235,37 @@ void PlainTextView::paintEvent(QPaintEvent *event)
 		const Row &row = m_rows[rowIndex];
 		qreal x = m_padding;
 		int y = int(m_fm.ascent() + m_padding + rowIndex * rowHeight);
-		for (int elementIndex = 0; elementIndex < row.elements.size(); ++elementIndex) {
+		for (int elementIndex = 0; elementIndex < row.elements.size() && x <= rect.right(); ++elementIndex) {
 			const Element &element = row.elements[elementIndex];
 			qreal width = textWidth(m_fm, element.str);
-			QRectF rect(x, y - m_fm.ascent(), width, rowHeight);
+			if (x + width + 1 >= rect.left()) {
+				int elementBytesCount = element.type == Element::PlainText ? element.str.size() : 1;
+				if (element.rawStartIndex < selection.begin + selection.count &&
+						element.rawStartIndex + elementBytesCount > selection.begin) {
+					int firstIndex = qMax(0, selection.begin - element.rawStartIndex);
+					int selectionLength = element.type == Element::Type::PlainText ?
+								qMin(selection.begin + selection.count - element.rawStartIndex - firstIndex, element.str.size() - firstIndex) :
+								element.str.size();
 
-			int elementBytesCount = element.type == Element::PlainText ? element.str.size() : 1;
-			if (element.rawStartIndex < selection.begin + selection.count &&
-					element.rawStartIndex + elementBytesCount > selection.begin) {
-				int firstIndex = qMax(0, selection.begin - element.rawStartIndex);
-				int selectionLength = element.type == Element::Type::PlainText ?
-							qMin(selection.begin + selection.count - element.rawStartIndex - firstIndex, element.str.size() - firstIndex) :
-							element.str.size();
+					QRectF selection;
 
-				QRectF selection;
+					selection.setX(x + textWidth(m_fm, element.str.left(firstIndex)));
+					selection.setY(y - m_fm.ascent());
 
-				selection.setX(x + textWidth(m_fm, element.str.left(firstIndex)));
-				selection.setY(y - m_fm.ascent());
+					selection.setWidth(textWidth(m_fm, element.str.mid(firstIndex, selectionLength)));
+					selection.setHeight(rowHeight);
 
-				selection.setWidth(textWidth(m_fm, element.str.mid(firstIndex, selectionLength)));
-				selection.setHeight(rowHeight);
+					if (firstIndex + selectionLength == element.str.size())
+						selection.setWidth(selection.width() + 1);
 
-				if (firstIndex + selectionLength == element.str.size())
-					selection.setWidth(selection.width() + 1);
+					painter.fillRect(selection, selectionColor);
+				}
 
-				painter.fillRect(selection, selectionColor);
+				QRectF rect(x, y - m_fm.ascent(), width, rowHeight);
+				painter.setFont(rect.contains(m_mousePos) && element.type != Element::Type::PlainText ? underlinedFont : m_font);
+				painter.setPen(colors[element.type]);
+				painter.drawText(qRound(x), y, element.str);
 			}
-
-			painter.setFont(rect.contains(m_mousePos) && element.type != Element::Type::PlainText ? underlinedFont : m_font);
-			painter.setPen(colors[element.type]);
-			painter.drawText(qRound(x), y, element.str);
 			x += width + 1;
 		}
 	}
