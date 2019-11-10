@@ -619,11 +619,11 @@ void MainWindow::refreshPorts()
 
 	for (int i = 0; i < m_portSelect->count(); ++i) {
 		if (!ports.contains(m_portSelect->itemText(i))) {
-			m_portSelect->setItemData(i, QBrush(Qt::red), Qt::TextColorRole);
+			m_portSelect->setItemData(i, QBrush(Qt::red), Qt::ForegroundRole);
 		} else {
 			m_portSelect->setItemData(i,
-									  m_portSelect->itemData(0, Qt::TextColorRole),
-									  Qt::TextColorRole);
+									  m_portSelect->itemData(0, Qt::ForegroundRole),
+									  Qt::ForegroundRole);
 		}
 	}
 
