@@ -270,9 +270,7 @@ void SendSequenceWindow::addOperation(SendSequenceWindow::OperationType type, in
 		m_operationsLayout->addWidget(m_operations[i].actionButton, i + 1, 3);
 	}
 
-	Operation op;
-	op.type = type;
-	op.inputSpan = 1;
+	Operation op(type, 1);
 	if (type == OperationType::Send) {
 		m_operationsLayout->addWidget(op.label = new QLabel("Send: "), row, 0);
 		QLineEdit *input = new QLineEdit;

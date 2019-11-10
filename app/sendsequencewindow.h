@@ -44,6 +44,12 @@ private:
 		QWidget *label, *input, *actionButton;
 		OperationType type;
 		int inputSpan;
+
+		Operation(OperationType type, int inputSpan)
+			: label(nullptr), input(nullptr), actionButton(nullptr)
+			, type(type), inputSpan(inputSpan) {}
+
+		Operation() : Operation(OperationType::Send, 0) {}
 	};
 	QVector<Operation> m_operations;
 	SerialPort *m_port;
