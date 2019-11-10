@@ -212,8 +212,10 @@ void PlainTextView::recalculateSize(int startRow, int minimumWidth)
 
 	m_width = width;
 	m_height = qMax(MINIMUM_HEIGHT, qRound((m_rows.size() + 1) * m_fm.height()));
-	resize(m_width, m_height);
-	repaint();
+	if (m_width != this->width() || m_height != this->height())
+		resize(m_width, m_height);
+	else
+		repaint();
 }
 
 int PlainTextView::calculateRowWidth(const Row &row)
@@ -229,7 +231,6 @@ void PlainTextView::clear()
 	m_data.clear();
 	m_rows = {Row()};
 	recalculateSize(0, MINIMUM_WIDTH);
-	repaint();
 }
 
 void PlainTextView::copySelection()
