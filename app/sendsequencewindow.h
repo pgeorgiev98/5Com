@@ -26,6 +26,7 @@ private slots:
 	void onSendClicked();
 	void addOperation(OperationType);
 	void addOperation(OperationType, int);
+	void moveOperation(int before, int after);
 	void clearOperations();
 	void removeOperation(int i, bool adjustSize = false);
 	void executeNextOperation();

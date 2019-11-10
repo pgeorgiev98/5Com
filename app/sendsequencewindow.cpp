@@ -185,6 +185,8 @@ SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 	QAction *addWaitAfter = new QAction("Wait");
 	QAction *addChangeDtrAfter = new QAction("Change DTR");
 	QAction *addChangeRtsAfter = new QAction("Change RTS");
+	QAction *moveUp = new QAction("Move up");
+	QAction *moveDown = new QAction("Move down");
 
 	addBefore->addAction(addSendBefore);
 	addBefore->addAction(addWaitBefore);
@@ -196,8 +198,16 @@ SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 	addAfter->addAction(addChangeRtsAfter);
 
 	m_itemMenu->addAction(removeAction);
+	m_itemMenu->addSeparator();
 	m_itemMenu->addMenu(addBefore);
 	m_itemMenu->addMenu(addAfter);
+	m_itemMenu->addSeparator();
+	m_itemMenu->addAction(moveUp);
+	m_itemMenu->addAction(moveDown);
+	connect(m_itemMenu, &QMenu::aboutToShow, [moveUp, moveDown, this]() {
+		moveUp->setEnabled(m_itemMenuIndex != 0);
+		moveDown->setEnabled(m_itemMenuIndex != m_operations.size() - 1);
+	});
 	connect(m_itemMenu, &QMenu::triggered, [=](QAction *action) {
 		int i = m_itemMenuIndex;
 		if (action == removeAction)
@@ -218,6 +228,10 @@ SendSequenceWindow::SendSequenceWindow(SerialPort *port, QWidget *parent)
 			addOperation(OperationType::ChangeDTR, i + 1);
 		else if (action == addChangeRtsAfter)
 			addOperation(OperationType::ChangeRTS, i + 1);
+		else if (action == moveUp)
+			moveOperation(i, i - 1);
+		else if (action == moveDown)
+			moveOperation(i, i + 1);
 	});
 
 	connect(m_sendButton, &QPushButton::clicked, this, &SendSequenceWindow::onSendClicked);
@@ -257,6 +271,26 @@ void SendSequenceWindow::addOperation(SendSequenceWindow::OperationType type)
 		auto sb = m_operationsScrollArea->verticalScrollBar();
 		sb->setValue(sb->maximum());
 	});
+}
+
+void SendSequenceWindow::moveOperation(int before, int after)
+{
+	for (int i : {before, after}) {
+		const Operation &o = m_operations[i];
+		m_operationsLayout->removeWidget(o.label);
+		m_operationsLayout->removeWidget(o.input);
+		m_operationsLayout->removeWidget(o.actionButton);
+	}
+
+	for (QPair<int, int> p : {QPair<int, int>{before, after}, {after, before}}) {
+		const Operation &o = m_operations[p.first];
+		int loc = p.second;
+		m_operationsLayout->addWidget(o.label, loc, 0);
+		m_operationsLayout->addWidget(o.input, loc, 1, 1, o.inputSpan);
+		m_operationsLayout->addWidget(o.actionButton, loc, 3);
+	}
+
+	qSwap(m_operations[before], m_operations[after]);
 }
 
 void SendSequenceWindow::addOperation(SendSequenceWindow::OperationType type, int row)
