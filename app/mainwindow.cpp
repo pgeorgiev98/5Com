@@ -842,10 +842,10 @@ void MainWindow::trimData()
 	quint64 limit = quint64(Config().readBufferLimitKiB()) * 1024;
 
 	if (quint64(m_receivedData.size()) >= limit + limit / 5) {
-		int delta = int(limit / 5);
+		int delta = m_receivedData.size() - int(limit);
 		m_receivedData.remove(0, delta);
 
-		m_textView->setData(m_receivedData);
+		m_textView->trimData(m_receivedData.size());
 		m_hexView->setData(m_receivedData);
 	}
 

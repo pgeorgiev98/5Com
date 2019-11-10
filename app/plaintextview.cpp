@@ -134,25 +134,94 @@ void PlainTextView::insertData(const QByteArray &data)
 			m_rows.append(Row());
 	}
 
+	for (int i = oldRowCount - 1; i < m_rows.size(); ++i)
+		m_rows[i].width = calculateRowWidth(m_rows[i]);
 	recalculateSize(oldRowCount - 1, width());
+}
+
+void PlainTextView::trimData(int visibleBytesCount)
+{
+	Q_ASSERT(visibleBytesCount <= m_data.size());
+	int firstByteIndex = m_data.size() - visibleBytesCount;
+
+	int firstRowIndex = -1, firstElementIndex = -1;
+	for (int r = 0; r < m_rows.size(); ++r) {
+		const Row &row = m_rows[r];
+		for (int el = 0; el < row.elements.size(); ++el) {
+			const Element &element = row.elements[el];
+			if (element.rawStartIndex == firstByteIndex) {
+				firstRowIndex = r;
+				firstElementIndex = el;
+				r = m_rows.size();
+				break;
+			} else if (element.rawStartIndex > firstByteIndex) {
+				if (el > 0) {
+					firstRowIndex = r;
+					firstElementIndex = el - 1;
+				} else {
+					Q_ASSERT(r > 0);
+					firstRowIndex = r - 1;
+					firstElementIndex = m_rows[r - 1].elements.size() - 1;
+				}
+				r = m_rows.size();
+				break;
+			}
+		}
+	}
+
+	// Delete the unneeded rows and elements
+	m_rows.remove(0, firstRowIndex);
+	m_rows.first().elements.remove(0, firstElementIndex);
+
+	// Trim some data from the first element
+	Element &el = m_rows.first().elements.first();
+	for (int i = el.rawStartIndex; i < firstByteIndex; ++i) {
+		unsigned char byte = static_cast<unsigned char>(m_data[i]);
+		ByteInfo info = byteInfos[byte];
+		el.str.remove(0, info.str.size());
+	}
+	if (el.str.isEmpty()) {
+		m_rows.first().elements.remove(0);
+		if (m_rows.first().elements.isEmpty())
+			m_rows.remove(0);
+	}
+
+	// Update some element variables
+	for (Row &r : m_rows)
+		for (Element &e : r.elements)
+			e.rawStartIndex -= firstByteIndex;
+	el.rawStartIndex = 0;
+	m_pressedByteIndex -= firstByteIndex;
+	if (m_selection)
+		m_selection->begin = qMax(m_selection->begin - firstByteIndex, 0);
+
+	// Delete the raw bytes
+	m_data.remove(0, firstByteIndex);
+
+	// Recalculate the widget size
+	m_rows.first().width = calculateRowWidth(m_rows.first());
+	recalculateSize(0, MINIMUM_WIDTH);
 }
 
 void PlainTextView::recalculateSize(int startRow, int minimumWidth)
 {
-	qreal maxX = minimumWidth;
-	for (int i = startRow; i < m_rows.size(); ++i) {
-		const Row &row = m_rows[i];
-		qreal x = 2 * m_padding;
-		for (const Element &element : row.elements)
-			x += textWidth(m_fm, element.str) + 1;
-		if (x > maxX)
-			maxX = x;
-	}
+	int width = minimumWidth;
+	for (int i = startRow; i < m_rows.size(); ++i)
+		if (m_rows[i].width > width)
+			width = m_rows[i].width;
 
-	m_width = qRound(maxX);
+	m_width = width;
 	m_height = qMax(MINIMUM_HEIGHT, qRound((m_rows.size() + 1) * m_fm.height()));
 	resize(m_width, m_height);
 	repaint();
+}
+
+int PlainTextView::calculateRowWidth(const Row &row)
+{
+	qreal x = 2 * m_padding;
+	for (const Element &element : row.elements)
+		x += textWidth(m_fm, element.str) + 1;
+	return qRound(x);
 }
 
 void PlainTextView::clear()
@@ -208,7 +277,6 @@ void PlainTextView::setFont(QFont font)
 	m_padding = qRound(m_fm.averageCharWidth());
 	recalculateSize(0, MINIMUM_WIDTH);
 }
-
 
 void PlainTextView::paintEvent(QPaintEvent *event)
 {

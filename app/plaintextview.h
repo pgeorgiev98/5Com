@@ -23,6 +23,7 @@ public:
 public slots:
 	void setData(const QByteArray &data);
 	void insertData(const QByteArray &data);
+	void trimData(int visibleBytesCount);
 	void clear();
 	void copySelection();
 	void selectAll();
@@ -92,7 +93,10 @@ private:
 
 	struct Row
 	{
+		int width;
 		QVector<Element> elements;
+
+		Row() : width(0) {}
 	};
 
 	QFont m_font;
@@ -112,6 +116,7 @@ private:
 	int getByteIndexAtPos(QPoint pos, bool selecting = false) const;
 	std::optional<ByteSelection> getSelectedBytes() const;
 	void recalculateSize(int startRow, int minimumWidth);
+	int calculateRowWidth(const Row &row);
 };
 
 #endif // PLAINTEXTVIEW_H
