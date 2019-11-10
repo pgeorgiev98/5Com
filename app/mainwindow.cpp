@@ -863,7 +863,7 @@ void MainWindow::resizeEvent(QResizeEvent *)
 	m_hexViewBytesPerLine->move(m_tabs->width() - m_hexViewBytesPerLine->width(), 0);
 }
 
-void MainWindow::closeEvent(QCloseEvent *event)
+void MainWindow::closeEvent(QCloseEvent *)
 {
 	Config c;
 	if (c.saveMainWindowSize())
