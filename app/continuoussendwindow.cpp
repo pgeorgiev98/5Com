@@ -1,5 +1,6 @@
 #include "continuoussendwindow.h"
 #include "serialport.h"
+#include "inputwithfavorites.h"
 
 #include <QTimer>
 
@@ -41,7 +42,7 @@ ContinuousSendWindow::ContinuousSendWindow(SerialPort *port, QWidget *parent)
 	QPushButton *sendButton = new QPushButton("Send");
 
 	int row = 0;
-	setupLayout->addWidget(m_input, row++, 0, 1, 2);
+	setupLayout->addWidget(new InputWithFavorites(InputWithFavorites::Right, m_input), row++, 0, 1, 2);
 
 	setupLayout->addWidget(new QLabel("Send interval: "), row, 0);
 	setupLayout->addWidget(m_interval, row++, 1);

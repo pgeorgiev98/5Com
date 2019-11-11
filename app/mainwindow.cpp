@@ -17,6 +17,7 @@
 #include "inputfield.h"
 #include "checkforupdatesdialog.h"
 #include "keyboardshortcutswindow.h"
+#include "inputwithfavorites.h"
 
 #include <QComboBox>
 #include <QLineEdit>
@@ -202,7 +203,7 @@ MainWindow::MainWindow(QWidget *parent)
 	{
 		QPushButton *sendButton = new QPushButton("Send");
 		QHBoxLayout *inputLayout = new QHBoxLayout;
-		inputLayout->addWidget(m_inputField, 1);
+		inputLayout->addWidget(new InputWithFavorites(InputWithFavorites::Left, m_inputField), 1);
 		inputLayout->addWidget(sendButton);
 
 		layout->addLayout(inputLayout);

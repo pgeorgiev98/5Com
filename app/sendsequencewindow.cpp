@@ -1,6 +1,7 @@
 #include "sendsequencewindow.h"
 #include "serialport.h"
 #include "line.h"
+#include "inputwithfavorites.h"
 #include "config.h"
 #include "common.h"
 
@@ -307,7 +308,7 @@ void SendSequenceWindow::addOperation(SendSequenceWindow::OperationType type, in
 	Operation op(type, 1);
 	if (type == OperationType::Send) {
 		m_operationsLayout->addWidget(op.label = new QLabel("Send: "), row, 0);
-		QLineEdit *input = new QLineEdit;
+		InputWithFavorites *input = new InputWithFavorites(InputWithFavorites::Right, new QLineEdit);
 		m_operationsLayout->addWidget(input, row, 1, 1, 2);
 		input->setFocus();
 		op.input = input;
@@ -417,7 +418,7 @@ void SendSequenceWindow::executeNextOperation()
 
 	Operation op = m_operations[i];
 	if (op.type == OperationType::Send) {
-		QLineEdit *input = static_cast<QLineEdit *>(m_operationsLayout->itemAtPosition(i, 1)->widget());
+		InputWithFavorites *input = static_cast<InputWithFavorites *>(m_operationsLayout->itemAtPosition(i, 1)->widget());
 		m_port->writeFormattedData(input->text());
 	} else if (op.type == OperationType::Wait) {
 		QSpinBox *input = static_cast<QSpinBox *>(m_operationsLayout->itemAtPosition(i, 1)->widget());
@@ -520,7 +521,7 @@ void SendSequenceWindow::saveSequence()
 		obj.insert("type", operationStrings[int(type)]);
 		switch(type) {
 		case OperationType::Send:
-			obj.insert("value", static_cast<QLineEdit *>(op.input)->text());
+			obj.insert("value", static_cast<InputWithFavorites *>(op.input)->text());
 			break;
 		case OperationType::Wait:
 			obj.insert("value", static_cast<QSpinBox *>(op.input)->value());
@@ -595,7 +596,7 @@ void SendSequenceWindow::loadSequence(const QString &filePath)
 			case OperationType::Send:
 				if (!value.isString())
 					throw ParseError();
-				static_cast<QLineEdit *>(input)->setText(value.toString());
+				static_cast<InputWithFavorites *>(input)->setText(value.toString());
 				break;
 			case OperationType::Wait:
 				if (!value.isDouble())

@@ -5,5 +5,8 @@
 <file alias="LICENSE.txt">res/LICENSE.txt</file>
 <file alias="CHANGELOG.txt">../CHANGELOG.md</file>
 <file alias="fonts/DejaVuSansMono.ttf">res/fonts/DejaVuSansMono.ttf</file>
+<file alias="choose_favorite_icon.png">res/choose_favorite_icon.png</file>
+<file alias="is_favorite_icon.png">res/is_favorite_icon.png</file>
+<file alias="is_not_favorite_icon.png">res/is_not_favorite_icon.png</file>
 </qresource>
 </RCC>

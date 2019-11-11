@@ -12,7 +12,10 @@ SOURCES += \
     common.cpp \
     continuoussendwindow.cpp \
     exportdialog.cpp \
+    favoriteslistobject.cpp \
+    favoritesselectionlist.cpp \
     inputfield.cpp \
+    inputwithfavorites.cpp \
     keyboardshortcutswindow.cpp \
     line.cpp \
     main.cpp \
@@ -35,7 +38,10 @@ HEADERS += \
     config.h \
     continuoussendwindow.h \
     exportdialog.h \
+    favoriteslistobject.h \
+    favoritesselectionlist.h \
     inputfield.h \
+    inputwithfavorites.h \
     keyboardshortcutswindow.h \
     line.h \
     mainwindow.h \

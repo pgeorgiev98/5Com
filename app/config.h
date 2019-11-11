@@ -51,6 +51,7 @@ public:
 	FIELD(QSize, Size, mainWindowSize, setMainWindowSize, "mainWindowSize", QSize(640, 480))
 	FIELD(bool, Bool, saveMainWindowSize, setSaveMainWindowSize, "saveMainWindowSize", true)
 	FIELD(QStringList, StringList, recentSequences, setRecentSequences, "recentSequences", QStringList())
+	FIELD(QStringList, StringList, favoriteInputs, setFavoriteInputs, "favoriteInputs", QStringList())
 
 	QSettings &settings() { return m_settings; }
 	QString path() const { return m_settings.fileName(); }
