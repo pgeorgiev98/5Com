@@ -29,9 +29,15 @@ InputWithFavorites::InputWithFavorites(ButtonsPlacement buttonsPlacement, std::v
 	, m_chooseButton(new QToolButton)
 {
 	if (isNotFavoriteIcon.isNull()) {
-		isNotFavoriteIcon = QIcon(":/is_not_favorite_icon.png");
-		isFavoriteIcon = QIcon(":/is_favorite_icon.png");
-		chooseFromFavoritesIcon = QIcon(":/choose_favorite_icon.png");
+		if (palette().base().color().lightnessF() > 0.5) {
+			isNotFavoriteIcon = QIcon(":/is_not_favorite_icon_light.png");
+			isFavoriteIcon = QIcon(":/is_favorite_icon_light.png");
+			chooseFromFavoritesIcon = QIcon(":/choose_favorite_icon_light.png");
+		} else {
+			isNotFavoriteIcon = QIcon(":/is_not_favorite_icon_dark.png");
+			isFavoriteIcon = QIcon(":/is_favorite_icon_dark.png");
+			chooseFromFavoritesIcon = QIcon(":/choose_favorite_icon_dark.png");
+		}
 	}
 
 	m_saveButton->setAutoRaise(true);
