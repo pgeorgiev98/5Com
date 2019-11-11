@@ -24,11 +24,7 @@ static QColor selectedTextColor("#000000");
 
 inline qreal textWidth(const QFontMetricsF &fm, const QString &text)
 {
-#if QT_VERSION >= 0x050B00
-	return fm.horizontalAdvance(text);
-#else
-	return fm.width(text);
-#endif
+	return fm.averageCharWidth() * text.size();
 }
 
 PlainTextView::PlainTextView(QWidget *parent)
