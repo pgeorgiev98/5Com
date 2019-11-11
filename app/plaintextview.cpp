@@ -210,8 +210,7 @@ void PlainTextView::recalculateSize(int startRow, int minimumWidth)
 	m_height = qMax(MINIMUM_HEIGHT, qRound((m_rows.size() + 1) * m_fm.height()));
 	if (m_width != this->width() || m_height != this->height())
 		resize(m_width, m_height);
-	else
-		repaint();
+	update();
 }
 
 int PlainTextView::calculateRowWidth(const Row &row)
@@ -252,19 +251,19 @@ void PlainTextView::selectAll()
 	else
 		m_selection = ByteSelection(0, m_data.size());
 
-	repaint();
+	update();
 }
 
 void PlainTextView::selectNone()
 {
 	m_selection.reset();
-	repaint();
+	update();
 }
 
 void PlainTextView::highlight(ByteSelection selection)
 {
 	m_selection = selection;
-	repaint();
+	update();
 }
 
 void PlainTextView::setFont(QFont font)
@@ -359,7 +358,7 @@ void PlainTextView::mouseMoveEvent(QMouseEvent *event)
 
 	setCursor(cursorShape);
 
-	repaint();
+	update();
 }
 
 void PlainTextView::mousePressEvent(QMouseEvent *event)
@@ -370,7 +369,7 @@ void PlainTextView::mousePressEvent(QMouseEvent *event)
 		m_mousePos = pos;
 		m_pressedByteIndex = getByteIndexAtPos(pos);
 		m_selection.reset();
-		repaint();
+		update();
 	} else if (event->button() == Qt::RightButton) {
 		QMenu menu(this);
 		menu.popup(cursor().pos());
@@ -435,7 +434,7 @@ void PlainTextView::leaveEvent(QEvent *)
 {
 	m_mousePos = QPoint();
 	setCursor(Qt::CursorShape::ArrowCursor);
-	repaint();
+	update();
 }
 
 int PlainTextView::getByteIndexAtPos(QPoint pos, bool selecting) const
