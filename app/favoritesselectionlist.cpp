@@ -21,6 +21,8 @@ FavoritesSelectionList::FavoritesSelectionList(QWidget *parent)
 
 	m_list->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(m_list, &QListWidget::customContextMenuRequested, [this, o](QPoint point) {
+		if (m_list->selectedItems().isEmpty())
+			return;
 		QAction removeAction("Remove");
 		QMenu menu(this);
 		menu.addAction(&removeAction);
