@@ -16,7 +16,9 @@ SOURCES += \
     favoritesselectionlist.cpp \
     inputfield.cpp \
     inputwithfavorites.cpp \
+    keyboardshortcutsdialog.cpp \
     keyboardshortcutswindow.cpp \
+    keysequenceinputwidget.cpp \
     line.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -42,7 +44,9 @@ HEADERS += \
     favoritesselectionlist.h \
     inputfield.h \
     inputwithfavorites.h \
+    keyboardshortcutsdialog.h \
     keyboardshortcutswindow.h \
+    keysequenceinputwidget.h \
     line.h \
     mainwindow.h \
     hexview.h \

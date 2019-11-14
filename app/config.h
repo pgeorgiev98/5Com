@@ -5,6 +5,7 @@
 #include <QSettings>
 #include <QStringList>
 #include <QSize>
+#include <QKeySequence>
 
 #ifdef Q_OS_WIN
 #define BUILDING_FOR_WINDOWS true
@@ -52,6 +53,17 @@ public:
 	FIELD(bool, Bool, saveMainWindowSize, setSaveMainWindowSize, "saveMainWindowSize", true)
 	FIELD(QStringList, StringList, recentSequences, setRecentSequences, "recentSequences", QStringList())
 	FIELD(QStringList, StringList, favoriteInputs, setFavoriteInputs, "favoriteInputs", QStringList())
+
+	class Shortcuts {
+	public:
+		FIELD(QString, String, exportShortcut, setExportShortcut, "exportShortcut", QKeySequence(Qt::CTRL + Qt::Key_E).toString())
+		FIELD(QString, String, clearScreenShortcut, setClearScreenShortcut, "clearScreenShortcut", QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_L).toString())
+		FIELD(QString, String, writeFileShortcut, setWriteFileShortcut, "writeFileShortcut", QKeySequence(QKeySequence::Open).toString())
+		FIELD(QString, String, quitShortcut, setQuitShortcut, "quitShortcut", QKeySequence(QKeySequence::Quit).toString())
+
+	private:
+		QSettings m_settings;
+	} shortcuts;
 
 	QSettings &settings() { return m_settings; }
 	QString path() const { return m_settings.fileName(); }

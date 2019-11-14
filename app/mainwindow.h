@@ -17,6 +17,7 @@ class SendSequenceWindow;
 class InputField;
 class KeyboardShortcutsWindow;
 class SettingsPage;
+class QAction;
 
 class MainWindow : public QMainWindow
 {
@@ -49,11 +50,13 @@ public slots:
 	void showAboutQtPage();
 	void showCheckForUpdates();
 	void showSettings();
+	void showKeyboardShortcutsDialog();
 	void sendFromFile();
 	void exportData();
 	void clearScreen();
 	void refreshStatusBar();
 	void trimData();
+	void updateKeyboardShortcuts();
 
 protected:
 	void resizeEvent(QResizeEvent *) override;
@@ -93,6 +96,11 @@ private:
 	QDialog *m_escapeCodesDialog;
 	KeyboardShortcutsWindow *m_keyboardShortcutsWindow;
 	SettingsPage *m_settingsPage;
+
+	QAction *m_exportAction;
+	QAction *m_clearScreenAction;
+	QAction *m_writeFileAction;
+	QAction *m_quitAction;
 };
 
 #endif // MAINWINDOW_H

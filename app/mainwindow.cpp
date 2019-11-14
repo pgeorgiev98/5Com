@@ -18,6 +18,7 @@
 #include "checkforupdatesdialog.h"
 #include "keyboardshortcutswindow.h"
 #include "inputwithfavorites.h"
+#include "keyboardshortcutsdialog.h"
 
 #include <QComboBox>
 #include <QLineEdit>
@@ -72,6 +73,10 @@ MainWindow::MainWindow(QWidget *parent)
 	, m_escapeCodesDialog(new EscapeCodesDialog(this))
 	, m_keyboardShortcutsWindow(new KeyboardShortcutsWindow(this))
 	, m_settingsPage(new SettingsPage(this))
+	, m_exportAction(new QAction)
+	, m_clearScreenAction(new QAction)
+	, m_writeFileAction(new QAction)
+	, m_quitAction(new QAction)
 {
 	Config c;
 	resize(c.mainWindowSize());
@@ -216,14 +221,15 @@ MainWindow::MainWindow(QWidget *parent)
 
 	connect(m_connectButton, &QPushButton::clicked, this, &MainWindow::toggleConnect);
 
-	QAction *writeFile = new QAction("Write &file to port");
-	QAction *exportAction = new QAction("&Export");
-	QAction *exitAction = new QAction("E&xit");
+	m_writeFileAction->setText("Write &file to port");
+	m_exportAction->setText("&Export");
+	m_quitAction->setText("&Quit");
+	QAction *editKeyboardShortcutsAction = new QAction("&Keyboard shortcuts");
 	QAction *continuousSendAction = new QAction("&Continuous send");
 	QAction *sendSequenceAction = new QAction("Send se&quence");
 	QAction *pinoutSignalsAction = new QAction("&Pinout signals");
 	QAction *byteReceiveTimesAction = new QAction("&Byte receive times");
-	QAction *clearScreenAction = new QAction("C&lear screen");
+	m_clearScreenAction->setText("C&lear screen");
 	QAction *checkForUpdatesAction = new QAction("Check for &updates");
 	QAction *settingsAction = new QAction("&Settings");
 	QAction *asciiAction = new QAction("ASCII &table");
@@ -234,22 +240,22 @@ MainWindow::MainWindow(QWidget *parent)
 	QAction *aboutQtAction = new QAction("About &Qt");
 	QAction *aboutAction = new QAction("&About");
 
-	writeFile->setShortcut(QKeySequence::Open);
-	exportAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
-	exitAction->setShortcut(QKeySequence::Quit);
-	clearScreenAction->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_L));
+	updateKeyboardShortcuts();
 
 	auto fileMenu = menuBar()->addMenu("&File");
-	fileMenu->addAction(writeFile);
-	fileMenu->addAction(exportAction);
-	fileMenu->addAction(exitAction);
+	fileMenu->addAction(m_writeFileAction);
+	fileMenu->addAction(m_exportAction);
+	fileMenu->addAction(m_quitAction);
+
+	auto editMenu = menuBar()->addMenu("&Edit");
+	editMenu->addAction(editKeyboardShortcutsAction);
 
 	auto toolsMenu = menuBar()->addMenu("&Tools");
 	toolsMenu->addAction(continuousSendAction);
 	toolsMenu->addAction(sendSequenceAction);
 	toolsMenu->addAction(pinoutSignalsAction);
 	toolsMenu->addAction(byteReceiveTimesAction);
-	toolsMenu->addAction(clearScreenAction);
+	toolsMenu->addAction(m_clearScreenAction);
 	toolsMenu->addAction(checkForUpdatesAction);
 	toolsMenu->addAction(settingsAction);
 
@@ -263,14 +269,15 @@ MainWindow::MainWindow(QWidget *parent)
 	helpMenu->addAction(aboutQtAction);
 	helpMenu->addAction(aboutAction);
 
-	connect(writeFile, &QAction::triggered, this, &MainWindow::sendFromFile);
-	connect(exportAction, &QAction::triggered, this, &MainWindow::exportData);
-	connect(exitAction, &QAction::triggered, this, &QMainWindow::close);
+	connect(m_writeFileAction, &QAction::triggered, this, &MainWindow::sendFromFile);
+	connect(m_exportAction, &QAction::triggered, this, &MainWindow::exportData);
+	connect(m_quitAction, &QAction::triggered, this, &QMainWindow::close);
+	connect(editKeyboardShortcutsAction, &QAction::triggered, this, &MainWindow::showKeyboardShortcutsDialog);
 	connect(continuousSendAction, &QAction::triggered, this, &MainWindow::continuousSend);
 	connect(sendSequenceAction, &QAction::triggered, this, &MainWindow::sendSequence);
 	connect(pinoutSignalsAction, &QAction::triggered, this, &MainWindow::showPinoutSignals);
 	connect(byteReceiveTimesAction, &QAction::triggered, this, &MainWindow::showByteReceiveTimes);
-	connect(clearScreenAction, &QAction::triggered, this, &MainWindow::clearScreen);
+	connect(m_clearScreenAction, &QAction::triggered, this, &MainWindow::clearScreen);
 	connect(checkForUpdatesAction, &QAction::triggered, this, &MainWindow::showCheckForUpdates);
 	connect(settingsAction, &QAction::triggered, this, &MainWindow::showSettings);
 	connect(asciiAction, &QAction::triggered, this, &MainWindow::showAsciiTable);
@@ -832,6 +839,13 @@ void MainWindow::showSettings()
 	m_settingsPage->raise();
 }
 
+void MainWindow::showKeyboardShortcutsDialog()
+{
+	KeyboardShortcutsDialog d;
+	if (d.exec())
+		updateKeyboardShortcuts();
+}
+
 void MainWindow::refreshStatusBar()
 {
 	m_statusBarLabel->setText("Bytes read: " + QString::number(m_totalBytesRead) +
@@ -856,6 +870,15 @@ void MainWindow::trimData()
 			m_byteReceiveTimesDialog->removeFromBegining(delta);
 		}
 	}
+}
+
+void MainWindow::updateKeyboardShortcuts()
+{
+	Config c;
+	m_exportAction->setShortcut(c.shortcuts.exportShortcut());
+	m_clearScreenAction->setShortcut(c.shortcuts.clearScreenShortcut());
+	m_writeFileAction->setShortcut(c.shortcuts.writeFileShortcut());
+	m_quitAction->setShortcut(c.shortcuts.quitShortcut());
 }
 
 
