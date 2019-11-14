@@ -16,7 +16,6 @@
 #include "sendsequencewindow.h"
 #include "inputfield.h"
 #include "checkforupdatesdialog.h"
-#include "keyboardshortcutswindow.h"
 #include "inputwithfavorites.h"
 #include "keyboardshortcutsdialog.h"
 
@@ -71,7 +70,6 @@ MainWindow::MainWindow(QWidget *parent)
 	, m_byteReceiveTimesDialog(nullptr)
 	, m_asciiTableDialog(new AsciiTable(this))
 	, m_escapeCodesDialog(new EscapeCodesDialog(this))
-	, m_keyboardShortcutsWindow(new KeyboardShortcutsWindow(this))
 	, m_settingsPage(new SettingsPage(this))
 	, m_exportAction(new QAction)
 	, m_clearScreenAction(new QAction)
@@ -221,10 +219,15 @@ MainWindow::MainWindow(QWidget *parent)
 
 	connect(m_connectButton, &QPushButton::clicked, this, &MainWindow::toggleConnect);
 
+	// File
 	m_writeFileAction->setText("Write &file to port");
 	m_exportAction->setText("&Export");
 	m_quitAction->setText("&Quit");
+
+	// Edit
 	QAction *editKeyboardShortcutsAction = new QAction("&Keyboard shortcuts");
+
+	// Tools
 	QAction *continuousSendAction = new QAction("&Continuous send");
 	QAction *sendSequenceAction = new QAction("Send se&quence");
 	QAction *pinoutSignalsAction = new QAction("&Pinout signals");
@@ -232,9 +235,10 @@ MainWindow::MainWindow(QWidget *parent)
 	m_clearScreenAction->setText("C&lear screen");
 	QAction *checkForUpdatesAction = new QAction("Check for &updates");
 	QAction *settingsAction = new QAction("&Settings");
+
+	// Help
 	QAction *asciiAction = new QAction("ASCII &table");
 	QAction *escapeCodesAction = new QAction("&Escape codes");
-	QAction *keyboardShortcutsAction = new QAction("&Keyboard shortcuts");
 	QAction *changelogAction = new QAction("Change&log");
 	QAction *licenseAction = new QAction("&License");
 	QAction *aboutQtAction = new QAction("About &Qt");
@@ -262,7 +266,6 @@ MainWindow::MainWindow(QWidget *parent)
 	auto helpMenu = menuBar()->addMenu("&Help");
 	helpMenu->addAction(asciiAction);
 	helpMenu->addAction(escapeCodesAction);
-	helpMenu->addAction(keyboardShortcutsAction);
 	helpMenu->addSeparator();
 	helpMenu->addAction(changelogAction);
 	helpMenu->addAction(licenseAction);
@@ -282,7 +285,6 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(settingsAction, &QAction::triggered, this, &MainWindow::showSettings);
 	connect(asciiAction, &QAction::triggered, this, &MainWindow::showAsciiTable);
 	connect(escapeCodesAction, &QAction::triggered, this, &MainWindow::showEscapeCodes);
-	connect(keyboardShortcutsAction, &QAction::triggered, this, &MainWindow::showKeyboardShortcuts);
 	connect(changelogAction, &QAction::triggered, this, &MainWindow::showChangelog);
 	connect(licenseAction, &QAction::triggered, this, &MainWindow::showLicense);
 	connect(aboutQtAction, &QAction::triggered, this, &MainWindow::showAboutQtPage);
@@ -540,13 +542,6 @@ void MainWindow::showEscapeCodes()
 	m_escapeCodesDialog->show();
 	m_escapeCodesDialog->activateWindow();
 	m_escapeCodesDialog->raise();
-}
-
-void MainWindow::showKeyboardShortcuts()
-{
-	m_keyboardShortcutsWindow->show();
-	m_keyboardShortcutsWindow->activateWindow();
-	m_keyboardShortcutsWindow->raise();
 }
 
 void MainWindow::sendFromFile()
