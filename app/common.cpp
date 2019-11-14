@@ -37,3 +37,12 @@ void loadBuiltInFont()
 		c.setFixedFontSize(pointSize);
 	}
 }
+
+int textWidth(const QFontMetrics &fm, const QString &text)
+{
+#if QT_VERSION >= 0x050B00
+	   return fm.horizontalAdvance(text);
+#else
+	   return fm.width(text);
+#endif
+}

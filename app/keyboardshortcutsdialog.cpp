@@ -1,6 +1,7 @@
 #include "keyboardshortcutsdialog.h"
 #include "keysequenceinputwidget.h"
 #include "config.h"
+#include "common.h"
 
 #include <QTreeWidget>
 #include <QVBoxLayout>
@@ -13,6 +14,9 @@ KeyboardShortcutsDialog::KeyboardShortcutsDialog(QWidget *parent)
 {
 	m_treeWidget->setRootIsDecorated(false);
 	m_treeWidget->setHeaderLabels({"Name", "Shortcut"});
+	m_treeWidget->setColumnWidth(0, textWidth(QFontMetrics(m_treeWidget->font()), "A very long name for a shortcut"));
+	m_treeWidget->setColumnWidth(1, textWidth(QFontMetrics(m_treeWidget->font()), "CTRL+SHIFT+Whatever"));
+	m_treeWidget->setMinimumWidth(int(1.1 * (m_treeWidget->columnWidth(0) + m_treeWidget->columnWidth(1))));
 
 	QPushButton *ok = new QPushButton("Ok");
 	QPushButton *cancel = new QPushButton("Cancel");

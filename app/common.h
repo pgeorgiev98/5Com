@@ -1,6 +1,10 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#include <QFont>
+#include <QFontMetrics>
+#include <QString>
+
 #define APPLICATION_NAME "5Com"
 #define VERSION "0.4.1"
 
@@ -11,5 +15,6 @@
 #include <QFont>
 QFont getFixedFont();
 void loadBuiltInFont();
+int textWidth(const QFontMetrics &fm, const QString &text);
 
 #endif // COMMON_H

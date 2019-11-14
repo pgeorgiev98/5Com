@@ -1,16 +1,8 @@
 #include "keysequenceinputwidget.h"
+#include "common.h"
 #include <QEvent>
 #include <QKeyEvent>
 #include <QFontMetrics>
-
-inline int textWidth(const QFontMetrics &fm, const QString &text)
-{
-#if QT_VERSION >= 0x050B00
-	   return fm.horizontalAdvance(text);
-#else
-	   return fm.width(text);
-#endif
-}
 
 KeySequenceInputWidget::KeySequenceInputWidget(QKeySequence sequence, QWidget *parent)
 	: QToolButton(parent)
