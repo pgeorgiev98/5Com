@@ -61,6 +61,11 @@ public:
 		FIELD(QString, String, writeFileShortcut, setWriteFileShortcut, "writeFileShortcut", QKeySequence(QKeySequence::Open).toString())
 		FIELD(QString, String, quitShortcut, setQuitShortcut, "quitShortcut", QKeySequence(QKeySequence::Quit).toString())
 
+		FIELD(QString, String, focusInputShortcut, setFocusInputShortcut, "focusInputShortcut", QKeySequence(Qt::CTRL + Qt::Key_L).toString())
+		FIELD(QString, String, clearInputFieldShortcut, setClearInputFieldShortcut, "clearInputFieldShortcut", QKeySequence(Qt::CTRL + Qt::Key_W).toString())
+		FIELD(QString, String, openPlainTextViewShortcut, setOpenPlainTextViewShortcut, "openPlainTextViewShortcut", QKeySequence(Qt::ALT + Qt::Key_1).toString())
+		FIELD(QString, String, openHexViewShortcut, setOpenHexViewShortcut, "openHexViewShortcut", QKeySequence(Qt::ALT + Qt::Key_2).toString())
+
 	private:
 		QSettings m_settings;
 	} shortcuts;

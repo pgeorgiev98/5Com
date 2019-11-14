@@ -75,6 +75,10 @@ MainWindow::MainWindow(QWidget *parent)
 	, m_clearScreenAction(new QAction)
 	, m_writeFileAction(new QAction)
 	, m_quitAction(new QAction)
+	, m_focusInputShortcut(new QShortcut(this))
+	, m_clearInputShortcut(new QShortcut(m_inputField))
+	, m_plainTextViewShortcut(new QShortcut(this))
+	, m_hexViewShortcut(new QShortcut(this))
 {
 	Config c;
 	resize(c.mainWindowSize());
@@ -333,17 +337,13 @@ MainWindow::MainWindow(QWidget *parent)
 	});
 
 	// Keyboard shortcuts
-	QShortcut *focusInputShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_L), this);
-	QShortcut *clearInputShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_W), m_inputField);
-	QShortcut *plainTextViewShortcut = new QShortcut(QKeySequence(Qt::ALT + Qt::Key_1), this);
-	QShortcut *hexViewShortcut = new QShortcut(QKeySequence(Qt::ALT + Qt::Key_2), this);
-	connect(focusInputShortcut, &QShortcut::activated, [this]() { m_inputField->setFocus(); });
-	connect(clearInputShortcut, &QShortcut::activated, [this]() {
+	connect(m_focusInputShortcut, &QShortcut::activated, [this]() { m_inputField->setFocus(); });
+	connect(m_clearInputShortcut, &QShortcut::activated, [this]() {
 		if (m_inputField->hasFocus())
 			m_inputField->clearText();
 	});
-	connect(plainTextViewShortcut, &QShortcut::activated, [this]() { m_tabs->setCurrentIndex(0); });
-	connect(hexViewShortcut, &QShortcut::activated, [this]() { m_tabs->setCurrentIndex(1); });
+	connect(m_plainTextViewShortcut, &QShortcut::activated, [this]() { m_tabs->setCurrentIndex(0); });
+	connect(m_hexViewShortcut, &QShortcut::activated, [this]() { m_tabs->setCurrentIndex(1); });
 
 	connect(m_settingsPage, &SettingsPage::settingsChanged, [this]() {
 		Config c;
@@ -870,10 +870,17 @@ void MainWindow::trimData()
 void MainWindow::updateKeyboardShortcuts()
 {
 	Config c;
-	m_exportAction->setShortcut(c.shortcuts.exportShortcut());
-	m_clearScreenAction->setShortcut(c.shortcuts.clearScreenShortcut());
-	m_writeFileAction->setShortcut(c.shortcuts.writeFileShortcut());
-	m_quitAction->setShortcut(c.shortcuts.quitShortcut());
+	Config::Shortcuts &s = c.shortcuts;
+
+	m_exportAction->setShortcut(s.exportShortcut());
+	m_clearScreenAction->setShortcut(s.clearScreenShortcut());
+	m_writeFileAction->setShortcut(s.writeFileShortcut());
+	m_quitAction->setShortcut(s.quitShortcut());
+
+	m_focusInputShortcut->setKey(s.focusInputShortcut());
+	m_clearInputShortcut->setKey(s.clearInputFieldShortcut());
+	m_plainTextViewShortcut->setKey(s.openPlainTextViewShortcut());
+	m_hexViewShortcut->setKey(s.openHexViewShortcut());
 }
 
 

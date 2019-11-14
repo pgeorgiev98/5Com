@@ -17,6 +17,7 @@ class SendSequenceWindow;
 class InputField;
 class SettingsPage;
 class QAction;
+class QShortcut;
 
 class MainWindow : public QMainWindow
 {
@@ -98,6 +99,11 @@ private:
 	QAction *m_clearScreenAction;
 	QAction *m_writeFileAction;
 	QAction *m_quitAction;
+
+	QShortcut *m_focusInputShortcut;
+	QShortcut *m_clearInputShortcut;
+	QShortcut *m_plainTextViewShortcut;
+	QShortcut *m_hexViewShortcut;
 };
 
 #endif // MAINWINDOW_H

@@ -31,10 +31,16 @@ KeyboardShortcutsDialog::KeyboardShortcutsDialog(QWidget *parent)
 
 	Config c;
 	Config::Shortcuts &s = c.shortcuts;
+
 	addShortcut("Export", s.exportShortcut(), &Config::Shortcuts::setExportShortcut);
 	addShortcut("Clear screen", s.clearScreenShortcut(), &Config::Shortcuts::setClearScreenShortcut);
 	addShortcut("Write file", s.writeFileShortcut(), &Config::Shortcuts::setWriteFileShortcut);
 	addShortcut("Quit", s.quitShortcut(), &Config::Shortcuts::setQuitShortcut);
+
+	addShortcut("Focus input field", s.focusInputShortcut(), &Config::Shortcuts::setFocusInputShortcut);
+	addShortcut("Clear input field", s.clearInputFieldShortcut(), &Config::Shortcuts::setClearInputFieldShortcut);
+	addShortcut("Open plain text view", s.openPlainTextViewShortcut(), &Config::Shortcuts::setOpenPlainTextViewShortcut);
+	addShortcut("Open hex view", s.openHexViewShortcut(), &Config::Shortcuts::setOpenHexViewShortcut);
 
 	connect(ok, &QPushButton::clicked, [this]() {saveShortcuts(); accept();});
 	connect(cancel, &QPushButton::clicked, this, &QDialog::reject);
