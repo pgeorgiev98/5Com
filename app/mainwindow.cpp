@@ -9,7 +9,7 @@
 #include "latestreleasechecker.h"
 #include "changelogdialog.h"
 #include "exportdialog.h"
-#include "settingspage.h"
+#include "preferencespage.h"
 #include "config.h"
 #include "serialport.h"
 #include "continuoussendwindow.h"
@@ -70,7 +70,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, m_byteReceiveTimesDialog(nullptr)
 	, m_asciiTableDialog(new AsciiTable(this))
 	, m_escapeCodesDialog(new EscapeCodesDialog(this))
-	, m_settingsPage(new SettingsPage(this))
+	, m_preferencesPage(new PreferencesPage(this))
 	, m_exportAction(new QAction)
 	, m_clearScreenAction(new QAction)
 	, m_writeFileAction(new QAction)
@@ -238,7 +238,7 @@ MainWindow::MainWindow(QWidget *parent)
 	QAction *byteReceiveTimesAction = new QAction("&Byte receive times");
 	m_clearScreenAction->setText("C&lear screen");
 	QAction *checkForUpdatesAction = new QAction("Check for &updates");
-	QAction *settingsAction = new QAction("&Settings");
+	QAction *preferencesAction = new QAction("&Preferences");
 
 	// Help
 	QAction *asciiAction = new QAction("ASCII &table");
@@ -257,6 +257,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 	auto editMenu = menuBar()->addMenu("&Edit");
 	editMenu->addAction(editKeyboardShortcutsAction);
+	editMenu->addAction(preferencesAction);
 
 	auto toolsMenu = menuBar()->addMenu("&Tools");
 	toolsMenu->addAction(continuousSendAction);
@@ -265,7 +266,6 @@ MainWindow::MainWindow(QWidget *parent)
 	toolsMenu->addAction(byteReceiveTimesAction);
 	toolsMenu->addAction(m_clearScreenAction);
 	toolsMenu->addAction(checkForUpdatesAction);
-	toolsMenu->addAction(settingsAction);
 
 	auto helpMenu = menuBar()->addMenu("&Help");
 	helpMenu->addAction(asciiAction);
@@ -286,7 +286,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(byteReceiveTimesAction, &QAction::triggered, this, &MainWindow::showByteReceiveTimes);
 	connect(m_clearScreenAction, &QAction::triggered, this, &MainWindow::clearScreen);
 	connect(checkForUpdatesAction, &QAction::triggered, this, &MainWindow::showCheckForUpdates);
-	connect(settingsAction, &QAction::triggered, this, &MainWindow::showSettings);
+	connect(preferencesAction, &QAction::triggered, this, &MainWindow::showPreferences);
 	connect(asciiAction, &QAction::triggered, this, &MainWindow::showAsciiTable);
 	connect(escapeCodesAction, &QAction::triggered, this, &MainWindow::showEscapeCodes);
 	connect(changelogAction, &QAction::triggered, this, &MainWindow::showChangelog);
@@ -345,7 +345,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(m_plainTextViewShortcut, &QShortcut::activated, [this]() { m_tabs->setCurrentIndex(0); });
 	connect(m_hexViewShortcut, &QShortcut::activated, [this]() { m_tabs->setCurrentIndex(1); });
 
-	connect(m_settingsPage, &SettingsPage::settingsChanged, [this]() {
+	connect(m_preferencesPage, &PreferencesPage::preferencesChanged, [this]() {
 		Config c;
 		m_textView->clear();
 		m_textView->insertData(m_receivedData);
@@ -827,11 +827,11 @@ void MainWindow::showAboutQtPage()
 	QMessageBox::aboutQt(this, "About Qt");
 }
 
-void MainWindow::showSettings()
+void MainWindow::showPreferences()
 {
-	m_settingsPage->show();
-	m_settingsPage->activateWindow();
-	m_settingsPage->raise();
+	m_preferencesPage->show();
+	m_preferencesPage->activateWindow();
+	m_preferencesPage->raise();
 }
 
 void MainWindow::showKeyboardShortcutsDialog()

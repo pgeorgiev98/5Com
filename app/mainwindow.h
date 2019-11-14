@@ -15,7 +15,7 @@ class ByteReceiveTimesDialog;
 class ContinuousSendWindow;
 class SendSequenceWindow;
 class InputField;
-class SettingsPage;
+class PreferencesPage;
 class QAction;
 class QShortcut;
 
@@ -48,7 +48,7 @@ public slots:
 	void showAboutPage();
 	void showAboutQtPage();
 	void showCheckForUpdates();
-	void showSettings();
+	void showPreferences();
 	void showKeyboardShortcutsDialog();
 	void sendFromFile();
 	void exportData();
@@ -93,7 +93,7 @@ private:
 	ByteReceiveTimesDialog *m_byteReceiveTimesDialog;
 	QDialog *m_asciiTableDialog;
 	QDialog *m_escapeCodesDialog;
-	SettingsPage *m_settingsPage;
+	PreferencesPage *m_preferencesPage;
 
 	QAction *m_exportAction;
 	QAction *m_clearScreenAction;

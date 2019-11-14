@@ -24,14 +24,14 @@ SOURCES += \
     hexview.cpp \
     asciitable.cpp \
     bytereceivetimesdialog.cpp \
+    preferencespage.cpp \
     sendfiledialog.cpp \
     plaintextview.cpp \
     escapecodesdialog.cpp \
     latestreleasechecker.cpp \
     changelogdialog.cpp \
     sendsequencewindow.cpp \
-    serialport.cpp \
-    settingspage.cpp
+    serialport.cpp
 
 HEADERS += \
     byteselection.h \
@@ -50,6 +50,7 @@ HEADERS += \
     hexview.h \
     asciitable.h \
     bytereceivetimesdialog.h \
+    preferencespage.h \
     sendfiledialog.h \
     plaintextview.h \
     common.h \
@@ -57,8 +58,7 @@ HEADERS += \
     latestreleasechecker.h \
     changelogdialog.h \
     sendsequencewindow.h \
-    serialport.h \
-    settingspage.h
+    serialport.h
 
 RESOURCES += resources.qrc
 

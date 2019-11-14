@@ -1,5 +1,5 @@
-#ifndef SETTINGSPAGE_H
-#define SETTINGSPAGE_H
+#ifndef PREFERENCESPAGE_H
+#define PREFERENCESPAGE_H
 
 #include <QDialog>
 
@@ -8,14 +8,14 @@ class QSpinBox;
 class QRadioButton;
 class QLineEdit;
 
-class SettingsPage : public QDialog
+class PreferencesPage : public QDialog
 {
 	Q_OBJECT
 public:
-	explicit SettingsPage(QWidget *parent = nullptr);
+	explicit PreferencesPage(QWidget *parent = nullptr);
 
 signals:
-	void settingsChanged();
+	void preferencesChanged();
 
 private slots:
 	void load();
@@ -42,4 +42,4 @@ private:
 	QWidget *m_fixedFontInputWidget;
 };
 
-#endif // SETTINGSPAGE_H
+#endif // PREFERENCESPAGE_H

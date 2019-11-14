@@ -1,4 +1,4 @@
-#include "settingspage.h"
+#include "preferencespage.h"
 #include "line.h"
 #include "config.h"
 #include "common.h"
@@ -22,7 +22,7 @@ QHBoxLayout *labeledWidget(const QString &label, QWidget *widget)
 	return layout;
 }
 
-SettingsPage::SettingsPage(QWidget *parent)
+PreferencesPage::PreferencesPage(QWidget *parent)
 	: QDialog(parent)
 #if defined(Q_OS_UNIX)
 	, m_includePtsDirectory(new QCheckBox("Include files from /dev/pts/ as serial ports"))
@@ -72,7 +72,7 @@ SettingsPage::SettingsPage(QWidget *parent)
 	QVBoxLayout *layout = new QVBoxLayout;
 	setLayout(layout);
 
-	layout->addWidget(new QLabel("5Com settings"), 0, Qt::AlignHCenter);
+	layout->addWidget(new QLabel("5Com Preferences"), 0, Qt::AlignHCenter);
 	layout->addWidget(new Line(Line::Type::Horizontal));
 
 	if (m_includePtsDirectory)
@@ -91,9 +91,9 @@ SettingsPage::SettingsPage(QWidget *parent)
 	layout->addWidget(m_useBuiltInFixedFont);
 
 	{
-		QGroupBox *fontSettings = new QGroupBox("Fixed font");
+		QGroupBox *fontPreferences = new QGroupBox("Fixed font");
 		QVBoxLayout *vbox = new QVBoxLayout;
-		fontSettings->setLayout(vbox);
+		fontPreferences->setLayout(vbox);
 		vbox->addWidget(m_useBuiltInFixedFont);
 		vbox->addWidget(m_useSystemFixedFont);
 		vbox->addWidget(m_useOtherFixedFont);
@@ -108,7 +108,7 @@ SettingsPage::SettingsPage(QWidget *parent)
 		vbox->addWidget(m_fixedFontInputWidget);
 		vbox->addLayout(labeledWidget("Font size: ", m_fixedFontSize));
 
-		layout->addWidget(fontSettings);
+		layout->addWidget(fontPreferences);
 
 		connect(fontSelectButton, &QPushButton::clicked, [this]() {
 			bool ok;
@@ -123,7 +123,7 @@ SettingsPage::SettingsPage(QWidget *parent)
 
 	QPushButton *restoreDefaultsButton = new QPushButton("Restore defaults");
 	layout->addWidget(restoreDefaultsButton, 0, Qt::AlignRight);
-	connect(restoreDefaultsButton, &QPushButton::clicked, this, &SettingsPage::restoreDefaults);
+	connect(restoreDefaultsButton, &QPushButton::clicked, this, &PreferencesPage::restoreDefaults);
 	layout->addSpacing(8);
 
 	{
@@ -143,7 +143,7 @@ SettingsPage::SettingsPage(QWidget *parent)
 		layout->addLayout(hbox);
 
 		connect(cancel, &QPushButton::clicked, this, &QDialog::reject);
-		connect(apply, &QPushButton::clicked, this, &SettingsPage::save);
+		connect(apply, &QPushButton::clicked, this, &PreferencesPage::save);
 		connect(ok, &QPushButton::clicked, [this]() {
 			if (save())
 				accept();
@@ -162,7 +162,7 @@ SettingsPage::SettingsPage(QWidget *parent)
 	load();
 }
 
-void SettingsPage::load()
+void PreferencesPage::load()
 {
 	Config c;
 	if (m_includePtsDirectory)
@@ -189,13 +189,13 @@ void SettingsPage::load()
 	}
 	m_fixedFontSize->setValue(c.fixedFontSize());
 
-	emit settingsChanged();
+	emit preferencesChanged();
 }
 
-bool SettingsPage::save()
+bool PreferencesPage::save()
 {
 	if (m_useOtherFixedFont->isChecked() && m_fixedFontName->text().isEmpty()) {
-		QMessageBox::information(this, "Settings", "Please select a fixed font");
+		QMessageBox::information(this, "Preferences", "Please select a fixed font");
 		return false;
 	}
 
@@ -216,16 +216,16 @@ bool SettingsPage::save()
 	c.setFixedFontName(m_fixedFontName->text());
 	c.setFixedFontSize(m_fixedFontSize->value());
 
-	emit settingsChanged();
+	emit preferencesChanged();
 
 	return true;
 }
 
-void SettingsPage::restoreDefaults()
+void PreferencesPage::restoreDefaults()
 {
 	int b = QMessageBox::question(this, "Restore defaults",
-								  "Are you sure you want to restore the default settings?\n"
-								  "The default settings will be applied immediately.");
+								  "Are you sure you want to restore the default preferences?\n"
+								  "The default preferences will be applied immediately.");
 	if (b == QMessageBox::Yes) {
 		Config().clear();
 		load();
