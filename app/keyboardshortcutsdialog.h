@@ -19,6 +19,7 @@ public:
 
 public slots:
 	void saveShortcuts();
+	void restoreDefaults();
 
 private:
 	struct Shortcut
@@ -29,6 +30,7 @@ private:
 		KeySequenceInputWidget *widget;
 	};
 
+	void addShortcuts();
 	void addShortcut(const QString &name, const QString &sequence, void (Config::Shortcuts::*setter)(const QString &));
 
 	QVector<Shortcut> m_shortcuts;

@@ -7,6 +7,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPushButton>
+#include <QMessageBox>
 
 KeyboardShortcutsDialog::KeyboardShortcutsDialog(QWidget *parent)
 	: QDialog(parent)
@@ -18,6 +19,7 @@ KeyboardShortcutsDialog::KeyboardShortcutsDialog(QWidget *parent)
 	m_treeWidget->setColumnWidth(1, textWidth(QFontMetrics(m_treeWidget->font()), "CTRL+SHIFT+Whatever"));
 	m_treeWidget->setMinimumWidth(int(1.1 * (m_treeWidget->columnWidth(0) + m_treeWidget->columnWidth(1))));
 
+	QPushButton *restoreDefaults = new QPushButton("Restore defaults");
 	QPushButton *ok = new QPushButton("Ok");
 	QPushButton *cancel = new QPushButton("Cancel");
 
@@ -25,14 +27,28 @@ KeyboardShortcutsDialog::KeyboardShortcutsDialog(QWidget *parent)
 	setLayout(layout);
 	layout->addWidget(m_treeWidget);
 
-	QHBoxLayout *l = new QHBoxLayout;
-	layout->addLayout(l);
-	l->addStretch();
-	l->addWidget(ok);
-	l->addStretch();
-	l->addWidget(cancel);
-	l->addStretch();
+	layout->addWidget(restoreDefaults, 0, Qt::AlignRight);
+	layout->addSpacing(8);
 
+	{
+		QHBoxLayout *l = new QHBoxLayout;
+		layout->addLayout(l);
+		l->addStretch();
+		l->addWidget(ok);
+		l->addStretch();
+		l->addWidget(cancel);
+		l->addStretch();
+	}
+
+	addShortcuts();
+
+	connect(restoreDefaults, &QPushButton::clicked, this, &KeyboardShortcutsDialog::restoreDefaults);
+	connect(ok, &QPushButton::clicked, [this]() {saveShortcuts(); accept();});
+	connect(cancel, &QPushButton::clicked, this, &QDialog::reject);
+}
+
+void KeyboardShortcutsDialog::addShortcuts()
+{
 	Config c;
 	Config::Shortcuts &s = c.shortcuts;
 
@@ -45,9 +61,6 @@ KeyboardShortcutsDialog::KeyboardShortcutsDialog(QWidget *parent)
 	addShortcut("Clear input field", s.clearInputFieldShortcut(), &Config::Shortcuts::setClearInputFieldShortcut);
 	addShortcut("Open plain text view", s.openPlainTextViewShortcut(), &Config::Shortcuts::setOpenPlainTextViewShortcut);
 	addShortcut("Open hex view", s.openHexViewShortcut(), &Config::Shortcuts::setOpenHexViewShortcut);
-
-	connect(ok, &QPushButton::clicked, [this]() {saveShortcuts(); accept();});
-	connect(cancel, &QPushButton::clicked, this, &QDialog::reject);
 }
 
 void KeyboardShortcutsDialog::addShortcut(const QString &name, const QString &sequence, void (Config::Shortcuts::*setter)(const QString &))
@@ -66,5 +79,17 @@ void KeyboardShortcutsDialog::saveShortcuts()
 	for (auto s : m_shortcuts) {
 		if (s.sequence != s.widget->sequence())
 			(c.shortcuts.*s.setter)(s.widget->sequence().toString());
+	}
+}
+
+void KeyboardShortcutsDialog::restoreDefaults()
+{
+	auto b = QMessageBox::question(this, "Restore defaults", "Are you sure you want to restore the default shortcuts?");
+	if (b == QMessageBox::Yes) {
+		Config().shortcuts.clear();
+		m_treeWidget->clear();
+		m_shortcuts.clear();
+		addShortcuts();
+		accept();
 	}
 }

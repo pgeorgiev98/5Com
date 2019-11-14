@@ -17,11 +17,22 @@
 #define EXPORT_SEPARATORS QStringList({",", ";", "\t", " "})
 
 #define FIELD(TYPE, CONV, NAME, SETTER, KEY, DEFAULT) \
+	public: \
 	TYPE NAME() const { return m_settings.value(KEY, DEFAULT).to ## CONV(); } \
-	void SETTER(const TYPE &NAME ## _) { m_settings.setValue(KEY, NAME ## _); }
+	void SETTER(const TYPE &NAME ## _) { m_settings.setValue(KEY, NAME ## _); } \
+	private: \
+	Field _##NAME = Field(KEY, DEFAULT);
 
 class Config
 {
+private:
+	struct Field
+	{
+		QString key;
+		QVariant defaultValue;
+		Field(const QString &key, QVariant defaultValue)
+			: key(key), defaultValue(defaultValue) {}
+	};
 public:
 	Config() {}
 	Config(const QString filePath)
@@ -54,6 +65,7 @@ public:
 	FIELD(QStringList, StringList, recentSequences, setRecentSequences, "recentSequences", QStringList())
 	FIELD(QStringList, StringList, favoriteInputs, setFavoriteInputs, "favoriteInputs", QStringList())
 
+public:
 	class Shortcuts {
 	public:
 		FIELD(QString, String, exportShortcut, setExportShortcut, "exportShortcut", QKeySequence(Qt::CTRL + Qt::Key_E).toString())
@@ -66,13 +78,29 @@ public:
 		FIELD(QString, String, openPlainTextViewShortcut, setOpenPlainTextViewShortcut, "openPlainTextViewShortcut", QKeySequence(Qt::ALT + Qt::Key_1).toString())
 		FIELD(QString, String, openHexViewShortcut, setOpenHexViewShortcut, "openHexViewShortcut", QKeySequence(Qt::ALT + Qt::Key_2).toString())
 
+	public:
+		void clear()
+		{
+			const int count = (sizeof(Shortcuts) - sizeof(QSettings)) / sizeof(Field);
+			Field *f = reinterpret_cast<Field *>(this);
+			for (int i = 0; i < count; ++i)
+				m_settings.remove(f[i].key);
+		}
+
 	private:
 		QSettings m_settings;
 	} shortcuts;
 
 	QSettings &settings() { return m_settings; }
 	QString path() const { return m_settings.fileName(); }
-	void clear() { m_settings.clear(); }
+
+	void clear()
+	{
+		const int count = (sizeof(Config) - sizeof(Shortcuts) - sizeof(QSettings)) / sizeof(Field);
+		Field *f = reinterpret_cast<Field *>(this);
+		for (int i = 0; i < count; ++i)
+			m_settings.remove(f[i].key);
+	}
 private:
 	QSettings m_settings;
 };
