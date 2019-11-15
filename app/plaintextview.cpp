@@ -271,6 +271,8 @@ void PlainTextView::setFont(QFont font)
 	m_font = font;
 	m_fm = QFontMetricsF(m_font);
 	m_padding = qRound(m_fm.averageCharWidth());
+	for (Row &r : m_rows)
+		r.width = calculateRowWidth(r);
 	recalculateSize(0, MINIMUM_WIDTH);
 }
 
