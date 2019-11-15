@@ -163,6 +163,11 @@ void HexView::setFont(QFont font)
 	m_cellPadding = m_characterWidth;
 	setFixedWidth(textX(m_bytesPerLine) + m_cellPadding);
 
+	int rows = m_data.size() / m_bytesPerLine + (m_data.size() % m_bytesPerLine > 0);
+	int widgetHeight = rows * m_cellSize + (rows + 1) * m_cellPadding;
+	if (widgetHeight != height())
+		resize(width(), widgetHeight);
+
 	repaint();
 }
 
