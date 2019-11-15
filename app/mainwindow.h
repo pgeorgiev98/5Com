@@ -16,6 +16,7 @@ class ContinuousSendWindow;
 class SendSequenceWindow;
 class InputField;
 class PreferencesPage;
+class FontPreferencesPage;
 class QAction;
 class QShortcut;
 
@@ -49,6 +50,7 @@ public slots:
 	void showAboutQtPage();
 	void showCheckForUpdates();
 	void showPreferences();
+	void showFontPreferences();
 	void showKeyboardShortcutsDialog();
 	void sendFromFile();
 	void exportData();
@@ -94,6 +96,7 @@ private:
 	QDialog *m_asciiTableDialog;
 	QDialog *m_escapeCodesDialog;
 	PreferencesPage *m_preferencesPage;
+	FontPreferencesPage *m_fontPreferencesPage;
 
 	QAction *m_exportAction;
 	QAction *m_clearScreenAction;

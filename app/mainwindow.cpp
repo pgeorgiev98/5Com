@@ -10,6 +10,7 @@
 #include "changelogdialog.h"
 #include "exportdialog.h"
 #include "preferencespage.h"
+#include "fontpreferencespage.h"
 #include "config.h"
 #include "serialport.h"
 #include "continuoussendwindow.h"
@@ -71,6 +72,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, m_asciiTableDialog(new AsciiTable(this))
 	, m_escapeCodesDialog(new EscapeCodesDialog(this))
 	, m_preferencesPage(new PreferencesPage(this))
+	, m_fontPreferencesPage(new FontPreferencesPage(this))
 	, m_exportAction(new QAction)
 	, m_clearScreenAction(new QAction)
 	, m_writeFileAction(new QAction)
@@ -230,6 +232,8 @@ MainWindow::MainWindow(QWidget *parent)
 
 	// Edit
 	QAction *editKeyboardShortcutsAction = new QAction("&Keyboard shortcuts");
+	QAction *preferencesAction = new QAction("&Preferences");
+	QAction *fontPreferencesAction = new QAction("&Font");
 
 	// Tools
 	QAction *continuousSendAction = new QAction("&Continuous send");
@@ -238,7 +242,6 @@ MainWindow::MainWindow(QWidget *parent)
 	QAction *byteReceiveTimesAction = new QAction("&Byte receive times");
 	m_clearScreenAction->setText("C&lear screen");
 	QAction *checkForUpdatesAction = new QAction("Check for &updates");
-	QAction *preferencesAction = new QAction("&Preferences");
 
 	// Help
 	QAction *asciiAction = new QAction("ASCII &table");
@@ -256,6 +259,7 @@ MainWindow::MainWindow(QWidget *parent)
 	fileMenu->addAction(m_quitAction);
 
 	auto editMenu = menuBar()->addMenu("&Edit");
+	editMenu->addAction(fontPreferencesAction);
 	editMenu->addAction(editKeyboardShortcutsAction);
 	editMenu->addAction(preferencesAction);
 
@@ -287,6 +291,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(m_clearScreenAction, &QAction::triggered, this, &MainWindow::clearScreen);
 	connect(checkForUpdatesAction, &QAction::triggered, this, &MainWindow::showCheckForUpdates);
 	connect(preferencesAction, &QAction::triggered, this, &MainWindow::showPreferences);
+	connect(fontPreferencesAction, &QAction::triggered, this, &MainWindow::showFontPreferences);
 	connect(asciiAction, &QAction::triggered, this, &MainWindow::showAsciiTable);
 	connect(escapeCodesAction, &QAction::triggered, this, &MainWindow::showEscapeCodes);
 	connect(changelogAction, &QAction::triggered, this, &MainWindow::showChangelog);
@@ -356,6 +361,9 @@ MainWindow::MainWindow(QWidget *parent)
 			QSize size = c.mainWindowSize();
 			resize(size);
 		}
+	});
+
+	connect(m_fontPreferencesPage, &FontPreferencesPage::preferencesChanged, [this]() {
 		QFont font = getFixedFont();
 		m_textView->setFont(font);
 		m_hexView->setFont(font);
@@ -832,6 +840,13 @@ void MainWindow::showPreferences()
 	m_preferencesPage->show();
 	m_preferencesPage->activateWindow();
 	m_preferencesPage->raise();
+}
+
+void MainWindow::showFontPreferences()
+{
+	m_fontPreferencesPage->show();
+	m_fontPreferencesPage->activateWindow();
+	m_fontPreferencesPage->raise();
 }
 
 void MainWindow::showKeyboardShortcutsDialog()

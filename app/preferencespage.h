@@ -5,8 +5,6 @@
 
 class QCheckBox;
 class QSpinBox;
-class QRadioButton;
-class QLineEdit;
 
 class PreferencesPage : public QDialog
 {
@@ -34,12 +32,6 @@ private:
 	QCheckBox *m_saveMainWindowSize;
 	QSpinBox *m_mainWindowWidth;
 	QSpinBox *m_mainWindowHeight;
-	QRadioButton *m_useBuiltInFixedFont;
-	QRadioButton *m_useSystemFixedFont;
-	QRadioButton *m_useOtherFixedFont;
-	QLineEdit *m_fixedFontName;
-	QSpinBox *m_fixedFontSize;
-	QWidget *m_fixedFontInputWidget;
 };
 
 #endif // PREFERENCESPAGE_H

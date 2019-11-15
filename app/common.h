@@ -15,6 +15,7 @@
 #include <QFont>
 QFont getFixedFont();
 void loadBuiltInFont();
+int getDefaultFixedFontSize();
 int textWidth(const QFontMetrics &fm, const QString &text);
 
 #endif // COMMON_H

@@ -1,6 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include "common.h"
+
 #include <QVariant>
 #include <QSettings>
 #include <QStringList>
@@ -56,18 +58,35 @@ public:
 	FIELD(int, Int, hexViewBytesPerLine, setHexViewBytesPerLine, "hexViewBytesPerLine", 16)
 	FIELD(bool, Bool, saveInputHistory, setSaveInputHistory, "saveInputHistory", true)
 	FIELD(QStringList, StringList, inputHistory, setInputHistory, "inputHistory", QStringList())
-	FIELD(bool, Bool, useBuildInFixedFont, setUseBuildInFixedFont, "useBuildInFixedFont", BUILDING_FOR_WINDOWS)
-	FIELD(bool, Bool, useSystemFixedFont, setUseSystemFixedFont, "useSystemFixedFont", !BUILDING_FOR_WINDOWS)
-	FIELD(QString, String, fixedFontName, setFixedFontName, "fixedFontName", QString())
-	FIELD(int, Int, fixedFontSize, setFixedFontSize, "fixedFontSize", -1)
 	FIELD(QSize, Size, mainWindowSize, setMainWindowSize, "mainWindowSize", QSize(640, 480))
 	FIELD(bool, Bool, saveMainWindowSize, setSaveMainWindowSize, "saveMainWindowSize", true)
 	FIELD(QStringList, StringList, recentSequences, setRecentSequences, "recentSequences", QStringList())
 	FIELD(QStringList, StringList, favoriteInputs, setFavoriteInputs, "favoriteInputs", QStringList())
 
 public:
-	class Shortcuts {
+	class Font
+	{
+		FIELD(bool, Bool, useBuildInFixedFont, setUseBuildInFixedFont, "useBuildInFixedFont", BUILDING_FOR_WINDOWS)
+		FIELD(bool, Bool, useSystemFixedFont, setUseSystemFixedFont, "useSystemFixedFont", !BUILDING_FOR_WINDOWS)
+		FIELD(QString, String, fixedFontName, setFixedFontName, "fixedFontName", QString())
+		FIELD(int, Int, fixedFontSize, setFixedFontSize, "fixedFontSize", getDefaultFixedFontSize())
+
 	public:
+		void clear()
+		{
+			const int count = (sizeof(Font) - sizeof(QSettings)) / sizeof(Field);
+			Field *f = reinterpret_cast<Field *>(this);
+			for (int i = 0; i < count; ++i)
+				m_settings.remove(f[i].key);
+		}
+
+	private:
+		QSettings m_settings;
+	} font;
+
+public:
+	class Shortcuts
+	{
 		FIELD(QString, String, exportShortcut, setExportShortcut, "exportShortcut", QKeySequence(Qt::CTRL + Qt::Key_E).toString())
 		FIELD(QString, String, clearScreenShortcut, setClearScreenShortcut, "clearScreenShortcut", QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_L).toString())
 		FIELD(QString, String, writeFileShortcut, setWriteFileShortcut, "writeFileShortcut", QKeySequence(QKeySequence::Open).toString())
@@ -96,7 +115,7 @@ public:
 
 	void clear()
 	{
-		const int count = (sizeof(Config) - sizeof(Shortcuts) - sizeof(QSettings)) / sizeof(Field);
+		const int count = (sizeof(Config) - sizeof(Font) - sizeof(Shortcuts) - sizeof(QSettings)) / sizeof(Field);
 		Field *f = reinterpret_cast<Field *>(this);
 		for (int i = 0; i < count; ++i)
 			m_settings.remove(f[i].key);

@@ -7,21 +7,21 @@ static int builtInFontId = -1;
 QFont getFixedFont()
 {
 	Config c;
+	Config::Font &f = c.font;
 	QFont font;
-	if (c.useBuildInFixedFont()) {
+	if (f.useBuildInFixedFont()) {
 		font = QFont(QFontDatabase::applicationFontFamilies(builtInFontId).at(0));
-	} else if (c.useSystemFixedFont()) {
+	} else if (f.useSystemFixedFont()) {
 		font = QFontDatabase::systemFont(QFontDatabase::SystemFont::FixedFont);
 	} else {
-		QString family = c.fixedFontName();
+		QString family = f.fixedFontName();
 		if (family.isEmpty())
 			font = QFont(QFontDatabase::applicationFontFamilies(builtInFontId).at(0));
 		else
-			font = QFont(c.fixedFontName());
+			font = QFont(f.fixedFontName());
 	}
 
-	int pointSize = c.fixedFontSize();
-	font.setPointSize(pointSize);
+	font.setPointSize(f.fixedFontSize());
 
 	return font;
 }
@@ -29,13 +29,11 @@ QFont getFixedFont()
 void loadBuiltInFont()
 {
 	builtInFontId = QFontDatabase::addApplicationFont(":/fonts/DejaVuSansMono.ttf");
-	Config c;
-	int pointSize = c.fixedFontSize();
-	if (pointSize == -1) {
-		QFont font = QFontDatabase::systemFont(QFontDatabase::SystemFont::FixedFont);
-		pointSize = font.pointSize();
-		c.setFixedFontSize(pointSize);
-	}
+}
+
+int getDefaultFixedFontSize()
+{
+	return QFontDatabase::systemFont(QFontDatabase::SystemFont::FixedFont).pointSize();
 }
 
 int textWidth(const QFontMetrics &fm, const QString &text)

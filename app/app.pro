@@ -14,6 +14,7 @@ SOURCES += \
     exportdialog.cpp \
     favoriteslistobject.cpp \
     favoritesselectionlist.cpp \
+    fontpreferencespage.cpp \
     inputfield.cpp \
     inputwithfavorites.cpp \
     keyboardshortcutsdialog.cpp \
@@ -41,6 +42,7 @@ HEADERS += \
     exportdialog.h \
     favoriteslistobject.h \
     favoritesselectionlist.h \
+    fontpreferencespage.h \
     inputfield.h \
     inputwithfavorites.h \
     keyboardshortcutsdialog.h \
