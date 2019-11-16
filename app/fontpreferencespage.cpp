@@ -9,7 +9,6 @@
 #include <QSpinBox>
 #include <QLabel>
 #include <QPushButton>
-#include <QGroupBox>
 #include <QFontDialog>
 #include <QMessageBox>
 
@@ -41,37 +40,28 @@ FontPreferencesPage::FontPreferencesPage(QWidget *parent)
 	layout->addWidget(new Line(Line::Type::Horizontal));
 
 	layout->addWidget(m_useBuiltInFixedFont);
+	layout->addWidget(m_useSystemFixedFont);
+	layout->addWidget(m_useOtherFixedFont);
 
-	{
-		QGroupBox *fontPreferences = new QGroupBox("Fixed font");
-		QVBoxLayout *vbox = new QVBoxLayout;
-		fontPreferences->setLayout(vbox);
-		vbox->addWidget(m_useBuiltInFixedFont);
-		vbox->addWidget(m_useSystemFixedFont);
-		vbox->addWidget(m_useOtherFixedFont);
+	QPushButton *fontSelectButton = new QPushButton("Select");
+	QHBoxLayout *hbox = new QHBoxLayout;
+	m_fixedFontInputWidget->setLayout(hbox);
+	hbox->addWidget(new QLabel("Fixed font: "));
+	hbox->addWidget(m_fixedFontName);
+	hbox->addWidget(fontSelectButton);
 
-		QPushButton *fontSelectButton = new QPushButton("Select");
-		QHBoxLayout *hbox = new QHBoxLayout;
-		m_fixedFontInputWidget->setLayout(hbox);
-		hbox->addWidget(new QLabel("Fixed font: "));
-		hbox->addWidget(m_fixedFontName);
-		hbox->addWidget(fontSelectButton);
+	layout->addWidget(m_fixedFontInputWidget);
+	layout->addLayout(labeledWidget("Font size: ", m_fixedFontSize));
 
-		vbox->addWidget(m_fixedFontInputWidget);
-		vbox->addLayout(labeledWidget("Font size: ", m_fixedFontSize));
-
-		layout->addWidget(fontPreferences);
-
-		connect(fontSelectButton, &QPushButton::clicked, [this]() {
-			bool ok;
-			QFont font = QFontDialog::getFont(&ok, getFixedFont(), this, "Select fixed font",
-											  QFontDialog::MonospacedFonts);
-			if (ok) {
-				m_fixedFontName->setText(font.family());
-				m_fixedFontSize->setValue(font.pointSize());
-			}
-		});
-	}
+	connect(fontSelectButton, &QPushButton::clicked, [this]() {
+		bool ok;
+		QFont font = QFontDialog::getFont(&ok, getFixedFont(), this, "Select fixed font",
+										  QFontDialog::MonospacedFonts);
+		if (ok) {
+			m_fixedFontName->setText(font.family());
+			m_fixedFontSize->setValue(font.pointSize());
+		}
+	});
 
 	QPushButton *restoreDefaultsButton = new QPushButton("Restore defaults");
 	layout->addWidget(restoreDefaultsButton, 0, Qt::AlignRight);
