@@ -247,7 +247,7 @@ MainWindow::MainWindow(QWidget *parent)
 	// Help
 	QAction *asciiAction = new QAction("ASCII &table");
 	QAction *escapeCodesAction = new QAction("&Escape codes");
-	QAction *changelogAction = new QAction("Change&log");
+	QAction *changelogAction = new QAction("&Changelog");
 	QAction *licenseAction = new QAction("&License");
 	QAction *aboutQtAction = new QAction("About &Qt");
 	QAction *aboutAction = new QAction("&About");
