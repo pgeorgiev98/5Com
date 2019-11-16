@@ -241,6 +241,7 @@ void PlainTextView::clear()
 {
 	m_data.clear();
 	m_rows = {Row()};
+	m_selection.reset();
 	recalculateSize(0, MINIMUM_WIDTH);
 }
 

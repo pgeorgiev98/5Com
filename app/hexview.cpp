@@ -96,6 +96,8 @@ std::optional<ByteSelection> HexView::selection() const
 void HexView::clear()
 {
 	m_data.clear();
+	m_selection = Selection::None;
+	m_selectionStart = m_selectionEnd = -1;
 
 	int rows = m_data.size() / m_bytesPerLine + (m_data.size() % m_bytesPerLine > 0);
 	int widgetHeight = rows * m_cellSize + (rows + 1) * m_cellPadding;
