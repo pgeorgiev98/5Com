@@ -2,7 +2,7 @@
 
 An open-source serial port access application for Linux and Windows written in C++ with Qt5.
 
-![Screenshot](screenshots/screenshot-2019-07-05.png?raw=true "5Com screenshot")
+![Screenshot](screenshots/screenshot-2019-11-16.png?raw=true "5Com screenshot")
 
 ## Features
 - You can view the serial port output
