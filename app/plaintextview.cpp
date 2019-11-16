@@ -189,8 +189,19 @@ void PlainTextView::trimData(int visibleBytesCount)
 			e.rawStartIndex -= firstByteIndex;
 	el.rawStartIndex = 0;
 	m_pressedByteIndex -= firstByteIndex;
-	if (m_selection)
-		m_selection->begin = qMax(m_selection->begin - firstByteIndex, 0);
+
+	// Update the selection
+	if (m_selection) {
+		int begin = m_selection->begin - firstByteIndex;
+		if (begin >= 0) {
+			m_selection->begin = begin;
+		} else {
+			m_selection->begin = 0;
+			m_selection->count += begin;
+			if (m_selection->count <= 0)
+				m_selection.reset();
+		}
+	}
 
 	// Delete the raw bytes
 	m_data.remove(0, firstByteIndex);
