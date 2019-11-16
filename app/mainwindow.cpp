@@ -81,6 +81,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, m_clearInputShortcut(new QShortcut(m_inputField))
 	, m_plainTextViewShortcut(new QShortcut(this))
 	, m_hexViewShortcut(new QShortcut(this))
+	, m_connectToPortShortcut(new QShortcut(this))
 {
 	Config c;
 	resize(c.mainWindowSize());
@@ -349,6 +350,7 @@ MainWindow::MainWindow(QWidget *parent)
 	});
 	connect(m_plainTextViewShortcut, &QShortcut::activated, [this]() { m_tabs->setCurrentIndex(0); });
 	connect(m_hexViewShortcut, &QShortcut::activated, [this]() { m_tabs->setCurrentIndex(1); });
+	connect(m_connectToPortShortcut, &QShortcut::activated, this, &MainWindow::toggleConnect);
 
 	connect(m_preferencesPage, &PreferencesPage::preferencesChanged, [this]() {
 		Config c;
@@ -896,6 +898,7 @@ void MainWindow::updateKeyboardShortcuts()
 	m_clearInputShortcut->setKey(s.clearInputFieldShortcut());
 	m_plainTextViewShortcut->setKey(s.openPlainTextViewShortcut());
 	m_hexViewShortcut->setKey(s.openHexViewShortcut());
+	m_connectToPortShortcut->setKey(s.connectToPortShortcut());
 }
 
 

@@ -107,6 +107,7 @@ private:
 	QShortcut *m_clearInputShortcut;
 	QShortcut *m_plainTextViewShortcut;
 	QShortcut *m_hexViewShortcut;
+	QShortcut *m_connectToPortShortcut;
 };
 
 #endif // MAINWINDOW_H

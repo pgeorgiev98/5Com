@@ -96,6 +96,7 @@ public:
 		FIELD(QString, String, clearInputFieldShortcut, setClearInputFieldShortcut, "clearInputFieldShortcut", QKeySequence(Qt::CTRL + Qt::Key_W).toString())
 		FIELD(QString, String, openPlainTextViewShortcut, setOpenPlainTextViewShortcut, "openPlainTextViewShortcut", QKeySequence(Qt::ALT + Qt::Key_1).toString())
 		FIELD(QString, String, openHexViewShortcut, setOpenHexViewShortcut, "openHexViewShortcut", QKeySequence(Qt::ALT + Qt::Key_2).toString())
+		FIELD(QString, String, connectToPortShortcut, setConnectToPortShortcut, "connectToPortShortcut", QKeySequence(Qt::CTRL + Qt::Key_Return).toString())
 
 	public:
 		void clear()

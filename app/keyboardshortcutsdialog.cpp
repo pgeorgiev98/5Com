@@ -61,6 +61,7 @@ void KeyboardShortcutsDialog::addShortcuts()
 	addShortcut("Clear input field", s.clearInputFieldShortcut(), &Config::Shortcuts::setClearInputFieldShortcut);
 	addShortcut("Open plain text view", s.openPlainTextViewShortcut(), &Config::Shortcuts::setOpenPlainTextViewShortcut);
 	addShortcut("Open hex view", s.openHexViewShortcut(), &Config::Shortcuts::setOpenHexViewShortcut);
+	addShortcut("Connect/Disconnect from port", s.connectToPortShortcut(), &Config::Shortcuts::setConnectToPortShortcut);
 }
 
 void KeyboardShortcutsDialog::addShortcut(const QString &name, const QString &sequence, void (Config::Shortcuts::*setter)(const QString &))
