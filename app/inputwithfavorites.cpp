@@ -113,6 +113,14 @@ void InputWithFavorites::setText(const QString &text)
 		std::get<InputField *>(m_inputWidget)->setCurrentText(text);
 }
 
+void InputWithFavorites::focusInput()
+{
+	if (std::holds_alternative<QLineEdit *>(m_inputWidget))
+		std::get<QLineEdit *>(m_inputWidget)->setFocus();
+	else
+		std::get<InputField *>(m_inputWidget)->setFocus();
+}
+
 void InputWithFavorites::onTextChanged(const QString &text)
 {
 	m_saveButton->setDisabled(text.isEmpty());

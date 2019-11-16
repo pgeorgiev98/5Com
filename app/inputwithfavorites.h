@@ -20,6 +20,7 @@ public:
 
 public slots:
 	void setText(const QString &text);
+	void focusInput();
 
 private slots:
 	void onTextChanged(const QString &text);

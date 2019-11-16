@@ -310,7 +310,7 @@ void SendSequenceWindow::addOperation(SendSequenceWindow::OperationType type, in
 		m_operationsLayout->addWidget(op.label = new QLabel("Send: "), row, 0);
 		InputWithFavorites *input = new InputWithFavorites(InputWithFavorites::Right, new QLineEdit);
 		m_operationsLayout->addWidget(input, row, 1, 1, 2);
-		input->setFocus();
+		input->focusInput();
 		op.input = input;
 		op.inputSpan = 2;
 	} else if (type == OperationType::Wait) {
