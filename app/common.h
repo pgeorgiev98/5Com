@@ -6,7 +6,7 @@
 #include <QString>
 
 #define APPLICATION_NAME "5Com"
-#define VERSION "0.4.1"
+#define VERSION "0.5.0"
 
 #define SOURCE_CODE_URL "https://github.com/pgeorgiev98/5Com"
 #define RELEASES_URL "https://github.com/pgeorgiev98/5Com/releases"

@@ -1,3 +1,12 @@
+* Sat Nov 16 2019 - Petko Georgiev <petko.vas.georgiev@gmail.com> - v0.5.0
+    - Added optimizations to Text View which lead to huge performance gains
+      In certain workloads the application could be over 50x faster
+    - Added an option to save/load sequences
+    - Added an option to move sequences up/down in the list
+    - Add option to save inputs to a list of favorite inputs
+    - Make the keyboard shortcuts user-configurable
+    - Other various bug fixes and enhancements
+
 * Sun Oct 06 2019 - Petko Georgiev <petko.vas.georgiev@gmail.com> - v0.4.1
     - Fix a bug with the input field history
     - Fix a bug with restarting the app after an auto-update [Windows]
