@@ -23,6 +23,7 @@ public slots:
 	void clear();
 	void setData(const QByteArray &data);
 	void insertData(const QByteArray &data);
+	void trimData(int visibleBytesCount);
 	void setBytesPerLine(int bytesPerLine);
 	void highlight(ByteSelection selection);
 	void selectNone();
@@ -30,6 +31,7 @@ public slots:
 
 signals:
 	void highlightInTextView(ByteSelection selection);
+	void mustScrollUp(int px);
 
 protected:
 	void paintEvent(QPaintEvent *) override;

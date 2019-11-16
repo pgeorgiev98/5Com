@@ -110,6 +110,8 @@ void HexView::clear()
 void HexView::setData(const QByteArray &data)
 {
 	m_data.clear();
+	m_selection = Selection::None;
+	m_selectionStart = m_selectionEnd = -1;
 	insertData(data);
 }
 
@@ -121,6 +123,28 @@ void HexView::insertData(const QByteArray &data)
 	int widgetHeight = rows * m_cellSize + (rows + 1) * m_cellPadding;
 	if (widgetHeight != height())
 		resize(width(), widgetHeight);
+
+	repaint();
+}
+
+void HexView::trimData(int visibleBytesCount)
+{
+	int bytesToRemove = m_data.size() - visibleBytesCount;
+	m_data.remove(0, bytesToRemove);
+
+	m_selectionStart = qMax(m_selectionStart - bytesToRemove, 0);
+	m_selectionEnd = qMax(m_selectionEnd - bytesToRemove, 0);
+	if (m_selectionStart == m_selectionEnd)
+		m_selection = Selection::None;
+
+	int oldHeight = height();
+
+	int rows = m_data.size() / m_bytesPerLine + (m_data.size() % m_bytesPerLine > 0);
+	int widgetHeight = rows * m_cellSize + (rows + 1) * m_cellPadding;
+	if (widgetHeight != height())
+		resize(width(), widgetHeight);
+
+	emit mustScrollUp(oldHeight - height());
 
 	repaint();
 }

@@ -402,6 +402,13 @@ MainWindow::MainWindow(QWidget *parent)
 			sb->setValue(sb->value() - px);
 	});
 
+	connect(m_hexView, &HexView::mustScrollUp, [this](int px) {
+		auto sb = m_hexViewScrollArea->verticalScrollBar();
+		bool atBottom = (sb->value() == sb->maximum());
+		if (!atBottom)
+			sb->setValue(sb->value() - px);
+	});
+
 	connect(m_tabs, &QTabWidget::currentChanged, [this](int tab) {
 		if (tab == 0) {
 			auto selection = m_hexView->selection();
@@ -880,7 +887,7 @@ void MainWindow::trimData()
 		m_receivedData.remove(0, delta);
 
 		m_textView->trimData(m_receivedData.size());
-		m_hexView->setData(m_receivedData);
+		m_hexView->trimData(m_receivedData.size());
 	}
 
 	if (m_byteReceiveTimesDialog) {
