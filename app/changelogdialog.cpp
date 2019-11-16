@@ -36,6 +36,15 @@ QString ChangelogDialog::changelogHtml() const
 	QString html;
 	bool inRelease = false;
 
+	QString listItemText;
+
+	auto commitListItem = [&listItemText, &html]() {
+		if (!listItemText.isEmpty()) {
+			html.append(QString("<li>%1</li>").arg(listItemText));
+			listItemText.clear();
+		}
+	};
+
 	QStringList lines = text.split('\n');
 	for (const QString &line : lines) {
 		if (!inRelease) {
@@ -53,9 +62,14 @@ QString ChangelogDialog::changelogHtml() const
 			QString l = line.trimmed();
 			if (l.startsWith('-')) {
 				l.remove(0, 1);
-				html.append(QString("<li>%1</li>").arg(l.trimmed().toHtmlEscaped()));
+				commitListItem();
+				listItemText.append(l.trimmed().toHtmlEscaped());
+			} else if (!listItemText.isEmpty()) {
+				listItemText.append("<br/>");
+				listItemText.append(l.trimmed().toHtmlEscaped());
 			}
 		}
 	}
+	commitListItem();
 	return html;
 }
