@@ -138,6 +138,7 @@ void PlainTextView::insertData(const QByteArray &data)
 void PlainTextView::trimData(int visibleBytesCount)
 {
 	Q_ASSERT(visibleBytesCount <= m_data.size());
+	int previousRowCount = m_rows.size();
 	int firstByteIndex = m_data.size() - visibleBytesCount;
 
 	int firstRowIndex = -1, firstElementIndex = -1;
@@ -197,6 +198,10 @@ void PlainTextView::trimData(int visibleBytesCount)
 	// Recalculate the widget size
 	m_rows.first().width = calculateRowWidth(m_rows.first());
 	recalculateSize(0, MINIMUM_WIDTH);
+
+	// Scrollbar fix
+	int rowsRemoved = previousRowCount - m_rows.size();
+	emit mustScrollUp(qRound(rowsRemoved * m_fm.height()));
 }
 
 void PlainTextView::recalculateSize(int startRow, int minimumWidth)

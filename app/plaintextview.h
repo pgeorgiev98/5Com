@@ -33,6 +33,7 @@ public slots:
 
 signals:
 	void highlightInHexView(ByteSelection selection);
+	void mustScrollUp(int px);
 
 protected:
 	void paintEvent(QPaintEvent *event) override;

@@ -395,6 +395,13 @@ MainWindow::MainWindow(QWidget *parent)
 		m_textView->highlight(selection);
 	});
 
+	connect(m_textView, &PlainTextView::mustScrollUp, [this](int px) {
+		auto sb = m_plainTextViewScrollArea->verticalScrollBar();
+		bool atBottom = (sb->value() == sb->maximum());
+		if (!atBottom)
+			sb->setValue(sb->value() - px);
+	});
+
 	connect(m_tabs, &QTabWidget::currentChanged, [this](int tab) {
 		if (tab == 0) {
 			auto selection = m_hexView->selection();
