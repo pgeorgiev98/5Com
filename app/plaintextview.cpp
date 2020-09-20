@@ -118,6 +118,9 @@ void PlainTextView::insertData(const QByteArray &data)
 	for (int i = start; i < m_data.size(); ++i) {
 		unsigned char b = static_cast<unsigned char>(m_data[i]);
 
+		if (b != '\n' && m_data.size() > i - 1 && m_data[i - 1] == '\r')
+			m_rows.append(Row());
+
 		const auto &info = byteInfos[b];
 		if (info.type != 0 || info.type != lastType) {
 			m_rows.last().elements.append({i, Element::Type(info.type), info.str});
@@ -254,7 +257,7 @@ void PlainTextView::copySelection()
 	for (int i = m_selection->begin; i < m_selection->begin + m_selection->count; ++i) {
 		unsigned char b = static_cast<unsigned char>(m_data[i]);
 		text.append(byteInfos[b].str);
-		if (b == '\n')
+		if ((b == '\n') || (b == '\r' && i + 1 < m_selection->begin + m_selection->count && m_data[i + 1] != '\n'))
 			text.append('\n');
 	}
 	QClipboard *clipboard = QGuiApplication::clipboard();
