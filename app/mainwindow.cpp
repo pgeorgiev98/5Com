@@ -923,7 +923,11 @@ void MainWindow::resizeEvent(QResizeEvent *)
 
 void MainWindow::closeEvent(QCloseEvent *)
 {
+	auto winState = windowState();
+	bool saveSize = !winState.testFlag(Qt::WindowState::WindowMaximized) &&
+			!winState.testFlag(Qt::WindowState::WindowMinimized) &&
+			!winState.testFlag(Qt::WindowState::WindowFullScreen);
 	Config c;
-	if (c.saveMainWindowSize())
+	if (saveSize && c.saveMainWindowSize())
 		c.setMainWindowSize(size());
 }
