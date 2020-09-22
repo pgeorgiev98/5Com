@@ -1,3 +1,8 @@
+* Tue Sep 22 2020 - Petko Georgiev <petko.vas.georgiev@gmail.com> - v0.5.1
+    - Made the plain text view put new lines after CR
+    - Fix issues with saving the window size when maximixed/fullscreen
+    - Fix issues with the changelog window
+
 * Sat Nov 16 2019 - Petko Georgiev <petko.vas.georgiev@gmail.com> - v0.5.0
     - Added optimizations to Text View which lead to huge performance gains
       In certain workloads the application could be over 50x faster
