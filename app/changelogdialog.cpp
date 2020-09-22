@@ -55,6 +55,8 @@ QString ChangelogDialog::changelogHtml() const
 			inRelease = true;
 		} else if (line.trimmed().isEmpty()) {
 			if (inRelease) {
+				if (!listItemText.isEmpty())
+					commitListItem();
 				inRelease = false;
 				html.append("</ul>");
 			}
