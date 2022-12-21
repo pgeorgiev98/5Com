@@ -7,6 +7,8 @@
 #include <QFont>
 #include <QFontMetrics>
 
+#include <optional>
+
 #include "byteselection.h"
 
 class HexView : public QWidget
