@@ -88,9 +88,10 @@ MainWindow::MainWindow(QWidget *parent)
 	setWindowIcon(QIcon(":/icon.ico"));
 
 	bool checkForUpdates = c.checkForUpdatesOnStartup();
-	QLabel *updateStatusBarLabel = new QLabel;
+	QLabel *updateStatusBarLabel = nullptr;
 
 	if (checkForUpdates) {
+		updateStatusBarLabel = new QLabel;
 		updateStatusBarLabel->setText("Checking for updates...");
 		statusBar()->addWidget(updateStatusBarLabel);
 	}
@@ -100,7 +101,8 @@ MainWindow::MainWindow(QWidget *parent)
 	// Keyboard shortcuts dialog
 
 	m_portSelect->addItem("Loopback");
-	for (qint32 baud : QSerialPortInfo::standardBaudRates())
+	const auto standardBaudRates = QSerialPortInfo::standardBaudRates();
+	for (qint32 baud : standardBaudRates)
 		m_baudRateSelect->addItem(QString::number(baud));
 	m_dataBitsSelect->addItems({"5", "6", "7", "8"});
 	m_paritySelect->addItems({"Even", "Mark", "Odd", "Space", "None"});
@@ -187,7 +189,7 @@ MainWindow::MainWindow(QWidget *parent)
 	m_hexViewBytesPerLine->setRange(1, 128);
 	m_hexViewBytesPerLine->setValue(c.hexViewBytesPerLine());
 	m_hexViewBytesPerLine->adjustSize();
-	QTimer::singleShot(0, [this]() {
+	QTimer::singleShot(0, this, [this]() {
 		m_hexViewBytesPerLine->move(m_tabs->width() - m_hexViewBytesPerLine->width(), 0);
 	});
 	m_hexView->setBytesPerLine(m_hexViewBytesPerLine->value());
@@ -624,14 +626,16 @@ void MainWindow::refreshPorts()
 {
 	QStringList ports;
 	ports << "Loopback";
-	for (auto portInfo : QSerialPortInfo::availablePorts())
+	const auto availablePorts = QSerialPortInfo::availablePorts();
+	for (const auto& portInfo : availablePorts)
 		ports << portInfo.portName();
 
 #if defined(Q_OS_UNIX)
 	if (Config().includePtsDirectory()) {
 		QDir ptsDir("/dev/pts/");
 		ptsDir.setFilter(QDir::AllEntries | QDir::System);
-		for (auto filename : ptsDir.entryList()) {
+		const auto entryList = ptsDir.entryList();
+		for (const auto& filename : entryList) {
 			bool ok;
 			filename.toInt(&ok);
 			if (ok)
@@ -658,7 +662,7 @@ void MainWindow::refreshPorts()
 	for (int i = 0; i < m_portSelect->count(); ++i)
 		selectPorts << m_portSelect->itemText(i);
 
-	for (const QString &port : ports) {
+	for (const QString &port : std::as_const(ports)) {
 		if (!selectPorts.contains(port)) {
 			int position = 0;
 			if (port != "Loopback") {

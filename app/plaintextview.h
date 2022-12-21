@@ -112,6 +112,14 @@ private:
 
 	QVector<Row> m_rows;
 
+	QColor m_backgroundColor;
+	QColor m_textColor;
+	QColor m_standardHexCodeColor;
+	QColor m_nonStandardHexCodeColor;
+	QColor m_hoverTextColor;
+	QColor m_selectionColor;
+	QColor m_selectedTextColor;
+
 	static const ByteInfo byteInfos[256];
 
 	int getByteIndexAtPos(QPoint pos, bool selecting = false) const;

@@ -11,14 +11,6 @@
 #include <QShortcut>
 #include <QGuiApplication>
 
-static QColor backgroundColor("#ffffff");
-static QColor textColor("#000000");
-static QColor standardHexCodeColor(Qt::blue);
-static QColor nonStandardHexCodeColor(Qt::red);
-static QColor hoverTextColor("#ff0000");
-static QColor selectionColor("#0000ff");
-static QColor selectedTextColor("#000000");
-
 #define MINIMUM_WIDTH 80
 #define MINIMUM_HEIGHT 80
 
@@ -37,13 +29,15 @@ PlainTextView::PlainTextView(QWidget *parent)
 	, m_rows({Row()})
 {
 	QPalette pal = palette();
-	backgroundColor = pal.base().color();
-	textColor = pal.text().color();
-	hoverTextColor = pal.link().color();
-	selectionColor = pal.highlight().color();
-	selectedTextColor = pal.highlightedText().color();
+	m_backgroundColor = pal.base().color();
+	m_textColor = pal.text().color();
+	m_standardHexCodeColor = Qt::blue;
+	m_nonStandardHexCodeColor = Qt::red;
+	m_hoverTextColor = pal.link().color();
+	m_selectionColor = pal.highlight().color();
+	m_selectedTextColor = pal.highlightedText().color();
 
-	pal.setColor(QPalette::Window, backgroundColor);
+	pal.setColor(QPalette::Window, m_backgroundColor);
 	setAutoFillBackground(true);
 	setPalette(pal);
 	setMinimumWidth(m_width);
@@ -310,9 +304,9 @@ void PlainTextView::paintEvent(QPaintEvent *event)
 	const int endRow = qBound(0, int((rect.y() + rect.height() - m_fm.ascent() - m_padding) / rowHeight + 2), m_rows.size());
 
 	static QColor colors[3] = {
-		textColor,
-		standardHexCodeColor,
-		nonStandardHexCodeColor,
+		m_textColor,
+		m_standardHexCodeColor,
+		m_nonStandardHexCodeColor,
 	};
 
 	ByteSelection selection = m_selection.value_or(ByteSelection(0, 0));
@@ -344,7 +338,7 @@ void PlainTextView::paintEvent(QPaintEvent *event)
 					if (firstIndex + selectionLength == element.str.size())
 						selection.setWidth(selection.width() + 1);
 
-					painter.fillRect(selection, selectionColor);
+					painter.fillRect(selection, m_selectionColor);
 				}
 
 				QRectF rect(x, y - m_fm.ascent(), width, rowHeight);
@@ -436,13 +430,13 @@ void PlainTextView::mouseReleaseEvent(QMouseEvent *event)
 			int b = int(static_cast<unsigned char>(m_data[byteIndex]));
 			if (byteInfos[b].type != Element::Type::PlainText) {
 				QString byteInfo = QString("Dec: %1, Hex: %2, Oct: %3, Bin: %4")
-						.arg(QString::number(b).rightJustified(3, ' '))
-						.arg(QString::number(b, 16).rightJustified(2, '0').toUpper())
-						.arg(QString::number(b, 8).rightJustified(3, ' '))
-						.arg(QString::number(b, 2).rightJustified(8, '0'));
+						.arg(QString::number(b).rightJustified(3, ' '),
+							 QString::number(b, 16).rightJustified(2, '0').toUpper(),
+							 QString::number(b, 8).rightJustified(3, ' '),
+							 QString::number(b, 2).rightJustified(8, '0'));
 				QString text;
 				if (!byteInfos[b].name.isEmpty())
-					text = QString("%1 - %2\n\n").arg(byteInfos[b].str).arg(byteInfos[b].name);
+					text = QString("%1 - %2\n\n").arg(byteInfos[b].str, byteInfos[b].name);
 				text += byteInfo;
 				QToolTip::showText(cursor().pos(), text, this);
 			}
@@ -521,23 +515,20 @@ int PlainTextView::getByteIndexAtPos(QPoint pos, bool selecting) const
 std::optional<ByteSelection> PlainTextView::getSelectedBytes() const
 {
 	int begin = 0;
-	int end = m_data.size();
-
 	if (m_pressedByteIndex != -1)
 		begin = m_pressedByteIndex;
 
-	end = getByteIndexAtPos(m_mousePos, true);
-
+	int end = getByteIndexAtPos(m_mousePos, true);
 	if (end == -1)
-		return std::optional<ByteSelection>();
+		return std::nullopt;
 
 	if (begin > end)
 		std::swap(begin, end);
 
 	if (begin == end)
-		return std::optional<ByteSelection>();
+		return std::nullopt;
 
-	return ByteSelection(begin, end - begin);
+	return std::make_optional<ByteSelection>(begin, end - begin);
 }
 
 

@@ -15,8 +15,8 @@ static QWidget *widget(std::variant<QLineEdit *, InputField *> v)
 		return std::get<InputField *>(v);
 }
 
-static QString savedToolTip = "Remove from favorites";
-static QString notSavedToolTip = "Add to favorites";
+const auto savedToolTip = "Remove from favorites";
+const auto notSavedToolTip = "Add to favorites";
 
 QIcon InputWithFavorites::isNotFavoriteIcon = QIcon();
 QIcon InputWithFavorites::isFavoriteIcon = QIcon();

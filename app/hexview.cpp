@@ -10,12 +10,6 @@
 #include <QClipboard>
 #include <QGuiApplication>
 
-static QColor backgroundColor("#ffffff");
-static QColor textColor("#000000");
-static QColor hoverTextColor("#ff0000");
-static QColor selectedColor("#0000ff");
-static QColor selectedTextColor("#000000");
-
 #define cellX(x) ((x) * m_cellSize + ((x) + 1 + ((x) / 8)) * m_cellPadding)
 #define textX(x) (cellX(m_bytesPerLine + 1) + x * (m_characterWidth + 5))
 
@@ -41,13 +35,13 @@ HexView::HexView(QWidget *parent)
 	, m_selecting(false)
 {
 	QPalette pal = palette();
-	backgroundColor = pal.base().color();
-	textColor = pal.text().color();
-	hoverTextColor = pal.link().color();
-	selectedColor = pal.highlight().color();
-	selectedTextColor = pal.highlightedText().color();
+	m_backgroundColor = pal.base().color();
+	m_textColor = pal.text().color();
+	m_hoverTextColor = pal.link().color();
+	m_selectedColor = pal.highlight().color();
+	m_selectedTextColor = pal.highlightedText().color();
 
-	pal.setColor(QPalette::Window, backgroundColor);
+	pal.setColor(QPalette::Window, m_backgroundColor);
 	setAutoFillBackground(true);
 	setPalette(pal);
 	setFixedWidth(textX(m_bytesPerLine) + m_cellPadding);
@@ -245,13 +239,13 @@ void HexView::paintEvent(QPaintEvent *event)
 
 			if (i == m_hoveredIndex || inSelection) {
 				if (inSelection)
-					painter.setBrush(selectedColor);
+					painter.setBrush(m_selectedColor);
 				else
-					painter.setBrush(backgroundColor);
+					painter.setBrush(m_backgroundColor);
 				if (i == m_hoveredIndex)
-					painter.setPen(hoverTextColor);
+					painter.setPen(m_hoverTextColor);
 				else
-					painter.setPen(selectedColor);
+					painter.setPen(m_selectedColor);
 
 				painter.drawRect(cellCoord.x() - m_cellPadding / 2,
 								 cellCoord.y() - m_fontMetrics.ascent() - m_cellPadding / 2,
@@ -265,9 +259,9 @@ void HexView::paintEvent(QPaintEvent *event)
 			}
 
 			if (m_hoveredIndex == i)
-				painter.setPen(hoverTextColor);
+				painter.setPen(m_hoverTextColor);
 			else
-				painter.setPen(textColor);
+				painter.setPen(m_textColor);
 
 			painter.drawText(cellCoord, cellText);
 			painter.drawText(textCoord, ch);

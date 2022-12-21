@@ -77,7 +77,7 @@ void KeyboardShortcutsDialog::addShortcut(const QString &name, const QString &se
 void KeyboardShortcutsDialog::saveShortcuts()
 {
 	Config c;
-	for (auto s : m_shortcuts) {
+	for (const auto& s : std::as_const(m_shortcuts)) {
 		if (s.sequence != s.widget->sequence())
 			(c.shortcuts.*s.setter)(s.widget->sequence().toString());
 	}

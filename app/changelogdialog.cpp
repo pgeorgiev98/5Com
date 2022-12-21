@@ -50,7 +50,7 @@ QString ChangelogDialog::changelogHtml() const
 		if (!inRelease) {
 			QString version = QRegularExpression("v\\d+\\.\\d+.\\d+$").match(line).captured(0);
 			QString date = QRegularExpression("\\* *... ... \\d\\d \\d\\d\\d\\d").match(line).captured(0).remove(0, 1).trimmed();
-			html.append(QString("<h3>%1 - %2</h3>").arg(version).arg(date));
+			html.append(QString("<h3>%1 - %2</h3>").arg(version, date));
 			html.append("<ul>");
 			inRelease = true;
 		} else if (line.trimmed().isEmpty()) {

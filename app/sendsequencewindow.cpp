@@ -268,7 +268,7 @@ void SendSequenceWindow::addOperation(SendSequenceWindow::OperationType type)
 {
 	addOperation(type, m_operations.size());
 	// Scroll to bottom; this looks pretty badly hacked
-	QTimer::singleShot(1, [this]() {
+	QTimer::singleShot(1, this, [this]() {
 		auto sb = m_operationsScrollArea->verticalScrollBar();
 		sb->setValue(sb->maximum());
 	});
@@ -501,21 +501,23 @@ void SendSequenceWindow::saveSequence()
 	if (!dialog.exec())
 		return;
 
-	QString filePath = dialog.selectedFiles().first();
-	if (filePath.isEmpty())
+	const auto selectedFiles = dialog.selectedFiles();
+	if (selectedFiles.empty() || selectedFiles.first().isEmpty())
 		return;
+
+	QString filePath = selectedFiles.first();
 
 	if (dialog.selectedNameFilter() == seqNameFilter && !filePath.endsWith(".seq"))
 		filePath.append(".seq");
 
 	QFile file(filePath);
 	if (!file.open(QIODevice::WriteOnly)) {
-		QMessageBox::critical(this, "Save sequence", QString("Failed to open file %1: %2").arg(filePath).arg(file.errorString()));
+		QMessageBox::critical(this, "Save sequence", QString("Failed to open file %1: %2").arg(filePath, file.errorString()));
 		return;
 	}
 
 	QJsonArray rootObj;
-	for (const auto &op : m_operations) {
+	for (const auto &op : std::as_const(m_operations)) {
 		QJsonObject obj;
 		auto type = op.type;
 		obj.insert("type", operationStrings[int(type)]);
@@ -535,7 +537,7 @@ void SendSequenceWindow::saveSequence()
 	}
 	QJsonDocument document(rootObj);
 	if (file.write(document.toJson()) == -1) {
-		QMessageBox::critical(this, "Save sequence", QString("Failed to write to file %1: %2").arg(filePath).arg(file.errorString()));
+		QMessageBox::critical(this, "Save sequence", QString("Failed to write to file %1: %2").arg(filePath, file.errorString()));
 		return;
 	}
 
@@ -555,7 +557,7 @@ void SendSequenceWindow::loadSequence(const QString &filePath)
 {
 	QFile file(filePath);
 	if (!file.open(QIODevice::ReadOnly)) {
-		QMessageBox::critical(this, "Load sequence", QString("Failed to load file %1: %2").arg(filePath).arg(file.errorString()));
+		QMessageBox::critical(this, "Load sequence", QString("Failed to load file %1: %2").arg(filePath, file.errorString()));
 		return;
 	}
 

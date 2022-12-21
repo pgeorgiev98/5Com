@@ -62,6 +62,12 @@ private:
 	} m_selection;
 	bool m_selecting;
 
+	QColor m_backgroundColor;
+	QColor m_textColor;
+	QColor m_hoverTextColor;
+	QColor m_selectedColor;
+	QColor m_selectedTextColor;
+
 	int getHoverCell(const QPoint &mousePos) const;
 	int getHoverText(const QPoint &mousePos) const;
 };

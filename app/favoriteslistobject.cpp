@@ -9,8 +9,6 @@ FavoritesListObject::FavoritesListObject(QObject *parent)
 	Q_ASSERT(favoritesListObjectInstance == nullptr);
 	favoritesListObjectInstance = this;
 	m_favorites = Config().favoriteInputs();
-	for (const QString &s : m_favorites)
-		emit favoriteAdded(s);
 }
 
 FavoritesListObject *FavoritesListObject::instance()

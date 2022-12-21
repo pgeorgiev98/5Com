@@ -86,16 +86,13 @@ void InputField::keyPressEvent(QKeyEvent *event)
 				}
 			}
 		} else if (key == Qt::Key_Down) {
-			int matchIndex = -1;
 			for (int i = index - 1; i >= 0; --i) {
 				if (itemText(i).startsWith(search)) {
-					matchIndex = i;
 					setCurrentText(itemText(i));
 					return;
 				}
 			}
-			if (matchIndex == -1)
-				setCurrentText(m_searchPrefix);
+			setCurrentText(m_searchPrefix);
 		}
 	} else {
 		if (key != Qt::Key_Enter)
