@@ -81,23 +81,16 @@ void ByteReceiveTimesDialog::insertData(const QByteArray &data)
 		unsigned char byte = static_cast<unsigned char>(c);
 		m_bytes.append(Byte {ms, byte});
 
-		QString ch(byte);
-		if (byte < ' ' || byte > '~')
-			ch = "�";
-
-		QString bin = QString::number(byte, 2);
-		while (bin.length() < 8)
-			bin.push_front('0');
-
-		QString hex = QString::number(byte, 16);
-		while (bin.length() < 2)
-			bin.push_front('0');
+		const auto labels = {
+			QString::number(ms),
+			QString::number(int(byte), 10),
+			QString::number(int(byte), 16).rightJustified(2, '0'),
+			QString::number(int(byte), 2).rightJustified(8, '0'),
+			byte < ' ' || byte > '~' ? QString("\uFFFD") : QString(byte),
+		};
 
 		int col = 0;
-		for (QString label : {QString::number(ms),
-			 QString::number(int(byte), 10),
-			 QString::number(int(byte), 16),
-			 bin, ch}) {
+		for (const auto& label : labels) {
 			QTableWidgetItem *item = new QTableWidgetItem(label);
 			item->setTextAlignment(Qt::AlignRight);
 			m_table->setItem(row, col++, item);
